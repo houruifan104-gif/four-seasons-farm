@@ -169,11 +169,178 @@ body{background:#8a5a34 url('./assets/tabletop.png') center top / cover fixed;co
 }
 @media(prefers-reduced-motion:reduce){.action-card,.farm-cell.selectable{animation:none;transition:none}}
 
-</style></head><body><div id="app"></div><script>
+/* Online rooms share the same boards, with a separate lobby and connection status. */
+.online-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 12px;margin-bottom:10px;border:2px solid #9b7d48;border-radius:8px;background:#f8e9be;color:#4d5f37;font-size:13px}
+.online-bar button{min-height:36px;border:1px solid #b69961;border-radius:6px;background:#fff5d6;color:#4a5e34;font:inherit;font-weight:700;padding:6px 10px}
+.online-bar span{flex:1;min-width:140px;line-height:1.5}
+.online-field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#4b5b3d;font-weight:700}
+.online-field input{width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid #b5bf9f;border-radius:8px;background:#fffef7;color:#2e4932;font:inherit;font-size:16px}
+.room-join{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px;margin:16px 0}.room-join button{min-height:44px}
+.room-create{border-top:1px solid #d5c8a9;padding-top:4px;margin-top:20px}.room-create .setup-grid{gap:8px}.room-create>.primary-btn{width:100%;min-height:44px}
+.room-code{text-align:center;user-select:all;font:800 30px ui-monospace,monospace;letter-spacing:.12em;border:2px dashed #9baa7b;border-radius:10px;background:#ecf0dd;padding:14px;margin:14px 0;color:#34523b}
+.room-members{display:grid;gap:8px;margin:15px 0}.room-members>div{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px;background:#eff1e1;border-radius:8px;font-size:13px}.room-members b{overflow-wrap:anywhere}.room-members span{flex-shrink:0;font-size:12px;color:#647953}
+.room-error:empty{display:none}.online-modal .room-error{color:#98532e;font-size:13px}.room-controls{display:flex;gap:8px;flex-wrap:wrap}.room-controls button{min-height:44px;flex:1}.room-resume{margin-top:16px;width:100%;min-height:44px}
+@media(max-width:700px){.tabletop-shell .header-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:relative}.tabletop-shell .round-pill{position:absolute;right:0;bottom:calc(100% + 8px);padding:6px 8px;font-size:10px}.tabletop-shell .header-actions .ghost-btn{padding:7px 3px;font-size:11px}.online-bar{padding:7px;gap:5px;font-size:11px}.online-bar button{min-height:44px;padding:6px}.online-bar span{min-width:120px}.online-modal .room-code{font-size:26px}.room-members>div{padding:10px}.room-create .setup-grid{display:grid;grid-template-columns:1fr 1fr}.room-create .setup-grid>label:first-child{grid-column:1/-1}.online-modal .modal-actions{gap:8px}}
+
+</style></head><body><div id="app"></div><script src="./vendor/peerjs.min.js"></script><script>
 // A/B card-name index; see README for source and scope.
 window.ORIGINAL_CARD_CATALOG = [{"id":"A001","name":"Shelter","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3424"},{"id":"A002","name":"Shifting Cultivation","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3423"},{"id":"A003","name":"Paper Knife","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3422"},{"id":"A004","name":"Baseboards","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3421"},{"id":"A005","name":"Clay Embankment","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3420"},{"id":"A006","name":"Storage Barn","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3419"},{"id":"A007","name":"Gardener's Knife","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3418"},{"id":"A008","name":"Food Basket","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3417"},{"id":"A009","name":"Young Animal Market","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3416"},{"id":"A010","name":"Wooden Shed","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3415"},{"id":"A011","name":"Mud Patch","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3414"},{"id":"A012","name":"Drinking Trough","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3413"},{"id":"A013","name":"Renovation Company","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3412"},{"id":"A014","name":"Carpenter's Hammer","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3411"},{"id":"A015","name":"Carpenter's Axe","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3410"},{"id":"A016","name":"Rammed Clay","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3409"},{"id":"A017","name":"Reclamation Plow","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3408"},{"id":"A018","name":"Wheel Plow","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3407"},{"id":"A019","name":"Handplow","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3406"},{"id":"A020","name":"Double-Turn Plow","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3405"},{"id":"A021","name":"Family Friendly Home","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3404"},{"id":"A022","name":"Telegram","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3403"},{"id":"A023","name":"Stone Company","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3402"},{"id":"A024","name":"Threshing Board","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3401"},{"id":"A025","name":"Bassinet","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3400"},{"id":"A026","name":"Sleeping Corner","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3399"},{"id":"A027","name":"Oven Site","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3398"},{"id":"A028","name":"Forest School","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3397"},{"id":"A029","name":"Ale-Benches","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3396"},{"id":"A030","name":"Baking Sheet","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3395"},{"id":"A031","name":"Debt Security","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3394"},{"id":"A032","name":"Manger","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3393"},{"id":"A033","name":"Big Country","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3392"},{"id":"A034","name":"Loppers","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3391"},{"id":"A035","name":"Swimming Class","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3390"},{"id":"A036","name":"Facades Carving","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3389"},{"id":"A037","name":"Bucksaw","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3388"},{"id":"A038","name":"Wool Blankets","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3387"},{"id":"A039","name":"Chapel","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3386"},{"id":"A040","name":"Potter's Yard","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3385"},{"id":"A041","name":"Vegetable Slicer","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3384"},{"id":"A042","name":"Forest Lake Hut","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3383"},{"id":"A043","name":"Farmyard Manure","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3382"},{"id":"A044","name":"Pond Hut","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3381"},{"id":"A045","name":"Fire Protection Pond","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3380"},{"id":"A046","name":"Claw Knife","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3379"},{"id":"A047","name":"Trellises","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3378"},{"id":"A048","name":"Shaving Horse","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3377"},{"id":"A049","name":"Nest Site","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3376"},{"id":"A050","name":"Milk Jug","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3375"},{"id":"A051","name":"Drift-Net Boat","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3374"},{"id":"A052","name":"Throwing Axe","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3373"},{"id":"A053","name":"Claypipe","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3372"},{"id":"A054","name":"Credit","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3371"},{"id":"A055","name":"Junk Room","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3370"},{"id":"A056","name":"Basket","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3369"},{"id":"A057","name":"Milking Parlor","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3368"},{"id":"A058","name":"Asparagus Knife","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3367"},{"id":"A059","name":"Potato Ridger","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3366"},{"id":"A060","name":"Oriental Fireplace","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3365"},{"id":"A061","name":"Winnowing Fan","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3364"},{"id":"A062","name":"Beer Keg","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3363"},{"id":"A063","name":"Dutch Windmill","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3362"},{"id":"A064","name":"Barley Mill","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3361"},{"id":"A065","name":"Seed Pellets","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3360"},{"id":"A066","name":"Feeding Dish","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3359"},{"id":"A067","name":"Corn Scoop","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3358"},{"id":"A068","name":"Asparagus Gift","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3357"},{"id":"A069","name":"Large Greenhouse","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3356"},{"id":"A070","name":"Lifting Machine","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3355"},{"id":"A071","name":"Clearing Spade","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3354"},{"id":"A072","name":"Calcium Fertilizers","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3353"},{"id":"A073","name":"Agricultural Fertilizers","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3352"},{"id":"A074","name":"Stable Tree","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3351"},{"id":"A075","name":"Lumber Mill","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3350"},{"id":"A076","name":"Cob","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3349"},{"id":"A077","name":"Hod","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3348"},{"id":"A078","name":"Canoe","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3347"},{"id":"A079","name":"Garden Hoe","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3346"},{"id":"A080","name":"Stone Tongs","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3345"},{"id":"A081","name":"Interim Storage","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3344"},{"id":"A082","name":"Work Certificate","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3343"},{"id":"A083","name":"Shepherd's Crook","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3342"},{"id":"A084","name":"Silage","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3341"},{"id":"A085","name":"Homekeeper","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3340"},{"id":"A086","name":"Animal Tamer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3339"},{"id":"A087","name":"Conservator","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3338"},{"id":"A088","name":"Hedge Keeper","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3337"},{"id":"A089","name":"Stable Planner","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3336"},{"id":"A090","name":"Plow Driver","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3335"},{"id":"A091","name":"Shifting Cultivator","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3334"},{"id":"A092","name":"Adoptive Parents","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3333"},{"id":"A093","name":"Bed Maker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3332"},{"id":"A094","name":"Lazy Sowman","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3331"},{"id":"A095","name":"Angler","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3330"},{"id":"A096","name":"Task Artisan","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3329"},{"id":"A097","name":"Freshman","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3328"},{"id":"A098","name":"Stable Architect","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3327"},{"id":"A099","name":"Fellow Grazer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3326"},{"id":"A100","name":"Curator","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3325"},{"id":"A101","name":"Cookery Outfitter","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3324"},{"id":"A102","name":"Grocer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3323"},{"id":"A103","name":"Portmonger","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3322"},{"id":"A104","name":"Wood Harvester","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3321"},{"id":"A105","name":"Barrow Pusher","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3320"},{"id":"A106","name":"Slurry Spreader","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3319"},{"id":"A107","name":"Catcher","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3318"},{"id":"A108","name":"Mushroom Collector","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3317"},{"id":"A109","name":"Small Trader","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3316"},{"id":"A110","name":"Roughcaster","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3315"},{"id":"A111","name":"Wall Builder","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3314"},{"id":"A112","name":"Scythe Worker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3313"},{"id":"A113","name":"Heresy Teacher","kind":"occupation","url":"https://www.scribd.com/document/749914746/Agricola-Revised-Edition-Unofficial-Compendium-v4-1"},{"id":"A114","name":"Seasonal Worker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3311"},{"id":"A115","name":"Chief Forester","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3310"},{"id":"A116","name":"Wood Cutter","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3309"},{"id":"A117","name":"Wood Carrier","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3308"},{"id":"A118","name":"Treegardener","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3307"},{"id":"A119","name":"Firewood Collector","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3306"},{"id":"A120","name":"Clay Hut Builder","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3305"},{"id":"A121","name":"Clay Puncher","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3304"},{"id":"A122","name":"Pan Baker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3303"},{"id":"A123","name":"Frame Builder","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3302"},{"id":"A124","name":"Knapper","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3301"},{"id":"A125","name":"Priest","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3300"},{"id":"A126","name":"Master Workman","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3299"},{"id":"A127","name":"Lodger","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3298"},{"id":"A128","name":"Riparian Builder","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3297"},{"id":"A129","name":"Swagman","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3296"},{"id":"A130","name":"Mummy's Boy","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3295"},{"id":"A131","name":"Craft Teacher","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3294"},{"id":"A132","name":"Publican","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3293"},{"id":"A133","name":"Braggart","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3292"},{"id":"A134","name":"Full Farmer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3291"},{"id":"A135","name":"Animal Reeve","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3290"},{"id":"A136","name":"Drudgery Reeve","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3289"},{"id":"A137","name":"Riverine Shepherd","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3288"},{"id":"A138","name":"Harpooner","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3287"},{"id":"A139","name":"Hollow Warden","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3286"},{"id":"A140","name":"Shovel Bearer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3285"},{"id":"A141","name":"Turnip Farmer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3284"},{"id":"A142","name":"Cordmaker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3283"},{"id":"A143","name":"Stonecutter","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3282"},{"id":"A144","name":"Sequestrator","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3281"},{"id":"A145","name":"Ropemaker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3280"},{"id":"A146","name":"Storehouse Steward","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3279"},{"id":"A147","name":"Animal Dealer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3278"},{"id":"A148","name":"Woolgrower","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3277"},{"id":"A149","name":"House Artist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3276"},{"id":"A150","name":"Stagehand","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3275"},{"id":"A151","name":"Minstrel","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3274"},{"id":"A152","name":"Night-School Student","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3273"},{"id":"A153","name":"Pig Owner","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3272"},{"id":"A154","name":"Paymaster","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3271"},{"id":"A155","name":"Conjurer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3270"},{"id":"A156","name":"Buyer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3269"},{"id":"A157","name":"Bohemian","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3268"},{"id":"A158","name":"Culinary Artist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3267"},{"id":"A159","name":"Joiner of the Sea","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3266"},{"id":"A160","name":"Lutenist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3265"},{"id":"A161","name":"Patch Caretaker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3264"},{"id":"A162","name":"Forest Tallyman","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3263"},{"id":"A163","name":"Building Expert","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3262"},{"id":"A164","name":"Wood Worker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3261"},{"id":"A165","name":"Pig Breeder","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3260"},{"id":"A166","name":"Haydryer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3259"},{"id":"A167","name":"Breeder Buyer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3258"},{"id":"A168","name":"Animal Teacher","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3257"},{"id":"B001","name":"Upscale Lifestyle","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3256"},{"id":"B002","name":"Mini Pasture","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3255"},{"id":"B003","name":"Moonshine","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3254"},{"id":"B004","name":"Wood Pile","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3253"},{"id":"B005","name":"Store of Experience","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3252"},{"id":"B006","name":"Excursion to the Quarry","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3251"},{"id":"B007","name":"Wage","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3250"},{"id":"B008","name":"Market Stall","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3249"},{"id":"B009","name":"Beating Rod","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3248"},{"id":"B010","name":"Caravan","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3247"},{"id":"B011","name":"Feedyard","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3246"},{"id":"B012","name":"Stockyard","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3245"},{"id":"B013","name":"Carpenter's Parlor","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3244"},{"id":"B014","name":"Hawktower","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3243"},{"id":"B015","name":"Carpenter's Bench","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3242"},{"id":"B016","name":"Mining Hammer","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3241"},{"id":"B017","name":"Forest Plow","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3240"},{"id":"B018","name":"Grassland Harrow","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3239"},{"id":"B019","name":"Moldboard Plow","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3238"},{"id":"B020","name":"Chain Float","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3237"},{"id":"B021","name":"Hayloft Barn","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3236"},{"id":"B022","name":"Walking Boots","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3235"},{"id":"B023","name":"Final Scenario","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3234"},{"id":"B024","name":"Lasso","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3233"},{"id":"B025","name":"Bread Paddle","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3232"},{"id":"B026","name":"Agrarian Fences","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3231"},{"id":"B027","name":"Toolbox","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3230"},{"id":"B028","name":"Forestry Studies","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3229"},{"id":"B029","name":"Cookery Lesson","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3228"},{"id":"B030","name":"Wood Palisades","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3227"},{"id":"B031","name":"Pottery Yard","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3226"},{"id":"B032","name":"Kettle","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3225"},{"id":"B033","name":"Mantlepiece","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3224"},{"id":"B034","name":"Special Food","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3223"},{"id":"B035","name":"Hook Knife","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3222"},{"id":"B036","name":"Bottles","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3221"},{"id":"B037","name":"Grange","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3220"},{"id":"B038","name":"Future Building Site","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3219"},{"id":"B039","name":"Loom","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3218"},{"id":"B040","name":"Brewery Pond","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3217"},{"id":"B041","name":"Hauberg","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3216"},{"id":"B042","name":"Forest Inn","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3215"},{"id":"B043","name":"Chophouse","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3214"},{"id":"B044","name":"Chick Stable","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3213"},{"id":"B045","name":"Strawberry Patch","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3212"},{"id":"B046","name":"Club House","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3211"},{"id":"B047","name":"Herring Pot","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3210"},{"id":"B048","name":"Forest Stone","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3209"},{"id":"B049","name":"Scales","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3208"},{"id":"B050","name":"Butter Churn","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3207"},{"id":"B051","name":"Digging Spade","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3206"},{"id":"B052","name":"Growing Farm","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3205"},{"id":"B053","name":"Sculpture Course","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3204"},{"id":"B054","name":"Tumbrel","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3203"},{"id":"B055","name":"Maintenance Premium","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3202"},{"id":"B056","name":"Brook","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3201"},{"id":"B057","name":"Scullery","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3200"},{"id":"B058","name":"Crack Weeder","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3199"},{"id":"B059","name":"Food Chest","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3198"},{"id":"B060","name":"Brewing Water","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3197"},{"id":"B061","name":"Three-Field Rotation","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3196"},{"id":"B062","name":"Pitchfork","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3195"},{"id":"B063","name":"Tasting","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3194"},{"id":"B064","name":"Mill Wheel","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3193"},{"id":"B065","name":"Grain Depot","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3192"},{"id":"B066","name":"Sack Cart","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3191"},{"id":"B067","name":"Hand Truck","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3190"},{"id":"B068","name":"Beanfield","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3189"},{"id":"B069","name":"Potters Market","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3188"},{"id":"B070","name":"New Purchase","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3187"},{"id":"B071","name":"Harvest House","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3186"},{"id":"B072","name":"Love for Agriculture","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3185"},{"id":"B073","name":"Gift Basket","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3184"},{"id":"B074","name":"Thick Forest","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3183"},{"id":"B075","name":"Wood Workshop","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3182"},{"id":"B076","name":"Ceilings","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3181"},{"id":"B077","name":"Loam Pit","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3180"},{"id":"B078","name":"Reed Belt","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3179"},{"id":"B079","name":"Corf","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3178"},{"id":"B080","name":"Hard Porcelain","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3177"},{"id":"B081","name":"Handcart","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3176"},{"id":"B082","name":"Value Assets","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3175"},{"id":"B083","name":"Muddy Puddles","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3174"},{"id":"B084","name":"Acorns Basket","kind":"minor","url":"https://agricola.cloudfree.jp/?p=3173"},{"id":"B085","name":"Farm Hand","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3172"},{"id":"B086","name":"Truffle Searcher","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3171"},{"id":"B087","name":"Cottager","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3170"},{"id":"B088","name":"Established Person","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3169"},{"id":"B089","name":"Groom","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3168"},{"id":"B090","name":"Cooperative Plower","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3167"},{"id":"B091","name":"Assistant Tiller","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3166"},{"id":"B092","name":"Little Stick Knitter","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3165"},{"id":"B093","name":"Confidant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3164"},{"id":"B094","name":"Stock Protector","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3163"},{"id":"B095","name":"Master Bricklayer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3162"},{"id":"B096","name":"Tree Farm Joiner","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3161"},{"id":"B097","name":"Scholar","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3160"},{"id":"B098","name":"Organic Farmer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3159"},{"id":"B099","name":"Tutor","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3158"},{"id":"B100","name":"Clutterer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3157"},{"id":"B101","name":"Furniture Carpenter","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3156"},{"id":"B102","name":"Consultant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3155"},{"id":"B103","name":"Field Merchant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3154"},{"id":"B104","name":"Sheep Walker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3153"},{"id":"B105","name":"Case Builder","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3152"},{"id":"B106","name":"Moral Crusader","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3151"},{"id":"B107","name":"Manservant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3150"},{"id":"B108","name":"Oven Firing Boy","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3149"},{"id":"B109","name":"Paper Maker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3148"},{"id":"B110","name":"Pavior","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3147"},{"id":"B111","name":"Rustic","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3146"},{"id":"B112","name":"Silokeeper","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3145"},{"id":"B113","name":"Patch Caregiver","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3144"},{"id":"B114","name":"Childless","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3143"},{"id":"B115","name":"Tinsmith Master","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3142"},{"id":"B116","name":"Shoreforester","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3141"},{"id":"B117","name":"Informant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3140"},{"id":"B118","name":"Small-scale Farmer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3139"},{"id":"B119","name":"Lumberjack","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3138"},{"id":"B120","name":"Sweep","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3137"},{"id":"B121","name":"Geologist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3136"},{"id":"B122","name":"Mineralogist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3135"},{"id":"B123","name":"Roof Ballaster","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3134"},{"id":"B124","name":"Trimmer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3133"},{"id":"B125","name":"Estate Worker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3132"},{"id":"B126","name":"Carpenter","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3131"},{"id":"B127","name":"Seducer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3130"},{"id":"B128","name":"Plumber","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3129"},{"id":"B129","name":"Seatmate","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3128"},{"id":"B130","name":"Full Peasant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3127"},{"id":"B131","name":"Equipper","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3126"},{"id":"B132","name":"Estate Master","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3125"},{"id":"B133","name":"Village Peasant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3124"},{"id":"B134","name":"Housebook Master","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3123"},{"id":"B135","name":"Nutrition Expert","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3122"},{"id":"B136","name":"House Steward","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3121"},{"id":"B137","name":"Wholesaler","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3120"},{"id":"B138","name":"Forest Guardian","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3119"},{"id":"B139","name":"Forest Scientist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3118"},{"id":"B140","name":"Farmyard Worker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3117"},{"id":"B141","name":"Field Caretaker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3116"},{"id":"B142","name":"Greengrocer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3115"},{"id":"B143","name":"Clay Warden","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3114"},{"id":"B144","name":"Collier","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3113"},{"id":"B145","name":"Brushwood Collector","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3112"},{"id":"B146","name":"Illusionist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3111"},{"id":"B147","name":"Huntsman","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3110"},{"id":"B148","name":"Pet Broker","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3109"},{"id":"B149","name":"Open Air Farmer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3108"},{"id":"B150","name":"Large-Scale Farmer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3107"},{"id":"B151","name":"Little Peasant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3106"},{"id":"B152","name":"Junior Artist","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3105"},{"id":"B153","name":"Housemaster","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3104"},{"id":"B154","name":"Sheep Keeper","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3103"},{"id":"B155","name":"Art Teacher","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3102"},{"id":"B156","name":"Storehouse Keeper","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3101"},{"id":"B157","name":"Salter","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3100"},{"id":"B158","name":"District Manager","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3099"},{"id":"B159","name":"Lieutenant General","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3098"},{"id":"B160","name":"Pub Owner","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3097"},{"id":"B161","name":"Weakling","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3096"},{"id":"B162","name":"Forest Clearer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3095"},{"id":"B163","name":"Pastor","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3094"},{"id":"B164","name":"Sheep Whisperer","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3093"},{"id":"B165","name":"Game Provider","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3092"},{"id":"B166","name":"Cattle Feeder","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3091"},{"id":"B167","name":"Stable Sergeant","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3090"},{"id":"B168","name":"Pasture Master","kind":"occupation","url":"https://agricola.cloudfree.jp/?p=3089"}];
 
-</script><script>
+/* Room transport. The host owns the game; guests submit commands, never game states. */
+(() => {
+  const PROTOCOL = 'four-seasons-room-v1';
+  const SESSION_KEY = 'four-seasons-online-session';
+  const cleanName = value => String(value || '').replace(/[<>\x00-\x1f]/g, '').trim().slice(0, 16) || '农场主';
+  const makeCode = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), n => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n % 32]).join('');
+  class FarmRoom {
+    constructor(callbacks) {
+      this.callbacks = callbacks;
+      this.active = false; this.started = false; this.host = false; this.seat = 0;
+      this.code = ''; this.members = []; this.links = new Map(); this.revision = 0;
+      this.status = ''; this.error = ''; this.pending = false; this.snapshot = null;
+      this.epoch = 0;
+    }
+    get paused() { return this.started && (this.status !== 'playing' || this.members.some(m => !m.online)); }
+    saved() { try { const s = JSON.parse(sessionStorage.getItem(SESSION_KEY)); return s?.protocol === PROTOCOL ? s : null; } catch (_) { return null; } }
+    remember() {
+      if (!this.active) return;
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ protocol: PROTOCOL, host: this.host, code: this.code, token: this.token, name: this.name, settings: this.settings, members: this.host ? this.members : [], snapshot: this.host ? this.snapshot : null, revision: this.revision, started: this.started })); } catch (_) { /* live connection still works */ }
+    }
+    notify() { this.remember(); this.callbacks.change?.(); }
+    send(link, message) { if (link?.open) { try { link.send({ ...message, protocol: PROTOCOL }); } catch (_) { return false; } return true; } return false; }
+    async open({ host = false, code = '', name = '', settings = {}, resume = false } = {}) {
+      if (!window.Peer) { this.error = '联机组件加载失败，请刷新页面重试。'; this.callbacks.change?.(); return; }
+      const saved = resume ? this.saved() : null;
+      this.close(false);
+      this.active = true; this.host = saved ? saved.host : host; this.name = saved?.name || cleanName(name);
+      this.code = saved?.code || (host ? makeCode() : String(code).trim().toUpperCase());
+      this.token = saved?.token || crypto.randomUUID(); this.settings = saved?.settings || settings;
+      this.started = !!saved?.started && this.host; this.snapshot = this.host ? saved?.snapshot || null : null;
+      this.revision = this.host ? saved?.revision || 0 : 0; this.seat = 0;
+      this.members = this.host ? saved?.members?.length ? saved.members.map((m, i) => ({ ...m, online: i === 0 })) : [{ name: this.name, token: this.token, online: true }] : [];
+      this.status = 'connecting'; this.error = ''; this.pending = false;
+      if (!/^[A-HJ-NP-Z2-9]{8}$/.test(this.code)) { this.status = 'disconnected'; this.error = '请输入 8 位房间码。'; this.notify(); return; }
+      const epoch = this.epoch;
+      const peer = this.peer = new Peer(this.host ? `ssf-${this.code}` : undefined, { debug: 0 });
+      this.connectTimer = setTimeout(() => { if (this.epoch === epoch && this.status === 'connecting') { this.error = '连接超时，请检查网络后点重新连接。'; this.status = 'disconnected'; this.notify(); } }, 20000);
+      peer.on('open', () => {
+        if (epoch !== this.epoch) return;
+        if (this.host) {
+          clearTimeout(this.connectTimer); this.status = this.started ? 'playing' : 'lobby';
+          if (this.snapshot) this.callbacks.state?.(this.snapshot, 0);
+          this.notify();
+        } else this.connectHost(epoch);
+      });
+      peer.on('connection', link => { if (this.host && epoch === this.epoch) this.accept(link, epoch); else link.close(); });
+      peer.on('error', error => {
+        if (epoch !== this.epoch) return;
+        const messages = { 'unavailable-id': '房间码仍被占用，请等几秒后重新连接。', 'peer-unavailable': '找不到房间，请确认房间码并让房主保持页面打开。', 'network': '网络中断，请重新连接。', 'browser-incompatible': '此浏览器不支持联机，请使用新版 Safari 或 Chrome。' };
+        this.error = messages[error.type] || '联机连接失败，请换个网络后重试。';
+        if (!this.started || !this.host) this.status = 'disconnected';
+        this.pending = false; this.notify();
+      });
+      peer.on('disconnected', () => { if (epoch === this.epoch && !peer.destroyed) peer.reconnect(); });
+      this.heartbeat = setInterval(() => {
+        if (epoch !== this.epoch) return;
+        if (this.host) {
+          for (const [seat, link] of this.links) {
+            if (Date.now() - (link.lastSeen || 0) > 18000) { link.close(); this.drop(seat, link); }
+            else this.send(link, { type: 'ping' });
+          }
+        } else if (this.hostLink?.open && Date.now() - (this.lastHostSeen || 0) > 22000) {
+          this.hostLink.close(); this.status = 'disconnected'; this.pending = false; this.error = '与房主断开，重新连接可回到原座位。'; this.notify();
+        }
+      }, 5000);
+      this.notify();
+    }
+    connectHost(epoch) {
+      const link = this.hostLink = this.peer.connect(`ssf-${this.code}`, { reliable: true, serialization: 'json' });
+      link.on('open', () => {
+        if (epoch !== this.epoch) return;
+        this.lastHostSeen = Date.now();
+        this.send(link, { type: 'hello', token: this.token, name: this.name });
+      });
+      link.on('data', data => {
+        if (epoch !== this.epoch || data?.protocol !== PROTOCOL) return;
+        this.lastHostSeen = Date.now();
+        if (data.type === 'ping') { this.send(link, { type: 'pong' }); return; }
+        if (data.type === 'closed') { this.status = 'disconnected'; this.pending = false; this.error = '房主已关闭房间。'; this.notify(); return; }
+        if (data.type === 'error') { this.error = data.message; this.pending = false; this.notify(); return; }
+        if (data.type !== 'state' || !Number.isInteger(data.seat) || data.revision < this.revision) return;
+        clearTimeout(this.connectTimer); clearTimeout(this.pendingTimer);
+        const changed = data.revision !== this.revision || !this.started;
+        this.seat = data.seat; this.members = data.members; this.settings = data.settings;
+        this.revision = data.revision; this.started = !!data.game; this.status = this.started ? 'playing' : 'lobby'; this.pending = false; this.error = '';
+        if (data.game && changed) { this.snapshot = data.game; this.callbacks.state?.(data.game, this.seat); }
+        this.notify();
+      });
+      link.on('close', () => { if (epoch !== this.epoch) return; this.status = 'disconnected'; this.pending = false; this.error = '与房主断开，重新连接可回到原座位。'; this.notify(); });
+      link.on('error', () => { if (epoch === this.epoch) { this.status = 'disconnected'; this.error = '无法建立连接，请换个网络重试。'; this.notify(); } });
+    }
+    accept(link, epoch) {
+      let seat = -1;
+      const timer = setTimeout(() => { if (seat < 0) link.close(); }, 12000);
+      link.on('data', data => {
+        if (epoch !== this.epoch || data?.protocol !== PROTOCOL) return;
+        link.lastSeen = Date.now();
+        if (data.type === 'hello' && seat < 0) {
+          if (typeof data.token !== 'string' || !/^[a-f0-9-]{36}$/i.test(data.token)) return;
+          seat = this.members.findIndex(m => m.token === data.token);
+          if (seat === 0 || (seat < 0 && (this.started || (this.members.length >= Number(this.settings.players || 6) && !this.members.some((m, i) => i > 0 && !m.online))))) {
+            this.send(link, { type: 'error', message: this.started ? '对局已开始，只能由原来的玩家重连。' : '房间已满。' }); return;
+          }
+          if (seat < 0) { const vacant = this.members.findIndex((m, i) => i > 0 && !m.online); seat = vacant < 0 ? this.members.length : vacant; this.members[seat] = { token: data.token, name: cleanName(data.name), online: true }; }
+          const previous = this.links.get(seat);
+          this.links.set(seat, link); previous?.close();
+          this.members[seat].online = true; clearTimeout(timer); this.broadcast(); this.notify(); return;
+        }
+        if (seat < 1 || this.links.get(seat) !== link) return;
+        if (data.type === 'pong') return;
+        if (data.type === 'sync') { this.sendState(link, seat); return; }
+        if (data.type !== 'command' || !this.started) return;
+        if (data.revision !== this.revision || this.paused) { this.sendState(link, seat); return; }
+        const error = this.callbacks.command?.(seat, data.command);
+        if (error) { this.send(link, { type: 'error', message: error }); this.sendState(link, seat); }
+      });
+      link.on('close', () => { clearTimeout(timer); if (epoch === this.epoch) this.drop(seat, link); });
+      link.on('error', () => { if (epoch === this.epoch) { link.close(); this.drop(seat, link); } });
+    }
+    drop(seat, link) {
+      if (seat < 1 || this.links.get(seat) !== link) return;
+      this.links.delete(seat); this.members[seat].online = false;
+      this.broadcast(); this.notify();
+    }
+    sendState(link, seat) {
+      this.send(link, { type: 'state', seat, revision: this.revision, settings: this.settings, members: this.members.map(({ name, online }) => ({ name, online })), game: this.started ? this.snapshot : null });
+    }
+    broadcast() { for (const [seat, link] of this.links) this.sendState(link, seat); }
+    publish(game) {
+      if (!this.active || !this.host || !this.started) return;
+      this.snapshot = JSON.parse(JSON.stringify(game)); this.revision++; this.broadcast(); this.remember();
+    }
+    start(game) {
+      if (!this.host || this.started || this.members.length < 2 || this.members.some(m => !m.online)) return false;
+      this.started = true; this.status = 'playing'; this.publish(game); this.notify(); return true;
+    }
+    submit(command) {
+      if (this.paused || this.pending || !this.started) return;
+      if (this.host) { const error = this.callbacks.command?.(0, command); if (error) { this.error = error; this.notify(); } return; }
+      this.pending = true;
+      if (!this.send(this.hostLink, { type: 'command', revision: this.revision, command })) { this.pending = false; this.status = 'disconnected'; this.error = '连接已断开，请重新连接。'; }
+      else this.pendingTimer = setTimeout(() => { this.pending = false; this.error = '尚未收到结果，正在重新同步。'; this.send(this.hostLink, { type: 'sync' }); this.notify(); }, 8000);
+      this.notify();
+    }
+    close(forget = true) {
+      if (this.host) for (const link of this.links.values()) this.send(link, { type: 'closed' });
+      this.epoch++; clearInterval(this.heartbeat); clearTimeout(this.connectTimer); clearTimeout(this.pendingTimer);
+      this.peer?.destroy(); this.peer = null; this.hostLink = null; this.links.clear();
+      this.active = false; this.started = false; this.pending = false; this.status = ''; this.error = '';
+      if (forget) { try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {} }
+    }
+  }
+  window.FarmRoom = FarmRoom;
+})();
+
 const TEST_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
 const ORIGINAL_CARD_CATALOG = typeof window !== 'undefined' ? window.ORIGINAL_CARD_CATALOG || [] : [];
 const SAVE_KEY = TEST_MODE ? 'four-seasons-farm-v2-test' : 'four-seasons-farm-v2';
@@ -379,9 +546,25 @@ function loadGame() {
   return freshGame();
 }
 let game = loadGame();
+const room = new window.FarmRoom({
+  change: () => { clearTimeout(ui.aiTimer); if (room.active && room.status === 'disconnected') ui.dialog = 'online'; render(); },
+  state: (snapshot, seat) => { game = snapshot; ui.view = seat; ui.mode = null; ui.dialog = null; ui.mobileTab = 'actions'; },
+  command: (seat, command) => executeOnlineCommand(seat, command)
+});
+function meIndex() { return room.active && room.started ? room.seat : 0; }
+function canControl() { return (!room.active || room.started && !room.paused && !room.pending) && game.turn === meIndex(); }
+function commitPlayerAction(action, option = {}) {
+  if (room.active) { ui.mode = null; room.submit({ type: 'action', id: action.id, special: !!action.special, option }); }
+  else applyAction(meIndex(), action, option);
+}
+let publishQueued = false;
 try { if (!localStorage.getItem(SEEN_KEY)) ui.dialog = 'rules'; } catch (_) { ui.dialog = 'rules'; }
 
 function save() {
+  if (room.active) {
+    if (room.host && room.started && !publishQueued) { publishQueued = true; queueMicrotask(() => { publishQueued = false; room.publish(game); }); }
+    return;
+  }
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(game)); } catch (_) { /* game remains playable */ }
 }
 function addLog(g, message) {
@@ -499,7 +682,7 @@ function addAnimals(player, type, amount) {
   if (worth) player.food += excess * worth;
   return { kept, excess, cooked: worth > 0 && excess > 0 };
 }
-function actionText(who, action, extra = '') { return `${who === 0 ? '你' : game.players[who].name}：${action.name}${extra ? '，' + extra : ''}。`; }
+function actionText(who, action, extra = '') { return `${!room.active && who === 0 ? '你' : game.players[who].name}：${action.name}${extra ? '，' + extra : ''}。`; }
 function playCard(player, type, id) {
   const deck = type === 'occupations' ? OCCUPATIONS : IMPROVEMENTS;
   const card = deck.find(c => c.id === id);
@@ -677,7 +860,7 @@ function advanceTurn(who) {
   }
   if (next < 0) { finishRound(); return; }
   game.turn = next;
-  render();
+  save(); render();
   scheduleAI();
 }
 function chooseAiAction(who) {
@@ -743,7 +926,7 @@ function chooseAiAction(who) {
 }
 function performAI() {
   ui.aiTimer = null;
-  if (game.phase !== 'play' || game.turn === 0 || ui.dialog) return;
+  if (room.active || game.phase !== 'play' || !game.players[game.turn].ai || ui.dialog) return;
   const who = game.turn;
   const action = chooseAiAction(who);
   if (!action) { finishRound(); return; }
@@ -777,7 +960,7 @@ function performAI() {
 }
 function scheduleAI() {
   clearTimeout(ui.aiTimer);
-  if (game.phase === 'play' && game.turn !== 0 && !ui.dialog) ui.aiTimer = setTimeout(performAI, game.players.length > 2 ? 250 : 550);
+  if (!room.active && game.phase === 'play' && game.players[game.turn].ai && !ui.dialog) ui.aiTimer = setTimeout(performAI, game.players.length > 2 ? 250 : 550);
 }
 
 function feed(player) {
@@ -882,15 +1065,15 @@ function resCard([key, label, icon], player) {
 function actionCard(action) {
   const locked = action.unlock > game.round;
   const occupied = !action.repeatable && action.id in game.occupied;
-  const inactive = game.phase !== 'play' || game.turn !== 0 || !!ui.mode || !!ui.dialog;
-  const disabled = locked || occupied || inactive || !canAct(game.players[0], action);
+  const inactive = room.active && (!room.started || room.paused || room.pending) || game.phase !== 'play' || !canControl() || !!ui.mode || !!ui.dialog;
+  const disabled = locked || occupied || inactive || !canAct(game.players[meIndex()], action);
   const badge = locked ? `<span class="unlock-tag">第 ${action.unlock} 轮</span>` : action.kind === 'pile' ? `<span class="action-badge">${game.piles[action.id] || 0}</span>` : '';
-  const usedText = occupied ? ` · ${game.occupied[action.id] === 0 ? '你' : game.players[game.occupied[action.id]].name}已用` : '';
-  return `<button class="action-card ${action.kind === 'pile' ? ANIMALS[action.key] ? 'animal-card' : 'resource-card' : ''} ${locked ? 'locked' : ''} ${occupied ? 'used' : ''}" data-action="${action.id}" ${disabled ? 'disabled' : ''} aria-label="${action.name}，${action.detail}${usedText}">${badge}<span class="action-icon">${action.icon}</span><span class="action-title">${action.name}</span><span class="action-detail">${action.detail}${usedText}</span>${occupied ? `<span class="worker-token ${game.occupied[action.id] === 0 ? 'human' : 'computer'}" aria-hidden="true"></span>` : ''}</button>`;
+  const usedText = occupied ? ` · ${game.occupied[action.id] === meIndex() ? '你' : game.players[game.occupied[action.id]].name}已用` : '';
+  return `<button class="action-card ${action.kind === 'pile' ? ANIMALS[action.key] ? 'animal-card' : 'resource-card' : ''} ${locked ? 'locked' : ''} ${occupied ? 'used' : ''}" data-action="${action.id}" ${disabled ? 'disabled' : ''} aria-label="${action.name}，${action.detail}${usedText}">${badge}<span class="action-icon">${action.icon}</span><span class="action-title">${action.name}</span><span class="action-detail">${action.detail}${usedText}</span>${occupied ? `<span class="worker-token ${game.occupied[action.id] === meIndex() ? 'human' : 'computer'}" aria-hidden="true"></span>` : ''}</button>`;
 }
 function specialCard(special) {
   const used = game.specialUsed[special.id] || [];
-  const disabled = game.phase !== 'play' || game.turn !== 0 || !!ui.mode || !!ui.dialog || !canSpecial(game.players[0], special, 0);
+  const disabled = game.phase !== 'play' || !canControl() || !!ui.mode || !!ui.dialog || !canSpecial(game.players[meIndex()], special, meIndex());
   const cost = used.length ? ' · 再用付 2 食物' : ' · 不占用家人';
   return `<button class="action-card special-card ${used.length >= 2 ? 'used' : ''}" data-special="${special.id}" ${disabled ? 'disabled' : ''}><span class="action-icon">${special.icon}</span><span class="action-title">${special.name}</span><span class="action-detail">${special.detail}${cost}</span></button>`;
 }
@@ -905,18 +1088,18 @@ function cellContent(cell) {
 }
 function farmPanel() {
   const p = game.players[ui.view];
-  const selectable = ui.view === 0 && !ui.mode?.choice ? selectedCells(p, ui.mode) : [];
+  const selectable = ui.view === meIndex() && !ui.mode?.choice ? selectedCells(p, ui.mode) : [];
   const action = ui.mode ? (ui.mode.special ? SPECIALS : availableActions()).find(a => a.id === ui.mode.id) : null;
   const prompt = action ? `请选择一块可用地块完成「${action.name}」。` : '点击行动卡派工；每个普通行动格每轮只能被占用一次。';
   const cells = p.farm.map((cell, i) => `<button class="farm-cell ${cell.type} ${selectable.includes(i) ? 'selectable' : ''}" data-cell="${i}" ${selectable.includes(i) ? '' : 'disabled'} aria-label="第 ${i + 1} 格，${cell.type === 'empty' ? '空地' : cell.type === 'forest' ? '森林' : cell.type === 'moor' ? '泥沼' : cell.type === 'circle' ? '怪圈' : cell.type === 'house' ? '住房' : cell.type === 'field' ? cell.crop === 'grain' ? '谷物田' : cell.crop === 'veg' ? '蔬菜田' : '空田' : ANIMALS[cell.animal] + '牧场'}">${cellContent(cell)}</button>`).join('');
-  const views = game.players.map((person, i) => `<button data-view="${i}" class="${ui.view === i ? 'active' : ''}">${i ? `电脑 ${i}` : '我的'}</button>`).join('');
-  return `<section class="panel farm-panel"><div class="panel-head"><div><p class="eyebrow">HOMESTEAD</p><h2>农场地块</h2></div><span class="head-note">5 × 3 · 共 15 格</span></div><div class="farm-wrap"><div class="farm-banner"><div class="farm-player ${ui.view ? 'ai' : ''}"><i class="dot"></i>${p.name}</div><div class="view-switch" aria-label="切换农场">${views}</div></div><div class="farm-field">${cells}</div><div class="farm-footer"><span>空地 <strong>${farmCount(p, 'empty')}</strong> · 田地 <strong>${farmCount(p, 'field')}</strong> · 牧场 <strong>${farmCount(p, 'pasture')}</strong></span><span>住房 <strong>${farmCount(p, 'house')}</strong> / 家人 <strong>${p.family}</strong></span></div><div class="farm-tip ${ui.mode ? 'pick' : ''}">${prompt}${ui.mode ? ' <button class="cancel-pick" data-cancel="1">取消</button>' : ''}</div><div class="mini-stats"><div class="mini-stat"><b>${game.workerQuota[ui.view] - game.usedCount[ui.view]}</b>本轮剩余派工</div><div class="mini-stat"><b>${p.sick ? `${p.sick} 人` : p.hearth ? '已建成' : '未建造'}</b>${p.sick ? '卧床病人' : '灶台'}</div><div class="mini-stat"><b>${p.begging}</b>乞讨标记</div><div class="mini-stat"><b>${score(p).total}</b>当前分数</div></div></div></section>`;
+  const views = game.players.map((person, i) => `<button data-view="${i}" class="${ui.view === i ? 'active' : ''}">${i === meIndex() ? '我的' : escapeHTML(person.name)}</button>`).join('');
+  return `<section class="panel farm-panel"><div class="panel-head"><div><p class="eyebrow">HOMESTEAD</p><h2>农场地块</h2></div><span class="head-note">5 × 3 · 共 15 格</span></div><div class="farm-wrap"><div class="farm-banner"><div class="farm-player ${ui.view !== meIndex() ? 'ai' : ''}"><i class="dot"></i>${p.name}</div><div class="view-switch" aria-label="切换农场">${views}</div></div><div class="farm-field">${cells}</div><div class="farm-footer"><span>空地 <strong>${farmCount(p, 'empty')}</strong> · 田地 <strong>${farmCount(p, 'field')}</strong> · 牧场 <strong>${farmCount(p, 'pasture')}</strong></span><span>住房 <strong>${farmCount(p, 'house')}</strong> / 家人 <strong>${p.family}</strong></span></div><div class="farm-tip ${ui.mode ? 'pick' : ''}">${prompt}${ui.mode ? ' <button class="cancel-pick" data-cancel="1">取消</button>' : ''}</div><div class="mini-stats"><div class="mini-stat"><b>${game.workerQuota[ui.view] - game.usedCount[ui.view]}</b>本轮剩余派工</div><div class="mini-stat"><b>${p.sick ? `${p.sick} 人` : p.hearth ? '已建成' : '未建造'}</b>${p.sick ? '卧床病人' : '灶台'}</div><div class="mini-stat"><b>${p.begging}</b>乞讨标记</div><div class="mini-stat"><b>${score(p).total}</b>当前分数</div></div></div></section>`;
 }
 function cardCost(card) {
   return Object.entries(card.cost || {}).filter(([, amount]) => amount > 0).map(([key, amount]) => `${amount} ${RESOURCES.find(r => r[0] === key)[1]}`).join('、') || '无材料';
 }
 function handPanel() {
-  const p = game.players[0];
+  const p = game.players[meIndex()];
   const row = (id, type) => {
     const card = (type === 'occupations' ? OCCUPATIONS : IMPROVEMENTS).find(c => c.id === id);
     return `<div class="hand-card ${type === 'occupations' ? 'occupation-card' : 'minor-card'}"><div class="card-illustration" aria-hidden="true">${type === 'occupations' ? '👩‍🌾' : '🛠️'}</div><b>${card.name}</b><span>${card.effect}</span><small>${type === 'occupations' ? '职业' : `小设施 · ${cardCost(card)} · ${card.points} 分`}</small></div>`;
@@ -928,7 +1111,7 @@ function majorPanel() {
   return `<section class="panel cards-panel major-panel"><div class="panel-head"><div><p class="eyebrow">MAJOR IMPROVEMENTS</p><h2>主要发展</h2></div><span class="head-note">公共牌，每张只能建造一次</span></div><div class="hand-grid">${cards}</div></section>`;
 }
 function alienPanel() {
-  const me = game.players[0];
+  const me = game.players[meIndex()];
   const cards = game.alienActive.map(id => {
     const card = ALIEN_CARDS.find(c => c.id === id);
     const owner = game.alienClaims[id] !== undefined ? ` · ${game.players[game.alienClaims[id]].name}` : game.players.find(p => p.alienArtifacts.includes(id))?.name;
@@ -953,12 +1136,9 @@ function catalogDialog() {
   return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版卡牌目录"><p class="eyebrow">CARD INDEX · A / B</p><h2>原版卡牌目录</h2><p>15 周年版 A/B 牌组：168 张职业、168 张次要发展。这里提供卡号、英文名称和来源链接。目录卡不在当前游戏中发放；其效果尚未接入规则引擎。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号或英文名称"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与电脑轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>收获时田地产物、牲畜繁殖，再喂养家人，每人需 2 食物。不足的食物变成乞讨标记。</li><li>每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。本作使用原创精简牌组。</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>收获时田地产物、牲畜繁殖，再喂养家人，每人需 2 食物。不足的食物变成乞讨标记。</li><li>每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。本作使用原创精简牌组。</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
 }
-function choiceDialog() {
-  if (!ui.mode?.choice) return '';
-  const p = game.players[0];
-  const id = ui.mode.id;
+function choiceOptions(p, id) {
   let options = [], title = '选择';
   if (id === 'sow') { title = '选择种子'; options = [['grain', '🌾 谷物', p.grain > 0, '可收获 3 次'], ['veg', '🥕 蔬菜', p.veg > 0, '可收获 2 次']]; }
   else if (id === 'pasture' || id === 'animalMarket') {
@@ -976,25 +1156,30 @@ function choiceDialog() {
   else if (id === 'alienStable') { title = '选择牲畜棚'; options = Object.entries(ANIMALS).filter(([type]) => game.settings.moor || type !== 'horse').map(([type, name]) => [type, name, true, '花 1 木材，该牲畜容量 +1']); }
   else if (id === 'resourceTrade') { title = '选择两种建材'; options = [['wood-reed', '木材 + 芦苇', true, '另得 1 食物'], ['wood-stone', '木材 + 石料', true, '另得 1 食物'], ['clay-reed', '黏土 + 芦苇', true, '另得 1 食物'], ['clay-stone', '黏土 + 石料', true, '另得 1 食物']]; }
   else if (id === 'sideJob') { title = '选择牲畜棚'; options = Object.entries(ANIMALS).filter(([type]) => game.settings.moor || type !== 'horse').map(([type, name]) => [type, name, true, '付 1 木材，该牲畜容量 +1']); }
+  return { options, title };
+}
+function choiceDialog() {
+  if (!ui.mode?.choice) return '';
+  const { options, title } = choiceOptions(game.players[meIndex()], ui.mode.id);
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">CHOOSE</p><h2>${title}</h2><div class="modal-choice ${options.length > 3 ? 'many' : ''}">${options.map(([value, label, enabled, detail]) => `<button class="choice-btn" data-choice="${value}" ${enabled ? '' : 'disabled'}><b>${label}</b><small>${detail}</small></button>`).join('')}</div><div class="modal-actions"><button class="ghost-btn" data-cancel="1">取消</button></div></div></div>`;
 }
 function harvestDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获季到了</h2><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>家人口粮：${s.fed}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions"><button class="primary-btn" data-continue="1">${game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获季到了</h2><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>家人口粮：${s.fed}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
 }
 function endingDialog() {
-  const mine = score(game.players[0]);
+  const mine = score(game.players[meIndex()]);
   const exact42 = game.alienActive.includes('X13') && game.players.some(p => score(p).total === 42);
   const ranking = game.players.map((p, i) => ({ name: p.name, points: score(p).total, i })).sort((a, b) => Number(exact42 && b.points === 42) - Number(exact42 && a.points === 42) || b.points - a.points);
   const labels = { family: '家庭成员', rooms: '住房', fields: '田地', pastures: '牧场', varieties: '物产种类', herd: '牲畜数量', hearth: '灶台', empty: '未利用土地', begging: '乞讨标记', horses: '马', moorBuildings: '沼泽建筑', moorBonus: '沼泽奖励', cards: '小设施', majors: '主要发展', craftBonus: '工坊余材', aliens: '外星卡' };
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">THE FOURTEENTH HARVEST</p><h2>${ranking[0].i === 0 ? '你的农场欣欣向荣' : '还有一个春天等着你'}</h2><p>14 轮经营结束，最终排名如下。${exact42 ? '外星事件：恰好 42 分优先获胜。' : ''}</p><div class="ranking">${ranking.map((r, i) => `<div class="score-row"><span>${i + 1}. ${r.name}</span><b>${r.points} 分</b></div>`).join('')}</div><h3>你的农场账本</h3>${Object.entries(mine.parts).map(([key, value]) => `<div class="score-row"><span>${labels[key]}</span><b>${value > 0 ? '+' : ''}${value}</b></div>`).join('')}<div class="modal-actions"><button class="primary-btn" data-new-confirm="1">再玩一局</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">THE FOURTEENTH HARVEST</p><h2>${ranking[0].i === meIndex() ? '你的农场欣欣向荣' : '还有一个春天等着你'}</h2><p>14 轮经营结束，最终排名如下。${exact42 ? '外星事件：恰好 42 分优先获胜。' : ''}</p><div class="ranking">${ranking.map((r, i) => `<div class="score-row"><span>${i + 1}. ${r.name}</span><b>${r.points} 分</b></div>`).join('')}</div><h3>你的农场账本</h3>${Object.entries(mine.parts).map(([key, value]) => `<div class="score-row"><span>${labels[key]}</span><b>${value > 0 ? '+' : ''}${value}</b></div>`).join('')}<div class="modal-actions"><button class="primary-btn" data-new-confirm="1">再玩一局</button></div></div></div>`;
 }
 function newDialog() {
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">NEW GAME</p><h2>开启一座新农场</h2><p>选择要启用的扩展。开始后会替换当前进度。</p><div class="setup-grid"><label>玩家数（你 + 电脑）<select data-setting="players">${[2, 3, 4, 5, 6].map(n => `<option value="${n}" ${ui.setup.players === n ? 'selected' : ''}>${n} 人${n >= 5 ? ' · 扩展行动格' : ''}</option>`).join('')}</select></label><label class="check-row"><input type="checkbox" data-setting="moor" ${ui.setup.moor ? 'checked' : ''}> 沼泽农夫：森林、泥沼、燃料、马、特殊行动</label><label class="check-row"><input type="checkbox" data-setting="seasons" ${ui.setup.seasons ? 'checked' : ''}> 四季流转：季节行动与资源变化</label><label class="check-row"><input type="checkbox" data-setting="cards" ${ui.setup.cards ? 'checked' : ''}> 职业与小设施：原创精简牌组</label><label class="check-row"><input type="checkbox" data-setting="aliens" ${ui.setup.aliens ? 'checked' : ''}> 外星人：24 张 X 卡，采石场触发</label></div><div class="modal-actions"><button class="ghost-btn" data-close="new">返回</button><button class="primary-btn" data-new="1">开始新游戏</button></div></div></div>`;
 }
 function render() {
-  const me = game.players[0];
-  if (ui.view >= game.players.length) ui.view = 0;
-  const currentTurn = game.phase === 'play' ? game.turn === 0 ? me.sick ? '病人需先前往医务所' : '轮到你派工' : `${game.players[game.turn].name}正在思考…` : game.phase === 'harvest' ? '收获季' : '游戏结束';
+  const me = game.players[meIndex()];
+  if (ui.view >= game.players.length) ui.view = meIndex();
+  const currentTurn = game.phase === 'play' ? canControl() ? me.sick ? '病人需先前往医务所' : '轮到你派工' : `${escapeHTML(game.players[game.turn].name)}${room.active ? '派工中' : '正在思考…'}` : game.phase === 'harvest' ? '收获季' : '游戏结束';
   const nextHarvest = HARVEST_ROUNDS.find(n => n >= game.round);
   const track = Array.from({ length: 14 }, (_, i) => `<i class="${i + 1 < game.round ? 'past' : i + 1 === game.round ? 'now' : ''}" title="第 ${i + 1} 轮"></i>`).join('');
   const resources = game.settings.moor ? RESOURCES : RESOURCES.slice(0, 10);
@@ -1021,10 +1206,10 @@ function render() {
   const mobileNav = `<nav class="mobile-nav" aria-label="游戏区域">${mobileTabs.map(([id, icon, label]) => `<button data-mobile-tab="${id}" ${mobileTab === id ? 'aria-current="page"' : ''} ${pickingCell && id !== 'farm' ? 'disabled' : ''}><span aria-hidden="true">${icon}</span>${label}</button>`).join('')}</nav>`;
   const scores = game.players.map((p, i) => `<div class="score-row"><span>${p.name}</span><b>${score(p).total} 分</b></div>`).join('');
   const turnBar = `<div class="topline"><div class="turn ${game.turn && game.phase === 'play' ? 'ai' : ''}"><span></span>${currentTurn}</div><div class="season-track" aria-label="轮次进度">${track}</div><div class="next">${game.phase === 'ended' ? '经营完毕' : nextHarvest === game.round ? '本轮结束后收获' : `第 ${nextHarvest} 轮收获`}</div></div>`;
-  const resourceTray = `<section class="resource-tray"><div class="tray-heading"><span>资源收纳盒</span><small>剩余派工 ${Math.max(0, game.workerQuota[0] - game.usedCount[0])} / ${game.workerQuota[0]}</small></div><div class="summary-strip ${game.settings.moor ? 'expanded' : ''}">${resources.map(r => resCard(r, me)).join('')}</div>${game.settings.moor ? `<div class="expansion-line"><button data-convert="woodFuel" ${me.wood && game.phase === 'play' && game.turn === 0 ? '' : 'disabled'}>1 木材 → 1 燃料</button></div>` : ''}</section>`;
+  const resourceTray = `<section class="resource-tray"><div class="tray-heading"><span>资源收纳盒</span><small>剩余派工 ${Math.max(0, game.workerQuota[meIndex()] - game.usedCount[meIndex()])} / ${game.workerQuota[meIndex()]}</small></div><div class="summary-strip ${game.settings.moor ? 'expanded' : ''}">${resources.map(r => resCard(r, me)).join('')}</div>${game.settings.moor ? `<div class="expansion-line"><button data-convert="woodFuel" ${me.wood && game.phase === 'play' && canControl() ? '' : 'disabled'}>1 木材 → 1 燃料</button></div>` : ''}</section>`;
   const scorePanel = `<section class="panel info-box tabletop-score"><h3>计分与收获</h3>${scores}<div class="score-row"><span>下次收获</span><b>${nextHarvest ? `第 ${nextHarvest} 轮` : '已结束'}</b></div><div class="score-row"><span>当前先手</span><b>${game.players[game.startPlayer].name}</b></div></section>`;
   const logPanel = `<section class="panel info-box tabletop-log"><h3>农场日志</h3><div class="log-list">${game.logs.slice(0, 6).map(item => `<div class="log-line"><time>第 ${item.round} 轮</time><span>${escapeHTML(item.message)}</span></div>`).join('')}</div></section>`;
-  app.innerHTML = `<div class="shell tabletop-shell" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1">新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : ui.mode?.choice ? choiceDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
+  app.innerHTML = `<div class="shell tabletop-shell" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : ui.mode?.choice ? choiceDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
 }
 function toast(message) {
   ui.toast = message; clearTimeout(ui.toastTimer); render();
@@ -1045,20 +1230,20 @@ function scrollToSectionOnMobile(selector) {
   });
 }
 function beginAction(action) {
-  if (game.phase !== 'play' || game.turn !== 0 || ui.dialog || ui.mode) return;
-  if (action.special ? !canSpecial(game.players[0], action, 0) : action.unlock > game.round || (!action.repeatable && action.id in game.occupied) || !canAct(game.players[0], action)) return;
+  if (game.phase !== 'play' || !canControl() || ui.dialog || ui.mode) return;
+  if (action.special ? !canSpecial(game.players[meIndex()], action, meIndex()) : action.unlock > game.round || (!action.repeatable && action.id in game.occupied) || !canAct(game.players[meIndex()], action)) return;
   if (action.kind === 'target' || action.kind === 'choice') {
-    ui.view = 0;
+    ui.view = meIndex();
     ui.mode = { id: action.id, special: !!action.special, choice: action.kind === 'choice' || ['sow', 'pasture'].includes(action.id) };
     render();
     if (!ui.mode.choice) scrollToSectionOnMobile('.farm-field');
-  } else applyAction(0, action);
+  } else commitPlayerAction(action);
 }
 function clickCell(index) {
-  if (!ui.mode || game.turn !== 0 || ui.view !== 0 || ui.mode.choice) return;
-  if (!selectedCells(game.players[0], ui.mode).includes(index)) return;
+  if (!ui.mode || !canControl() || ui.view !== meIndex() || ui.mode.choice) return;
+  if (!selectedCells(game.players[meIndex()], ui.mode).includes(index)) return;
   const action = (ui.mode.special ? SPECIALS.map(a => ({ ...a, special: true })) : availableActions()).find(a => a.id === ui.mode.id);
-  applyAction(0, action, { cell: index, crop: ui.mode.crop, animal: ui.mode.animal, supply: ui.mode.supply });
+  commitPlayerAction(action, { cell: index, crop: ui.mode.crop, animal: ui.mode.animal, supply: ui.mode.supply });
   scrollToSectionOnMobile('.actions-panel');
 }
 function submitChoice(value) {
@@ -1072,11 +1257,12 @@ function submitChoice(value) {
   if (id === 'seasonSpring' && value !== 'breed') { ui.mode.choice = false; ui.mode.crop = value; render(); scrollToSectionOnMobile('.farm-field'); return; }
   if (id === 'seasonSummer' && ['plow', 'both', 'plowBake'].includes(value)) { ui.mode.choice = false; ui.mode.supply = value; render(); scrollToSectionOnMobile('.farm-field'); return; }
   const action = (ui.mode.special ? SPECIALS.map(a => ({ ...a, special: true })) : availableActions()).find(a => a.id === id);
-  applyAction(0, action, { animal: value, card: value, major: value, supply: value, trade: value });
+  commitPlayerAction(action, { animal: value, card: value, major: value, supply: value, trade: value });
 }
 app.addEventListener('click', event => {
   const button = event.target.closest('button'); if (!button) return;
   const d = button.dataset;
+  if (handleOnlineClick(d)) return;
   if (d.mobileTab && ['actions', 'farm', 'cards', 'overview'].includes(d.mobileTab)) { ui.mobileTab = d.mobileTab; render(); window.scrollTo({ top: 0, behavior: 'instant' }); }
   else if (d.action) beginAction(availableActions().find(a => a.id === d.action));
   else if (d.special) beginAction({ ...SPECIALS.find(a => a.id === d.special), special: true });
@@ -1085,19 +1271,19 @@ app.addEventListener('click', event => {
     document.querySelector(`.${d.jump}-section`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   else if (d.cell !== undefined) clickCell(Number(d.cell));
-  else if (d.view !== undefined) { if (!ui.mode || Number(d.view) === 0) { ui.view = Number(d.view); render(); } }
+  else if (d.view !== undefined) { if (!ui.mode || Number(d.view) === meIndex()) { ui.view = Number(d.view); render(); } }
   else if (d.choice) submitChoice(d.choice);
   else if (d.cancel) { ui.mode = null; ui.mobileTab = 'actions'; render(); scrollToSectionOnMobile('.actions-panel'); }
   else if (d.rules) { ui.dialog = 'rules'; render(); }
   else if (d.catalogOpen) { ui.catalog = { query: '', kind: 'all', deck: 'all', page: 0 }; ui.dialog = 'catalog'; render(); }
   else if (d.catalogPage) { ui.catalog.page += d.catalogPage === 'next' ? 1 : -1; render(); }
   else if (d.close) { ui.dialog = null; if (d.close === 'rules') { try { localStorage.setItem(SEEN_KEY, '1'); } catch (_) {} } render(); scheduleAI(); }
-  else if (d.newConfirm) { ui.setup = { ...DEFAULT_SETTINGS }; ui.dialog = 'new'; render(); }
-  else if (d.new) { clearTimeout(ui.aiTimer); game = freshGame(ui.setup); ui.mobileTab = 'actions'; ui.actionCategory = 'basic'; ui.mode = null; ui.dialog = null; ui.view = 0; save(); render(); }
-  else if (d.continue) { if (game.round === 14) { game.phase = 'ended'; save(); render(); } else nextRound(); }
-  else if (d.convert === 'woodFuel' && game.settings.moor && game.phase === 'play' && game.turn === 0 && meHasWood()) { game.players[0].wood--; game.players[0].fuel++; save(); render(); }
+  else if (d.newConfirm) { if (room.active) { ui.dialog = 'online'; render(); return; } ui.setup = { ...DEFAULT_SETTINGS }; ui.dialog = 'new'; render(); }
+  else if (d.new) { if (room.active) return; clearTimeout(ui.aiTimer); game = freshGame(ui.setup); ui.mobileTab = 'actions'; ui.actionCategory = 'basic'; ui.mode = null; ui.dialog = null; ui.view = meIndex(); save(); render(); }
+  else if (d.continue) { if (room.active) { room.submit({ type: 'continue' }); return; } if (game.round === 14) { game.phase = 'ended'; save(); render(); } else nextRound(); }
+  else if (d.convert === 'woodFuel' && game.settings.moor && game.phase === 'play' && canControl() && meHasWood()) { if (room.active) room.submit({ type: 'convert' }); else { game.players[meIndex()].wood--; game.players[meIndex()].fuel++; save(); render(); } }
 });
-function meHasWood() { return game.players[0].wood > 0; }
+function meHasWood() { return game.players[meIndex()].wood > 0; }
 app.addEventListener('change', event => {
   const setting = event.target.dataset?.setting;
   if (setting === 'players') ui.setup.players = Number(event.target.value);
@@ -1106,6 +1292,7 @@ app.addEventListener('change', event => {
   if (event.target.matches('[data-catalog-deck]')) { ui.catalog.deck = event.target.value; ui.catalog.page = 0; render(); }
 });
 app.addEventListener('input', event => {
+  if (event.target.dataset.onlineField) { ui.onlineDraft ||= {}; ui.onlineDraft[event.target.dataset.onlineField] = event.target.value; return; }
   if (!event.target.matches('[data-catalog-query]')) return;
   const position = event.target.selectionStart;
   ui.catalog.query = event.target.value; ui.catalog.page = 0; render();
@@ -1116,6 +1303,79 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && ui.mode) { ui.mode = null; render(); }
   else if (event.key === 'Escape' && ui.dialog === 'rules') { ui.dialog = null; render(); scheduleAI(); }
 });
+function executeOnlineCommand(seat, command) {
+  if (!room.host || !room.started || room.paused || !command || typeof command !== 'object') return '房间尚未就绪。';
+  if (command.type === 'continue') {
+    if (seat !== 0 || game.phase !== 'harvest') return '等待房主推进收获。';
+    if (game.round === 14) { game.phase = 'ended'; save(); render(); } else nextRound();
+    return;
+  }
+  if (game.phase !== 'play' || game.turn !== seat || game.usedCount[seat] >= game.workerQuota[seat]) return '还没轮到你，请等待其他玩家。';
+  const player = game.players[seat];
+  if (command.type === 'convert') {
+    if (!game.settings.moor || player.wood < 1) return '木材不足。';
+    player.wood--; player.fuel++; save(); render(); return;
+  }
+  if (command.type !== 'action') return '未知操作。';
+  const action = command.special === true ? SPECIALS.map(a => ({ ...a, special: true })).find(a => a.id === command.id) : availableActions().find(a => a.id === command.id);
+  if (!action) return '行动不存在。';
+  if (action.special ? !canSpecial(player, action, seat) : action.unlock > game.round || (!action.repeatable && action.id in game.occupied) || !canAct(player, action)) return '这个行动当前不可用。';
+  const option = {};
+  for (const key of ['cell', 'crop', 'animal', 'card', 'major', 'supply', 'trade']) {
+    const value = command.option?.[key];
+    if (value !== undefined) { if (!['string', 'number'].includes(typeof value) || String(value).length > 60) return '无效的选择。'; option[key] = value; }
+  }
+  const id = action.id;
+  const field = ({ sow: 'crop', pasture: 'animal', animalMarket: 'animal', lessons: 'card', major: 'major', minor: 'card', minor6: 'card', black: 'card', illicit: 'major', farmSupplies: 'supply', seasonSummer: 'supply', alienTransform: 'trade', resourceTrade: 'trade', alienStable: 'animal', sideJob: 'animal' })[id];
+  const options = choiceOptions(player, id).options;
+  const value = id === 'seasonSpring' ? option.crop || 'breed' : option[field];
+  if (options.length && !options.some(([v, , enabled]) => enabled && v === value)) return '所选卡牌、资源或牲畜当前不可用。';
+  const needsCell = action.kind === 'target' || id === 'farmSupplies' && option.supply === 'plow' || id === 'seasonSpring' && option.crop || id === 'seasonSummer' && ['plow', 'both', 'plowBake'].includes(option.supply);
+  if (needsCell && (!Number.isInteger(option.cell) || !selectedCells(player, { id }).includes(option.cell))) return '请选择可用的农场地块。';
+  applyAction(seat, action, option);
+}
+function onlineBar() {
+  const offline = room.members.filter(m => !m.online).map(m => m.name);
+  const state = room.pending ? '正在同步行动…' : room.status === 'disconnected' ? '连接已断开，等待重连' : offline.length ? `暂停 · 等待 ${offline.join('、')} 重连` : room.started ? `你是 ${room.members[room.seat]?.name || '农场主'} · ${room.members.length} 人对局` : '等待朋友加入';
+  return `<div class="online-bar"><button data-online="1">房间 ${escapeHTML(room.code)}</button><span role="status">${escapeHTML(state)}</span>${room.status === 'disconnected' ? '<button data-room-retry="1">重新连接</button>' : ''}</div>`;
+}
+function onlineDialog() {
+  ui.onlineDraft ||= { name: '', code: new URLSearchParams(location.search).get('room') || '' };
+  const draft = ui.onlineDraft;
+  let body;
+  if (room.active) {
+    body = `<div class="room-code" aria-label="房间码">${escapeHTML(room.code)}</div><p>${room.started ? '对局进行中。房主请保持页面打开；掉线玩家可在原设备点击重新连接。' : '把房间码发给朋友，每人用自己的设备加入。至少 2 人即可开始，最多 6 人。'}</p><div class="room-members">${room.members.map((m, i) => `<div><b>${i + 1}. ${escapeHTML(m.name)}${i === 0 ? ' · 房主' : ''}${i === room.seat ? ' · 你' : ''}</b><span>${m.online ? '已连接' : '等待重连'}</span></div>`).join('') || '<p>正在连接房间…</p>'}</div>${room.status === 'connecting' ? '<p role="status">正在建立连接…</p>' : ''}<p class="room-error" role="status">${escapeHTML(room.error)}</p><div class="room-controls"><button class="ghost-btn" data-room-copy="1">复制邀请链接</button>${room.status === 'disconnected' ? '<button class="primary-btn" data-room-retry="1">重新连接</button>' : ''}${room.host && !room.started ? `<button class="primary-btn" data-room-start="1" ${room.members.length < 2 || room.members.some(m => !m.online) || room.status !== 'lobby' ? 'disabled' : ''}>开始对局（${room.members.length} 人）</button>` : !room.started ? '<p>等待房主开始对局。</p>' : ''}</div><div class="modal-actions"><button class="ghost-btn" data-room-leave="1">${room.host ? '关闭房间' : '离开房间'}</button>${room.started ? '<button class="primary-btn" data-close="online">回到游戏</button>' : ''}</div>`;
+  } else {
+    body = `<p>2–6 位真人各用自己的手机或电脑，轮流经营农场。房主需保持页面打开。</p><label class="online-field">你的昵称<input data-online-field="name" maxlength="16" placeholder="例如：小麦" value="${escapeHTML(draft.name)}"></label><div class="room-join"><label class="online-field">房间码<input data-online-field="code" maxlength="8" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="输入 8 位房间码" value="${escapeHTML(draft.code)}"></label><button class="primary-btn" data-room-join="1">加入房间</button></div><div class="room-create"><h3>或者创建房间</h3><div class="setup-grid"><label>房间人数上限<select data-setting="players">${[2,3,4,5,6].map(n => `<option value="${n}" ${ui.setup.players === n ? 'selected' : ''}>${n} 人</option>`).join('')}</select></label>${[['moor','沼泽农夫'],['seasons','四季流转'],['cards','职业与设施'],['aliens','外星人扩展']].map(([key,label]) => `<label class="check-row"><input type="checkbox" data-setting="${key}" ${ui.setup[key] ? 'checked' : ''}>${label}</label>`).join('')}</div><button class="primary-btn" data-room-create="1">创建房间</button></div>${room.saved() ? `<button class="ghost-btn room-resume" data-room-retry="1">重连上次房间 ${escapeHTML(room.saved().code)}</button>` : ''}<p class="room-error" role="status">${escapeHTML(room.error)}</p><div class="modal-actions"><button class="ghost-btn" data-close="online">返回</button></div>`;
+  }
+  return `<div class="modal-backdrop"><section class="modal online-modal" role="dialog" aria-modal="true" aria-label="多人联机"><h2>一起经营农场</h2>${body}</section></div>`;
+}
+function handleOnlineClick(d) {
+  if (d.online) { ui.dialog = 'online'; ui.setup = { ...game.settings }; ui.mode = null; render(); return true; }
+  if (d.roomCreate || d.roomJoin) {
+    ui.mode = null; ui.dialog = 'online';
+    room.open({ host: !!d.roomCreate, code: ui.onlineDraft?.code, name: ui.onlineDraft?.name, settings: { ...ui.setup } }); return true;
+  }
+  if (d.roomRetry) { ui.dialog = 'online'; room.open({ resume: true }); return true; }
+  if (d.roomStart) {
+    if (!room.host || room.started || room.status !== 'lobby' || room.members.length < 2 || room.members.some(m => !m.online)) return true;
+    game = freshGame({ ...room.settings, players: room.members.length });
+    game.players.forEach((p, i) => { p.name = room.members[i].name; p.ai = false; });
+    game.logs = []; addLog(game, `联机对局开始，${game.players[0].name}先派工。`);
+    ui.dialog = null; ui.view = 0; ui.mode = null; ui.mobileTab = 'actions'; room.start(game); return true;
+  }
+  if (d.roomLeave) { room.close(); game = loadGame(); ui.dialog = null; ui.mode = null; ui.view = 0; render(); scheduleAI(); return true; }
+  if (d.roomCopy) {
+    const url = new URL(location.protocol === 'file:' ? 'https://houruifan104-gif.github.io/four-seasons-farm/' : location.href);
+    url.search = ''; url.hash = ''; url.searchParams.set('room', room.code);
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url.href).then(() => toast('邀请链接已复制，发给朋友即可。')).catch(() => toast(`房间码：${room.code}`));
+    else toast(`房间码：${room.code}`);
+    return true;
+  }
+  return false;
+}
+
+if (new URLSearchParams(location.search).has('room')) ui.dialog = 'online';
 render();
 scheduleAI();
 

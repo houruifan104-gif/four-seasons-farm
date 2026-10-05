@@ -166,3 +166,16 @@ body{background:#8a5a34 url('./assets/tabletop.png') center top / cover fixed;co
   .table-farm .cell-icon{font-size:20px}.table-farm .mini-stat{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.action-card,.farm-cell.selectable{animation:none;transition:none}}
+
+/* Online rooms share the same boards, with a separate lobby and connection status. */
+.online-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 12px;margin-bottom:10px;border:2px solid #9b7d48;border-radius:8px;background:#f8e9be;color:#4d5f37;font-size:13px}
+.online-bar button{min-height:36px;border:1px solid #b69961;border-radius:6px;background:#fff5d6;color:#4a5e34;font:inherit;font-weight:700;padding:6px 10px}
+.online-bar span{flex:1;min-width:140px;line-height:1.5}
+.online-field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#4b5b3d;font-weight:700}
+.online-field input{width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid #b5bf9f;border-radius:8px;background:#fffef7;color:#2e4932;font:inherit;font-size:16px}
+.room-join{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px;margin:16px 0}.room-join button{min-height:44px}
+.room-create{border-top:1px solid #d5c8a9;padding-top:4px;margin-top:20px}.room-create .setup-grid{gap:8px}.room-create>.primary-btn{width:100%;min-height:44px}
+.room-code{text-align:center;user-select:all;font:800 30px ui-monospace,monospace;letter-spacing:.12em;border:2px dashed #9baa7b;border-radius:10px;background:#ecf0dd;padding:14px;margin:14px 0;color:#34523b}
+.room-members{display:grid;gap:8px;margin:15px 0}.room-members>div{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px;background:#eff1e1;border-radius:8px;font-size:13px}.room-members b{overflow-wrap:anywhere}.room-members span{flex-shrink:0;font-size:12px;color:#647953}
+.room-error:empty{display:none}.online-modal .room-error{color:#98532e;font-size:13px}.room-controls{display:flex;gap:8px;flex-wrap:wrap}.room-controls button{min-height:44px;flex:1}.room-resume{margin-top:16px;width:100%;min-height:44px}
+@media(max-width:700px){.tabletop-shell .header-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:relative}.tabletop-shell .round-pill{position:absolute;right:0;bottom:calc(100% + 8px);padding:6px 8px;font-size:10px}.tabletop-shell .header-actions .ghost-btn{padding:7px 3px;font-size:11px}.online-bar{padding:7px;gap:5px;font-size:11px}.online-bar button{min-height:44px;padding:6px}.online-bar span{min-width:120px}.online-modal .room-code{font-size:26px}.room-members>div{padding:10px}.room-create .setup-grid{display:grid;grid-template-columns:1fr 1fr}.room-create .setup-grid>label:first-child{grid-column:1/-1}.online-modal .modal-actions{gap:8px}}
