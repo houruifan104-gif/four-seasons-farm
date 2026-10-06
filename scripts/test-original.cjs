@@ -13,7 +13,7 @@ vm.runInContext(`
 room.active=true;room.host=true;room.started=true;room.status='playing';room.seat=0;
 room.members=[{name:'甲',online:true},{name:'乙',online:true}];
 function reset(){game=freshGame({...DEFAULT_SETTINGS,players:2,moor:false,cardDeck:'AB'});game.players.forEach(p=>p.ai=false);ui.dialog=null;ui.mode=null;return game.players[0];}
-function finishChoices(prefer){let limit=0;while(autoRules.queue.length&&limit++<100){autoRules.drain();const c=autoRules.choice();if(!c)continue;assert.equal(autoRules.choose(c.seat,prefer?.(c)||c.options.find(o=>o.value==='skip')?.value||c.options[0].value),undefined);}assert.ok(limit<100,'effects must terminate');}
+function finishChoices(prefer){let limit=0;while(autoRules.queue.length&&limit++<100){autoRules.drain();const c=autoRules.choice();if(!c)continue;assert.equal(autoRules.choose(c.seat,prefer?.(c)||c.options.find(o=>o.finishFeeding)?.value||c.options.find(o=>o.value==='skip')?.value||c.options[0].value),undefined);}assert.ok(limit<100,'effects must terminate');}
 function doAction(seat,id,option={}){const error=executeOnlineCommand(seat,{type:'action',id,option});assert.equal(error,undefined,error);}
 assert.equal(ORIGINAL_CARD_CATALOG.length,336);
 for(const deck of ['A','B','AB']){const g=freshGame({...DEFAULT_SETTINGS,players:6,cardDeck:deck});const cards=g.players.flatMap(p=>p.hand.occupations.concat(p.hand.improvements));assert.equal(cards.length,84);assert.equal(new Set(cards).size,84);}

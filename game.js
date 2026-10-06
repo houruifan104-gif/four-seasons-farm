@@ -320,6 +320,14 @@ function animalFoodValue(player, type) {
   const total = automaticEnabled() ? autoRules.cooking(player,type,worth) : worth;
   return game.alienGlobal.smallAnimals && total ? Math.max(1, Math.floor(total / 2)) : total;
 }
+function vegetableFoodValue(player) {
+  const base=Math.max(1,player.hearth?3:1,...player.majors.map(id=>id.startsWith('hearth')?3:id.startsWith('fireplace')?2:1));
+  return automaticEnabled()?autoRules.cooking(player,'veg',base):base;
+}
+function familyFoodNeed(player) {
+  const newborn=automaticEnabled()?autoRules.stats(player).newborn:(player.newbornRound===game.round?player.newbornCount||0:0);
+  return Math.max(0,player.family*2+(player.woozles||0)-Math.min(player.family,newborn));
+}
 function breadFoodValue(player) { return Math.max(player.hearth ? 2 : 0, ...player.majors.map(id => MAJORS.find(c => c.id === id)?.bake || 0)); }
 function canAct(player, action) {
   if (automaticEnabled() && action.ruleOp) return autoRules.canCore(player,action);
@@ -473,6 +481,7 @@ function claimAlienMerchant(who, actionId) {
 
 function applyAction(who, action, option = {}, ruleContext = null) {
   const player = game.players[who];
+  const familyBefore=player.family;
   let detail = '';
   if (action.special && (game.specialUsed[action.id] || []).length) player.food -= 2;
   if (automaticEnabled() && action.ruleOp) {autoRules.coreAction(player,action);detail='执行'+action.name;}
@@ -557,6 +566,7 @@ function applyAction(who, action, option = {}, ruleContext = null) {
   if (!action.special) claimAlienMerchant(who, action.id);
   if (game.settings.aliens && action.id === 'stone' && game.round >= 5) revealAlienCard(who);
   ui.mode = null;
+  if(!automaticEnabled()&&player.family>familyBefore){player.newbornCount=(player.newbornRound===game.round?player.newbornCount||0:0)+player.family-familyBefore;player.newbornRound=game.round;}
   save();
   if (ruleContext && automaticEnabled()) {
     if (ruleContext.sameWorker && !action.special) game.usedCount[who]--;
@@ -678,30 +688,34 @@ function scheduleAI() {
 }
 
 function feed(player, fieldsDone = false) {
-  let need = player.family * 2 + player.woozles - (fieldsDone ? autoRules.stats(player).newborn : 0);
+  let need = familyFoodNeed(player);
   const received = { crops: 0, newborn: [], fed: need, shortage: 0, heatCost: 0, cold: 0 };
   if (hasCard(player, 'silo')) player.grain++;
   received.crops = fieldsDone ? 0 : harvestFields(player);
-  received.newborn = fieldsDone ? [] : breedAnimals(player);
+  received.newborn = [];
   const useFood = Math.min(need, player.food);
   player.food -= useFood;
   need -= useFood;
-  while (need > 0 && player.veg > 0) { player.veg--; player.food += fieldsDone ? autoRules.cooking(player,'veg',player.hearth || player.majors.some(id=>MAJORS.find(c=>c.id===id)?.cook) ? 3 : 1) : 2; const x = Math.min(need, player.food); player.food -= x; need -= x; }
-  while (need > 0 && player.grain > 0) { player.grain--; const value = hasCard(player, 'baker') || hasCard(player, 'mill') ? 2 : 1; player.food += value; const x = Math.min(need, player.food); player.food -= x; need -= x; }
-  for (const craft of MAJORS.filter(c => c.craft && player.majors.includes(c.id))) if (need > 0 && player[craft.craft] > 0) {
-    player[craft.craft]--;
-    const worth = craft.craft === 'reed' ? 3 : 2;
-    const used = Math.min(need, worth); need -= used; player.food += worth - used;
-  }
-  for (const type of ['sheep', 'boar', 'cattle', 'horse']) if (animalFoodValue(player, type)) {
-    const worth = animalFoodValue(player, type);
-    while (need > 0 && player[type] > 0) {
-      player[type]--; player.food += worth;
-      const x = Math.min(need, player.food); player.food -= x; need -= x;
+  // Original games resolve resource conversions in the player-owned feeding dialog.
+  if (!fieldsDone) {
+    while (need > 0 && player.veg > 0) { player.veg--; player.food += vegetableFoodValue(player); const x = Math.min(need, player.food); player.food -= x; need -= x; }
+    while (need > 0 && player.grain > 0) { player.grain--; const value = hasCard(player, 'baker') || hasCard(player, 'mill') ? 2 : 1; player.food += value; const x = Math.min(need, player.food); player.food -= x; need -= x; }
+    for (const craft of MAJORS.filter(c => c.craft && player.majors.includes(c.id))) if (need > 0 && player[craft.craft] > 0) {
+      player[craft.craft]--;
+      const worth = craft.craft === 'reed' ? 3 : 2;
+      const used = Math.min(need, worth); need -= used; player.food += worth - used;
+    }
+    for (const type of ['sheep', 'boar', 'cattle', 'horse']) if (animalFoodValue(player, type)) {
+      const worth = animalFoodValue(player, type);
+      while (need > 0 && player[type] > 0) {
+        player[type]--; player.food += worth;
+        const x = Math.min(need, player.food); player.food -= x; need -= x;
+      }
     }
   }
   if (need > 0) { player.begging += need; received.shortage = need; }
-  if(fieldsDone){received.newborn=breedAnimals(player);if(hasCard(player,'B011'))autoRules.gain(player,'B011',{food:autoRules.breedingYardFood(player)});}
+  received.newborn=breedAnimals(player);
+  if(fieldsDone&&hasCard(player,'B011'))autoRules.gain(player,'B011',{food:autoRules.breedingYardFood(player)});
   if (player.woozles) {
     if (received.shortage) { player.woozlePenalty += player.woozles; player.woozles = 0; }
     else player.woozles += Math.floor(player.woozles / 2);
@@ -724,7 +738,7 @@ function finishRound(rulesDone = false) {
   }
   if (HARVEST_ROUNDS.includes(game.round)) {
     if (automaticEnabled()) {autoRules.harvest();return;}
-    game.harvestSummary = game.players.map(feed);
+    game.harvestSummary = game.players.map(p=>feed(p));
     const player = game.harvestSummary[0];
     game.phase = 'harvest';
     addLog(game, `第 ${game.round} 轮收获完成。${player.shortage ? `食物不足 ${player.shortage}，获得乞讨标记。` : '全家吃饱了。'}`);
@@ -924,7 +938,7 @@ function originalCanOccupy(p, a) { return automaticEnabled() ? autoRules.canOccu
 function automaticChoiceDialog() {
   const t=autoRules.choice();if(!t)return '';
   const card=findHandCard(t.card),owner=game.players[t.seat],mine=t.seat===meIndex();
-  return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(card?.name||t.title||'选择附加行动')}</h2>${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
+  return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(t.type==='feeding'?'喂养家人':card?.name||t.title||'选择附加行动')}</h2>${t.type==='feeding'?`<p>本次需要 <strong>${familyFoodNeed(owner)}</strong> 食物，库存 <strong>${owner.food}</strong> 食物。${owner.food<familyFoodNeed(owner)?`还差 ${familyFoodNeed(owner)-owner.food} 食物，可选择下方兑换。`:'食物已经足够，可以完成喂养。'}</p><p>兑换由你决定，系统不会自动吃掉谷物、蔬菜或牲畜。喂养后才繁殖，每种最多增加 1 只。</p>`:''}${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
 }
 function automaticAbilityPanel(p) {
   if(!automaticEnabled())return '';
@@ -961,7 +975,7 @@ function automaticExtraAction(seat,id,options={}) {
 function initAutomaticRules() {
   return new window.OriginalRules({
     game:()=>game,card:findHandCard,majors:MAJORS,log:message=>addLog(game,message),actions:()=>availableActions(),
-    animals:addAnimals,capacity:animalCapacity,requirement:originalRequirement,canAct,save,render,
+    animals:addAnimals,capacity:animalCapacity,animalFood:animalFoodValue,vegetableFood:vegetableFoodValue,foodNeed:familyFoodNeed,requirement:originalRequirement,canAct,save,render,
     continue:automaticContinue,extraAction:automaticExtraAction,
     choices:(p,id)=>availableActions().find(a=>a.id===id)?.ruleOp ? {options:[]} : choiceOptions(p,id),cells:(p,id)=>selectedCells(p,{id}),
     aiChoice:(seat,value)=>{clearTimeout(ui.aiTimer);ui.aiTimer=setTimeout(()=>autoRules.choose(seat,autoRules.aiOption(autoRules.choice())||value),120);}
@@ -979,7 +993,7 @@ function catalogDialog() {
   return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 + 168 张次要发展。中文规则摘要、费用、条件、固定分均可离线查看。真人房间可选完整牌组；卡牌效果自动触发。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时田地产物、牲畜繁殖，再喂养家人，每人需 2 食物。'}不足的食物变成乞讨标记。</li><li>${originalMode()?'住房共享 1 个宠物位置；牧场每格容量为 2，同一牧场内每座马厩使容量翻倍。':'每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。'}两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '当前原版牌组的费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>${originalMode()?'住房共享 1 个宠物位置；牧场每格容量为 2，同一牧场内每座马厩使容量翻倍。':'每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。'}两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '当前原版牌组的费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
 }
 function choiceOptions(p, id) {
   let options = [], title = '选择';
@@ -1007,7 +1021,7 @@ function choiceDialog() {
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">CHOOSE</p><h2>${title}</h2><div class="modal-choice ${options.length > 3 ? 'many' : ''}">${options.map(([value, label, enabled, detail]) => `<button class="choice-btn" data-choice="${value}" ${enabled ? '' : 'disabled'}><b>${label}</b><small>${detail}</small></button>`).join('')}</div><div class="modal-actions"><button class="ghost-btn" data-cancel="1">取消</button></div></div></div>`;
 }
 function harvestDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获季到了</h2><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>家人口粮：${s.fed}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获结算</h2><p>收田 → 喂养 → 繁殖。新生牲畜不能用于本次喂养。</p><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>喂养：应付 ${s.fed} · 实付 ${s.fed-s.shortage}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
 }
 function endingDialog() {
   const mine = score(game.players[meIndex()]);
@@ -1227,5 +1241,4 @@ function handleOnlineClick(d) {
 }
 
 if (new URLSearchParams(location.search).has('room')) ui.dialog = 'online';
-render();
-scheduleAI();
+if(automaticEnabled()&&autoRules.queue.length)autoRules.drain();else{render();scheduleAI();}

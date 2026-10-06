@@ -57,6 +57,14 @@
       const add=(value,label,effect={})=>options.push({value:String(value),label,...effect});
       if(t.type==='offer')for(const [i,o] of t.offers.entries())if(this.affordable(p,o.cost)&&(!o.test||this.test(p,o.test)))add(i,o.label||`${this.label(o.cost||{})} → ${this.label(o.gain||{})}${o.bonus?`、${o.bonus} 分`:''}`,o);
       if(t.type==='feeding')for(const ability of this.abilities(p).filter(a=>['A060','B032','B083'].includes(a.card)))for(const o of this.options(ability).filter(o=>o.value!=='skip'))add(`${ability.card}:${o.value}`,`${this.api.card(ability.card).name} · ${o.label}`,{...o,value:`${ability.card}:${o.value}`,abilityCard:ability.card});
+      if(t.type==='feeding'){
+        if(p.grain>0)add('eatGrain','1 谷物 → 1 食物（生食，不是烤面包）',{cost:{grain:1},gain:{food:1}});
+        if(p.veg>0)add('eatVegetable',`1 蔬菜 → ${this.api.vegetableFood(p)} 食物`,{cost:{veg:1},gain:{food:this.api.vegetableFood(p)}});
+        for(const k of ANIMALS)if(p[k]>0&&this.api.animalFood(p,k)>0)add(`cook:${k}`,`烹饪 1 ${LABELS[k]} → ${this.api.animalFood(p,k)} 食物${p[k]===2?' · 将只剩 1 只，不能繁殖':''}`,{cost:{[k]:1},gain:{food:this.api.animalFood(p,k)}});
+        for(const id of p.majors){const c=this.api.majors.find(c=>c.id===id);if(c?.craft&&p[c.craft]>0&&!(t.usedCrafts||[]).includes(id))add(`craft:${id}`,`${c.name}：1 ${LABELS[c.craft]} → ${c.craft==='reed'?3:2} 食物（每次收获限一次）`,{cost:{[c.craft]:1},gain:{food:c.craft==='reed'?3:2},craft:id});}
+        const shortage=Math.max(0,this.api.foodNeed(p)-p.food);
+        add('finishFeeding',shortage?`保留剩余资源，接受 ${shortage} 个乞讨标记（−${shortage*3} 分）`:`使用 ${this.api.foodNeed(p)} 食物，完成喂养`,{finishFeeding:true});
+      }
       if(t.type==='plow')for(const i of this.empty(p).filter(i=>!p.farm.some(c=>c.type==='field')||p.farm.some((c,j)=>c.type==='field'&&this.adjacent(i,j))))add(i,`开垦第 ${i+1} 格`,{cost:t.cost||{},cell:i});
       if(t.type==='sow') {
         this.fields(p).forEach((c,i)=>{if(!c.crop)for(const crop of ['grain','veg'])if(p[crop]>0&&(!c.only||c.only===crop))add(`${i}:${crop}`,`第 ${i+1} 块田种${LABELS[crop]}`,{field:i,crop,cost:{[crop]:1}});});
@@ -123,7 +131,7 @@
       if(t.type==='moveCrop')this.fields(p).forEach((from,i)=>{if(from.qty>=2)this.fields(p).forEach((to,j)=>{if(!to.crop&&(!to.only||to.only===from.crop))add(`${i}:${j}`,`第 ${i+1} 田 → 第 ${j+1} 田`,{from:i,to:j});});});
       if(['room','renovate'].includes(t.type)&&this.has(p,'A123')){for(const o of options.slice())for(const k of ['clay','stone'])if((o.cost?.[k]||0)>=2){const cost={...o.cost,[k]:o.cost[k]-2,wood:(o.cost.wood||0)+1};options.push({...o,value:o.value+':frame',label:o.label+' · 用 1 木替代 2 建材',cost});}}
       options=options.filter(o=>this.affordable((o.major||o.kind==='improvements')&&this.has(p,'B075')?{...p,wood:p.wood+1}:p,o.cost||{})&&(!t.maxWood||(o.cost?.wood||0)<=t.maxWood));
-      if(options.length&&t.optional)options.push({value:'skip',label:'不使用此效果'});
+      if(options.length&&t.optional&&t.type!=='feeding')options.push({value:'skip',label:'不使用此效果'});
       return options;
     }
     endSow(p,t){this.event('sow',this.seat(p),{crop:t.sownCrops.includes('veg')?'veg':'grain',restricted:!!t.restricted,fields:t.sownFields});}
@@ -204,7 +212,7 @@
       if(t.type==='stable'&&(t.count||1)>1)this.ask(p,id,'stable',{count:t.count-1});
       if(t.type==='occupation'&&(t.count||1)>1)this.ask(p,id,'occupation',{free:t.free,fee:t.fee,count:t.count-1});
       for(const next of o.next||[])this.ask(p,id,next.type,next,next.optional!==false);
-      if(t.type==='feeding')this.ask(p,'喂养前兑换','feeding');
+      if(t.type==='feeding'&&!o.finishFeeding)this.ask(p,'喂养家人','feeding',{usedCrafts:(t.usedCrafts||[]).concat(o.craft?[o.craft]:[])},false);
       this.event('milestone',t.seat);
     }
     install(p,id,info={}) {
@@ -385,7 +393,7 @@
       }
       if(['play','renovate'].includes(type))for(const p of this.g.players)this.transitions(p);
       if(['play','milestone','gain','pasture','plow','room'].includes(type))this.milestones();
-      if(type==='feed')this.ask(player,'喂养前兑换','feeding');
+      if(type==='feed')this.ask(player,'喂养家人','feeding',{title:'喂养家人'},false);
     }
     transitions(p) {
       const h=id=>this.has(p,id);
@@ -685,7 +693,7 @@
       }
       return out;
     }
-    aiOption(t){if(!t)return null;if(t.type==='feeding'&&this.p(t.seat).food>=this.p(t.seat).family*2-this.stats(this.p(t.seat)).newborn)return 'skip';const options=t.options;const chosen=options.find(o=>o.finishSelection)||options.find(o=>o.cells||o.cardId||o.major||o.oven||o.gain)||options.find(o=>o.selectCell!==undefined)||options.find(o=>o.value==='skip')||options[0];return chosen?.value;}
+    aiOption(t){if(!t)return null;const options=t.options;if(t.type==='feeding'){const p=this.p(t.seat);if(p.food>=this.api.foodNeed(p))return 'finishFeeding';return (options.find(o=>o.craft)||options.find(o=>o.gain?.food&&Object.keys(o.cost||{}).some(k=>ANIMALS.includes(k)&&p[k]>2))||options.find(o=>o.gain?.food)||options.find(o=>o.finishFeeding))?.value;}const chosen=options.find(o=>o.finishSelection)||options.find(o=>o.cells||o.cardId||o.major||o.oven||o.gain)||options.find(o=>o.selectCell!==undefined)||options.find(o=>o.value==='skip')||options[0];return chosen?.value;}
     activate(seat,id) {if(this.queue.length||this.g.turn!==seat||this.g.phase!=='play')return '请在自己的回合使用卡牌。';const t=this.abilities(this.p(seat)).find(t=>t.card===id);if(!t)return '卡牌效果当前不可用。';this.add(t);this.drain();}
     canOccupy(p,a) {
       if(!(a.id in this.g.occupied)||a.repeatable)return true;
