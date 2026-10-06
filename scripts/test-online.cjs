@@ -7,7 +7,7 @@ const storage = { getItem: () => null, setItem() {}, removeItem() {} };
 const sandbox = { console, crypto: webcrypto, URL, URLSearchParams, localStorage: storage, sessionStorage: storage, location: { search: '?test=rules', href: 'http://localhost/', protocol: 'http:' }, document: { querySelector: () => app, addEventListener() {} }, setTimeout: () => 1, clearTimeout() {}, setInterval: () => 1, clearInterval() {}, queueMicrotask: () => {}, requestAnimationFrame: () => {}, navigator: {} };
 sandbox.window = sandbox; sandbox.matchMedia = () => ({ matches: false });
 vm.createContext(sandbox);
-for (const f of ['multiplayer.js', 'game.js']) vm.runInContext(fs.readFileSync(f, 'utf8'), sandbox);
+for (const f of ['multiplayer.js', 'original-rules.js', 'game.js']) vm.runInContext(fs.readFileSync(f, 'utf8'), sandbox);
 sandbox.assert = assert;
 vm.runInContext(`
 room.active = true; room.host = true; room.started = true; room.status = 'playing';

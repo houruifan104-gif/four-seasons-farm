@@ -1,3 +1,4 @@
+let autoRules;
 const TEST_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('test');
 const ORIGINAL_CARD_CATALOG = typeof window !== 'undefined' ? window.ORIGINAL_CARD_CATALOG || [] : [];
 const SAVE_KEY = TEST_MODE ? 'four-seasons-farm-v2-test' : 'four-seasons-farm-v2';
@@ -23,7 +24,7 @@ const SEASON_ACTIONS = [
   { id: 'seasonAutumn', name: '秋日采收', icon: '🍂', detail: '田地收获，并获得 1 菜种', unlock: 1, kind: 'simple' },
   { id: 'seasonWinter', name: '冬日扩员', icon: '❄️', detail: '花 2 木材及剩余收获次数的食物，无房扩员', unlock: 1, kind: 'simple' }
 ];
-const DEFAULT_SETTINGS = { players: 2, moor: true, cards: true, seasons: false, aliens: false, cardDeck: 'simple' };
+const DEFAULT_SETTINGS = { players: 2, moor: true, cards: true, seasons: false, aliens: false, cardDeck: 'AB' };
 const ACTIONS = [
   { id: 'wood', name: '林地', icon: '🌲', detail: '每轮累积 3 木材', unlock: 1, kind: 'pile', key: 'wood', add: 3 },
   { id: 'clay', name: '黏土坑', icon: '🧱', detail: '每轮累积 1 黏土', unlock: 1, kind: 'pile', key: 'clay', add: 1 },
@@ -130,17 +131,39 @@ const ALIEN_RULES = {
   X07: '持有者结算时每组房屋、田地、牧场各 1 格得 1 分。', X08: '持有者接下来 3 轮各多派工 1 次。', X09: '持有者每轮结束若林地无人占用，得 1 木材。', X10: '持有者下一次取得资源堆时翻倍，然后传给下家。', X11: '持有者建房或围牧场少付 1 木材。', X12: '得到 2 个毛绒访客；每次收获需各喂 1 食物，否则每个 −1 分。',
   X13: '事件：游戏结束恰好 42 分的玩家获胜。', X14: '事件：抽牌者立即无房扩员。', X15: '事件：此后每轮结束每位玩家付 1 食物；不足则下轮少派工 1 次。', X16: '事件：抽牌者决定下一轮先手。', X17: '事件：抽牌者获得 2 分；林地、临时劳作各放 1 枚糖果，未取回各扣 1 分。', X18: '事件：抽牌者付 5 种资源，获得 1 名家人。', X19: '事件：抽牌者各得 1 羊、猪、牛，本轮少派工 1 次。', X20: '事件：全体牧场容量翻倍，牲畜烹饪收益减半。', X21: '事件：全体木屋损坏 1 间；黏土屋升级石屋。', X22: '事件：抽牌者接下来的 3 轮少派工 1 次，随后一轮多派工 1 次。', X23: '事件：抽牌者两块空地被麦田怪圈占据。', X24: '抽牌者派出一名反抗者，游戏结束得 5 分，但以后少派工 1 次。'
 };
+function originalRoundDeck() {
+  return [[ 'sheep','major','sow','pasture' ],['stone','renovate','grow'],['boar','veg'],['cattle','stone2'],['growNoRoom','plowSow'],['renovateFence']].flatMap(stage=>stage.map(id=>({id,sort:Math.random()})).sort((a,b)=>a.sort-b.sort).map(x=>x.id));
+}
+function originalBoardActions(g, actions) {
+  if(!g.settings.cards||!['A','B','AB'].includes(g.settings.cardDeck))return actions;
+  const added=[
+    {id:'renovate',name:'翻修住房',icon:'🏗',detail:'翻修后，可建造主要或次要发展',kind:'simple',ruleOp:'renovate',unlock:6},
+    {id:'stone2',name:'第二采石场',icon:'🪨',detail:'每轮累积 1 石料',kind:'pile',key:'stone',add:1,unlock:11},
+    {id:'growNoRoom',name:'紧急扩员',icon:'👪',detail:'无需空房的家庭增长',kind:'simple',ruleOp:'growNoRoom',unlock:12},
+    {id:'plowSow',name:'耕作',icon:'🌾',detail:'开垦田地，然后播种',kind:'simple',ruleOp:'plowSow',unlock:13},
+    {id:'renovateFence',name:'翻修与围栏',icon:'🏠',detail:'翻修住房，然后建围栏',kind:'simple',ruleOp:'renovateFence',unlock:14}
+  ];
+  if(!actions.some(a=>a.id==='travelers')&&g.players.length>=3)added.push({id:'travelers',name:'旅行艺人',icon:'🎭',detail:'每轮累积 1 食物',kind:'pile',key:'food',add:1,unlock:1});
+  const deck=g.ruleRoundDeck||['sheep','major','sow','pasture','stone','renovate','grow','boar','veg','cattle','stone2','growNoRoom','plowSow','renovateFence'];
+  return actions.filter(a=>!['upgradeClay','upgradeStone'].includes(a.id)).concat(added).map(a=>{
+    const slot=deck.indexOf(a.id)+1;
+    if(['sow','room','pasture','major'].includes(a.id))a={...a,kind:'simple',ruleOp:a.id,detail:({sow:'播种多块田，并可烤面包',room:'扩建房间，并可建马厩',pasture:'选择相邻地块围建牧场',major:'建造主要或次要发展'})[a.id]};
+    return {...a,unlock:slot||(['room','first'].includes(a.id)?1:a.unlock),roundSlot:slot||null};
+  });
+}
+
 function availableActions(g = game) {
   const actions = ACTIONS.concat(EXTRA_ACTIONS.filter(a => (!a.minPlayers || g.players.length >= a.minPlayers) && (!a.moor || g.settings.moor) && (!a.cards || g.settings.cards)));
   if (g.settings.seasons) actions.push(SEASON_ACTIONS[(g.round - 1) % 4]);
+  if (autoRules && g === game && automaticEnabled()) actions.push(...autoRules.publicActions());
   if (g.settings.aliens) actions.push(...ALIEN_ACTIONS.filter(a => g.alienActive?.includes(a.card)));
-  return actions;
+  return originalBoardActions(g,actions);
 }
 function seasonName(g = game) { return g.settings.seasons ? SEASONS[(g.round - 1) % 4].name : ''; }
 function winterFieldCost(g = game) { return seasonName(g) === '冬' ? 1 : 0; }
 function harvestsRemaining(g = game) { return HARVEST_ROUNDS.filter(n => n >= g.round).length; }
 function hasAlien(player, id) { return player.alienArtifacts.includes(id); }
-function roomCost(player) { return { [player.houseMaterial]: Math.max(0, 5 - Number(player.houseMaterial === 'wood' && hasCard(player, 'mason')) - Number(player.houseMaterial === 'wood' && hasAlien(player, 'X11'))), reed: hasCard(player, 'mason') ? 1 : 2 }; }
+function roomCost(player) { if (automaticEnabled()) return autoRules.roomCost(player); return { [player.houseMaterial]: Math.max(0, 5 - Number(player.houseMaterial === 'wood' && hasCard(player, 'mason')) - Number(player.houseMaterial === 'wood' && hasAlien(player, 'X11'))), reed: hasCard(player, 'mason') ? 1 : 2 }; }
 
 const app = document.querySelector('#app');
 const ui = { mobileTab: 'actions', actionCategory: 'basic', view: 0, mode: null, dialog: null, toast: '', aiTimer: null, toastTimer: null, setup: { ...DEFAULT_SETTINGS }, catalog: { query: '', kind: 'all', deck: 'all', page: 0 } };
@@ -177,6 +200,7 @@ function freshGame(settings = DEFAULT_SETTINGS) {
   const game = {
     version: 2, settings, round: 1, phase: 'play', startPlayer: 0, nextStart: 0, turn: 0,
     usedCount: players.map(() => 0), workerQuota: players.map(() => 2), occupied: {}, specialUsed: {}, piles: {}, players,
+    ruleRoundDeck: settings.cardDeck !== 'simple' ? originalRoundDeck() : undefined,
     logs: [], harvestSummary: null, majorSupply: MAJORS.map(c => c.id),
     alienDeck: settings.aliens ? ALIEN_CARDS.map(c => c.id).sort(() => Math.random() - .5) : [],
     alienActive: [], alienClaims: {}, alienEvents: [], alienGlobal: {}
@@ -208,15 +232,18 @@ function loadGame() {
   return freshGame();
 }
 let game = loadGame();
+autoRules = initAutomaticRules();
+if (game.cardReview) { game.cardReview = false; if (Number.isInteger(game.pendingCardAdvance)) { autoRules.add({type:'continue',kind:'advance',seat:game.pendingCardAdvance}); delete game.pendingCardAdvance; } }
 const room = new window.FarmRoom({
   change: () => { clearTimeout(ui.aiTimer); if (room.active && room.status === 'disconnected') ui.dialog = 'online'; render(); },
   state: (snapshot, seat) => { game = snapshot; ui.view = seat; ui.mode = null; ui.dialog = null; ui.mobileTab = 'actions'; },
   command: (seat, command) => executeOnlineCommand(seat, command)
 });
 function meIndex() { return room.active && room.started ? room.seat : 0; }
-function canControl() { return !game.cardReview && (!room.active || room.started && !room.paused && !room.pending) && game.turn === meIndex(); }
+function canControl() { return !(automaticEnabled() && autoRules.queue.length) && (!room.active || room.started && !room.paused && !room.pending) && game.turn === meIndex(); }
 function commitPlayerAction(action, option = {}) {
   if (room.active) { ui.mode = null; room.submit({ type: 'action', id: action.id, special: !!action.special, option }); }
+  else if (automaticEnabled()) autoRules.begin(meIndex(),action,option);
   else applyAction(meIndex(), action, option);
 }
 let publishQueued = false;
@@ -281,19 +308,22 @@ function blackMarketCards(player) {
   const extra = (game.specialUsed.black || []).length ? 2 : 0;
   return playableCards(player, 'improvements').filter(c => player.food >= extra + (c.cost?.food || 0));
 }
-function majorCost(card) {
-  const cost = { ...card.cost };
+function majorCost(card, player = game.players[game.turn]) {
+  const cost = automaticEnabled() ? autoRules.majorCost(player,card) : { ...card.cost };
   if (seasonName() === '秋') { const key = Object.keys(cost).find(k => cost[k] > 0); if (key) cost[key]--; }
   return cost;
 }
-function playableMajors(player) { return MAJORS.filter(card => game.majorSupply.includes(card.id) && canPay(player, majorCost(card))); }
+function playableMajors(player) { return MAJORS.filter(card => game.majorSupply.includes(card.id) && canPay(player, majorCost(card, player))); }
 function animalFoodValue(player, type) {
   const base = type === 'horse' ? player.horseCook || hasCard(player, 'horseOven') ? 3 : 0 : player.hearth ? { sheep: 2, boar: 3, cattle: 4 }[type] : 0;
   const worth = Math.max(base, ...player.majors.map(id => MAJORS.find(c => c.id === id)?.cook?.[type] || 0));
-  return game.alienGlobal.smallAnimals && worth ? Math.max(1, Math.floor(worth / 2)) : worth;
+  const total = automaticEnabled() ? autoRules.cooking(player,type,worth) : worth;
+  return game.alienGlobal.smallAnimals && total ? Math.max(1, Math.floor(total / 2)) : total;
 }
 function breadFoodValue(player) { return Math.max(player.hearth ? 2 : 0, ...player.majors.map(id => MAJORS.find(c => c.id === id)?.bake || 0)); }
 function canAct(player, action) {
+  if (automaticEnabled() && action.ruleOp) return autoRules.canCore(player,action);
+  if (automaticEnabled() && action.rulePublic) { const own=game.players.indexOf(player)===action.owner; return action.rulePublic==='A162' ? own : action.rulePublic==='A039' ? own || player.grain>0 : player.wood>=5 && (own || player.food>0); }
   if (player.sick > 0 && action.id !== 'infirmary') return false;
   switch (action.id) {
     case 'plow': case 'pasture': return emptyCells(player).length > 0 && (action.id !== 'pasture' ? player.food >= winterFieldCost() : player.wood >= Math.max(0, 2 - Number(seasonName() === '春' || hasCard(player, 'fenceKit')) - Number(hasAlien(player, 'X11'))));
@@ -305,7 +335,7 @@ function canAct(player, action) {
     case 'sow': return emptyFields(player).length > 0 && (player.grain > 0 || player.veg > 0);
     case 'room': return canPay(player, roomCost(player)) && roomCells(player).length > 0;
     case 'fish': return seasonName() !== '冬' || game.round >= 12;
-    case 'grow': return player.family < Math.min(5, farmCount(player, 'house'));
+    case 'grow': return player.family < Math.min(5, automaticEnabled() ? autoRules.housing(player) : farmCount(player, 'house'));
     case 'hearth': return !player.hearth && player.clay >= 2;
     case 'lessons': return playableCards(player, 'occupations').length > 0;
     case 'major': return playableMajors(player).length > 0;
@@ -339,7 +369,7 @@ function canSpecial(player, special, who) {
     default: return true;
   }
 }
-function animalCapacity(player, type) { return 1 + (player.stables?.[type] || 0) + (hasCard(player, 'herder') ? 1 : 0) + player.farm.filter(c => c.type === 'pasture' && c.animal === type).length * (game.alienGlobal.smallAnimals ? 6 : 3); }
+function animalCapacity(player, type) { const base = 1 + (player.stables?.[type] || 0) + (hasCard(player, 'herder') ? 1 : 0) + player.farm.filter(c => c.type === 'pasture' && c.animal === type).length * (game.alienGlobal.smallAnimals ? 6 : 3); return automaticEnabled() ? autoRules.capacity(player,type,base) : base; }
 function addAnimals(player, type, amount) {
   const canKeep = Math.max(0, animalCapacity(player, type) - player[type]);
   const kept = Math.min(canKeep, amount);
@@ -353,7 +383,9 @@ function actionText(who, action, extra = '') { return `${!room.active && who ===
 function playCard(player, type, choiceId) {
   const card = playableCards(player, type).find(c => (c.choiceId || c.id) === choiceId);
   if (!card) return '';
-  if (type === 'occupations') player.food -= player.played.occupations.length ? 2 : 1;
+  if(card.original && type==='improvements' && hasCard(player,'B075'))autoRules.gain(player,'B075',{wood:1});
+  if (type === 'occupations' && card.original) {pay(player,card.cost);if(card.pool)game.piles.travelers-=card.pool;}
+  else if (type === 'occupations') player.food -= player.played.occupations.length ? 2 : 1;
   else if (card.returnCooking) {
     const returned = choiceId.split(':')[1];
     player.majors = player.majors.filter(id => id !== returned);
@@ -362,16 +394,17 @@ function playCard(player, type, choiceId) {
   player.hand[type] = player.hand[type].filter(x => x !== card.id);
   if (card.passing) game.players[(game.players.indexOf(player) + 1) % game.players.length].hand[type].push(card.id);
   else player.played[type].push(card.id);
-  if (card.original) { player.cardHistory ||= []; player.cardHistory.push(card.id); }
-  return card.name + (card.original ? '（效果待房主结算）' : '');
+  if (card.original) { player.cardHistory ||= []; player.cardHistory.push(card.id); autoRules.event('play',game.players.indexOf(player),{id:card.id,cost:card.cost,action:ui.mode?.id||'minor'}); autoRules.event(type==='occupations'?'occupation':'improvement',game.players.indexOf(player),{id:card.id,action:ui.mode?.id||'minor'}); }
+  return card.name;
 }
 function playMajorCard(player, id) {
   const card = MAJORS.find(c => c.id === id);
-  if (!card || !game.majorSupply.includes(id) || !canPay(player, majorCost(card))) return '';
-  pay(player, majorCost(card));
+  if (!card || !game.majorSupply.includes(id) || !canPay(player, majorCost(card, player))) return '';
+  pay(player, majorCost(card, player));
   game.majorSupply = game.majorSupply.filter(x => x !== id);
   player.majors.push(id);
   player.majorBuiltRound[id] = game.round;
+  if (automaticEnabled()) { autoRules.event('improvement',game.players.indexOf(player),{id,major:true}); if(['clayOven','stoneOven'].includes(id))autoRules.ask(player,id,'bake'); }
   return card.name;
 }
 function buildMajor(player, id) {
@@ -438,11 +471,16 @@ function claimAlienMerchant(who, actionId) {
   addLog(game, `${player.name}满足条件，取得 ${claim[0]}「${ALIEN_CARDS.find(c => c.id === claim[0]).name}」，获得 2 分。`);
 }
 
-function applyAction(who, action, option = {}) {
+function applyAction(who, action, option = {}, ruleContext = null) {
   const player = game.players[who];
   let detail = '';
   if (action.special && (game.specialUsed[action.id] || []).length) player.food -= 2;
-  if (action.kind === 'pile') {
+  if (automaticEnabled() && action.ruleOp) {autoRules.coreAction(player,action);detail='执行'+action.name;}
+  else if (action.rulePublic) {
+    const owner=game.players[action.owner]; if(action.rulePublic==='A039'){if(who!==action.owner){player.grain--;owner.grain++;}autoRules.bonus(player,'A039',3);}
+    if(action.rulePublic==='A162')autoRules.gain(player,'A162',{wood:3,clay:2});
+    if(action.rulePublic==='B042'){if(who!==action.owner){player.food--;owner.food++;}autoRules.offer(player,'B042',[5,7,9].map((n,i)=>({cost:{wood:n},gain:{wood:8,food:[2,4,7][i]}})),false);}
+  } else if (action.kind === 'pile') {
     let qty = game.piles[action.id] || 0;
     if (hasAlien(player, 'X10')) { qty *= 2; player.alienArtifacts = player.alienArtifacts.filter(id => id !== 'X10'); game.players[(who + 1) % game.players.length].alienArtifacts.push('X10'); }
     game.piles[action.id] = 0;
@@ -469,7 +507,7 @@ function applyAction(who, action, option = {}) {
     case 'plow': player.food -= winterFieldCost(); player.farm[option.cell] = { type: 'field', crop: null, qty: 0 }; if (hasCard(player, 'farmer')) player.grain++; detail = `开垦第 ${option.cell + 1} 格${winterFieldCost() ? '，花 1 食物' : ''}`; break;
     case 'sow':
       player[option.crop]--;
-      player.farm[option.cell] = { type: 'field', crop: option.crop, qty: option.crop === 'grain' ? 3 : 2 };
+      player.farm[option.cell] = { type: 'field', crop: option.crop, qty: (option.crop === 'grain' ? 3 : 2) + Number(automaticEnabled() && hasCard(player,'B115')) };
       detail = `播下${option.crop === 'grain' ? '谷物' : '蔬菜'}`; break;
     case 'pasture': player.wood -= Math.max(0, 2 - Number(seasonName() === '春' || hasCard(player, 'fenceKit')) - Number(hasAlien(player, 'X11'))); player.farm[option.cell] = { type: 'pasture', animal: option.animal }; detail = `建成${ANIMALS[option.animal]}牧场${seasonName() === '春' ? '，春季围栏优惠' : ''}`; break;
     case 'room': pay(player, roomCost(player)); player.farm[option.cell] = { type: 'house' }; if (seasonName() === '夏' && Object.values(player.stables).reduce((a, b) => a + b, 0) < 4) { const type = Object.keys(ANIMALS).filter(t => t !== 'horse' || game.settings.moor).sort((a, b) => player[b] - player[a])[0]; player.stables[type]++; } detail = `新增 1 间住房${seasonName() === '夏' ? '及免费牲畜棚' : ''}`; break;
@@ -486,7 +524,7 @@ function applyAction(who, action, option = {}) {
     case 'resourceTrade': { const [a, b] = option.trade.split('-'); player.food++; player[a]++; player[b]++; detail = `获得 1 食物、1 ${RESOURCES.find(r => r[0] === a)[1]}、1 ${RESOURCES.find(r => r[0] === b)[1]}`; break; }
     case 'corral': { const type = ['sheep', 'boar', 'cattle'].find(t => player[t] === 0); addAnimals(player, type, 1); detail = `获得 1 ${ANIMALS[type]}`; break; }
     case 'farmSupplies': player.food -= seasonName() === '冬' && option.supply === 'plow' ? 2 : 1; if (option.supply === 'grain') { player.grain++; detail = '花 1 食物买谷种'; } else { player.farm[option.cell] = { type: 'field', crop: null, qty: 0 }; detail = `花 ${seasonName() === '冬' ? 2 : 1} 食物开田`; } break;
-    case 'seasonSpring': { const born = breedAnimals(player); if (option.crop && Number.isInteger(option.cell)) { player[option.crop]--; player.farm[option.cell] = { type: 'field', crop: option.crop, qty: option.crop === 'grain' ? 3 : 2 }; } detail = `新生牲畜 ${born.join('、') || '无'}${option.crop ? '，并播种' : ''}`; break; }
+    case 'seasonSpring': { const born = breedAnimals(player); if (option.crop && Number.isInteger(option.cell)) { player[option.crop]--; player.farm[option.cell] = { type: 'field', crop: option.crop, qty: (option.crop === 'grain' ? 3 : 2) + Number(automaticEnabled() && hasCard(player,'B115')) }; } detail = `新生牲畜 ${born.join('、') || '无'}${option.crop ? '，并播种' : ''}`; break; }
     case 'seasonSummer': { const baking = option.supply === 'bake' || option.supply === 'plowBake'; const selling = option.supply === 'sell' || option.supply === 'both'; if (baking || selling) { player.grain--; player.food += selling ? 4 : breadFoodValue(player) + Number(hasCard(player, 'baker')) + Number(hasCard(player, 'mill')); } if (['plow', 'both', 'plowBake'].includes(option.supply)) { player.farm[option.cell] = { type: 'field', crop: null, qty: 0 }; if (hasCard(player, 'farmer')) player.grain++; } detail = `${['plow', 'both', 'plowBake'].includes(option.supply) ? '开田 1 格' : ''}${baking ? '，烤面包' : selling ? '，卖谷种换 4 食物' : ''}`.replace(/^，/, ''); break; }
     case 'seasonAutumn': detail = `收获 ${harvestFields(player)} 块田，并获得 1 菜种`; player.veg++; break;
     case 'seasonWinter': player.wood -= 2; player.food -= harvestsRemaining(); player.family++; detail = `无房扩员至 ${player.family} 人，花 2 木材、${harvestsRemaining()} 食物`; break;
@@ -520,15 +558,15 @@ function applyAction(who, action, option = {}) {
   if (game.settings.aliens && action.id === 'stone' && game.round >= 5) revealAlienCard(who);
   ui.mode = null;
   save();
-  if (room.active && originalMode()) {
-    game.cardReview = true; game.pendingCardAdvance = who;
-    if (room.host) { ui.dialog = 'settlement'; ui.settlement = { seat: who, card: player.cardHistory?.at(-1) || '', resource: 'food', delta: 1, note: '' }; }
-    save(); render();
+  if (ruleContext && automaticEnabled()) {
+    if (ruleContext.sameWorker && !action.special) game.usedCount[who]--;
+    autoRules.afterAction(who,action,option,ruleContext.before,ruleContext);
   } else advanceTurn(who);
 }
 
 function advanceTurn(who) {
   const n = game.players.length;
+  if (Number.isInteger(game.forcedNextSeat)) { const next=game.forcedNextSeat; delete game.forcedNextSeat; if(game.usedCount[next]<game.workerQuota[next]) {game.turn=next;save();render();scheduleAI();return;} }
   let next = -1;
   for (let offset = 1; offset <= n; offset++) {
     const candidate = (who + offset) % n;
@@ -543,7 +581,7 @@ function chooseAiAction(who) {
   const p = game.players[who];
   const nextHarvest = HARVEST_ROUNDS.find(n => n >= game.round) || 14;
   const foodNeed = p.family * 2 - p.food;
-  const candidates = availableActions().filter(a => a.unlock <= game.round && (a.repeatable || !(a.id in game.occupied)) && canAct(p, a));
+  const candidates = availableActions().filter(a => a.unlock <= game.round && originalCanOccupy(p,a) && canAct(p, a));
   if (game.settings.moor) candidates.push(...SPECIALS.map(a => ({ ...a, special: true })).filter(a => canSpecial(p, a, who)));
   function value(a) {
     const pile = game.piles[a.id] || 0;
@@ -626,29 +664,29 @@ function performAI() {
   if (action.id === 'resourceTrade') option.trade = 'wood-reed';
   if (action.id === 'seasonSpring') { option.crop = emptyFields(p).length ? p.veg > 0 ? 'veg' : p.grain > 0 ? 'grain' : null : null; option.cell = option.crop ? emptyFields(p)[0] : undefined; }
   if (action.id === 'seasonSummer') { option.supply = emptyCells(p).length ? p.grain > 0 ? 'both' : 'plow' : 'sell'; option.cell = emptyCells(p)[0]; }
-  if (action.id === 'lessons') option.card = playableCards(p, 'occupations')[0]?.id;
+  if (action.id === 'lessons') option.card = playableCards(p, 'occupations')[0]?.choiceId || playableCards(p, 'occupations')[0]?.id;
   if (action.id === 'major') option.major = playableMajors(p)[0]?.id;
-  if (['minor', 'minor6', 'black'].includes(action.id)) option.card = playableCards(p, 'improvements')[0]?.id;
+  if (['minor', 'minor6', 'black'].includes(action.id)) option.card = playableCards(p, 'improvements')[0]?.choiceId || playableCards(p, 'improvements')[0]?.id;
   if (action.id === 'illicit') option.major = ['horseCook', 'kiln', 'lodge'].find(id => canAct(p, EXTRA_ACTIONS.find(a => a.id === id)));
   if (action.id === 'alienTransform') { const from = ['wood', 'clay', 'reed', 'stone'].sort((a, b) => p[b] - p[a])[0]; option.trade = `${from}-${from === 'stone' ? 'wood' : 'stone'}`; }
   if (action.id === 'alienStable') option.animal = p.cattle ? 'cattle' : p.boar ? 'boar' : 'sheep';
-  applyAction(who, action, option);
+  if(automaticEnabled())autoRules.begin(who,action,option);else applyAction(who, action, option);
 }
 function scheduleAI() {
   clearTimeout(ui.aiTimer);
-  if (!room.active && game.phase === 'play' && game.players[game.turn].ai && !ui.dialog) ui.aiTimer = setTimeout(performAI, game.players.length > 2 ? 250 : 550);
+  if (!(automaticEnabled() && autoRules.queue.length) && !room.active && game.phase === 'play' && game.players[game.turn].ai && !ui.dialog) ui.aiTimer = setTimeout(performAI, game.players.length > 2 ? 250 : 550);
 }
 
-function feed(player) {
-  let need = player.family * 2 + player.woozles;
+function feed(player, fieldsDone = false) {
+  let need = player.family * 2 + player.woozles - (fieldsDone ? autoRules.stats(player).newborn : 0);
   const received = { crops: 0, newborn: [], fed: need, shortage: 0, heatCost: 0, cold: 0 };
   if (hasCard(player, 'silo')) player.grain++;
-  received.crops = harvestFields(player);
-  received.newborn = breedAnimals(player);
+  received.crops = fieldsDone ? 0 : harvestFields(player);
+  received.newborn = fieldsDone ? [] : breedAnimals(player);
   const useFood = Math.min(need, player.food);
   player.food -= useFood;
   need -= useFood;
-  while (need > 0 && player.veg > 0) { player.veg--; player.food += 2; const x = Math.min(need, player.food); player.food -= x; need -= x; }
+  while (need > 0 && player.veg > 0) { player.veg--; player.food += fieldsDone ? autoRules.cooking(player,'veg',player.hearth || player.majors.some(id=>MAJORS.find(c=>c.id===id)?.cook) ? 3 : 1) : 2; const x = Math.min(need, player.food); player.food -= x; need -= x; }
   while (need > 0 && player.grain > 0) { player.grain--; const value = hasCard(player, 'baker') || hasCard(player, 'mill') ? 2 : 1; player.food += value; const x = Math.min(need, player.food); player.food -= x; need -= x; }
   for (const craft of MAJORS.filter(c => c.craft && player.majors.includes(c.id))) if (need > 0 && player[craft.craft] > 0) {
     player[craft.craft]--;
@@ -663,6 +701,7 @@ function feed(player) {
     }
   }
   if (need > 0) { player.begging += need; received.shortage = need; }
+  if(fieldsDone){received.newborn=breedAnimals(player);if(hasCard(player,'B011'))autoRules.gain(player,'B011',{food:autoRules.breedingYardFood(player)});}
   if (player.woozles) {
     if (received.shortage) { player.woozlePenalty += player.woozles; player.woozles = 0; }
     else player.woozles += Math.floor(player.woozles / 2);
@@ -677,12 +716,14 @@ function feed(player) {
   }
   return received;
 }
-function finishRound() {
+function finishRound(rulesDone = false) {
+  if (automaticEnabled() && !rulesDone) { autoRules.roundEnd(); return; }
   if (game.alienActive.includes('X15')) game.players.forEach(p => { if (p.food > 0) p.food--; else p.frozenUntil = Math.max(p.frozenUntil, game.round + 1); });
   for (const p of game.players) {
     if (hasAlien(p, 'X09') && !('wood' in game.occupied)) p.wood++;
   }
   if (HARVEST_ROUNDS.includes(game.round)) {
+    if (automaticEnabled()) {autoRules.harvest();return;}
     game.harvestSummary = game.players.map(feed);
     const player = game.harvestSummary[0];
     game.phase = 'harvest';
@@ -691,6 +732,7 @@ function finishRound() {
   } else nextRound();
 }
 function nextRound() {
+  const oldPiles={...game.piles};
   game.round++;
   game.phase = 'play';
   game.occupied = {};
@@ -702,6 +744,7 @@ function nextRound() {
   game.harvestSummary = null;
   replenish(game);
   addLog(game, `第 ${game.round} 轮开始，资源继续累积。`);
+  if (automaticEnabled())autoRules.roundStart(oldPiles);
   save(); render(); scheduleAI();
 }
 function score(player) {
@@ -719,7 +762,7 @@ function score(player) {
   }
   if (game.settings.cards) {
     parts.cards = player.played.improvements.reduce((sum, id) => sum + (findHandCard(id)?.points || 0), 0);
-    parts.cardBonus = player.cardBonus || 0;
+    parts.cardBonus = (player.cardBonus || 0) + (automaticEnabled() ? autoRules.score(player) : 0);
     parts.majors = player.majors.reduce((sum, id) => sum + (MAJORS.find(c => c.id === id)?.points || 0), 0);
     parts.craftBonus = player.majors.reduce((sum, id) => {
       const card = MAJORS.find(c => c.id === id);
@@ -741,7 +784,7 @@ function resCard([key, label, icon], player) {
 }
 function actionCard(action) {
   const locked = action.unlock > game.round;
-  const occupied = !action.repeatable && action.id in game.occupied;
+  const occupied = !originalCanOccupy(game.players[meIndex()],action);
   const inactive = room.active && (!room.started || room.paused || room.pending) || game.phase !== 'play' || !canControl() || !!ui.mode || !!ui.dialog;
   const disabled = locked || occupied || inactive || !canAct(game.players[meIndex()], action);
   const badge = locked ? `<span class="unlock-tag">第 ${action.unlock} 轮</span>` : action.kind === 'pile' ? `<span class="action-badge">${game.piles[action.id] || 0}</span>` : '';
@@ -781,10 +824,10 @@ function handPanel() {
   const row = (id, type) => {
     const c = findHandCard(id);
     if (!c) return '';
-    return `<div class="hand-card ${type === 'occupations' ? 'occupation-card' : 'minor-card'}"><div class="card-illustration" aria-hidden="true">${type === 'occupations' ? '👩‍🌾' : '🛠️'}</div><b>${c.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c.name}</b><span>${escapeHTML(c.effect)}</span><small>${type === 'occupations' ? '职业' : `次要发展 · ${cardCost(c)} · ${c.points} 分`}${c.original ? `<br>前置：${escapeHTML(c.requirement)}<br>效果需房主手动结算` : ''}</small></div>`;
+    return `<div class="hand-card ${type === 'occupations' ? 'occupation-card' : 'minor-card'}"><div class="card-illustration" aria-hidden="true">${type === 'occupations' ? '👩‍🌾' : '🛠️'}</div><b>${c.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c.name}</b><span>${escapeHTML(c.effect)}</span><small>${type === 'occupations' ? '职业' : `次要发展 · ${cardCost(c)} · ${c.points} 分`}${c.original ? `<br>前置：${escapeHTML(c.requirement)}<br>效果自动触发` : ''}</small></div>`;
   };
   const played = p.played.occupations.concat(p.played.improvements).map(id => { const c = findHandCard(id); return c?.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c?.name; }).join('、');
-  return `<section class="panel cards-panel"><div class="panel-head"><div><p class="eyebrow">CARDS</p><h2>你的手牌</h2></div><span class="head-note">${originalMode() ? '原版手动牌组 · 开局 7 职业 + 7 次要发展' : '在学习职业或小型设施行动打出'}</span></div><div class="hand-grid">${p.hand.occupations.map(id => row(id, 'occupations')).join('')}${p.hand.improvements.map(id => row(id, 'improvements')).join('')}</div><div class="played-cards">已打出：${played || '无'}</div>${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
+  return `<section class="panel cards-panel"><div class="panel-head"><div><p class="eyebrow">CARDS</p><h2>你的手牌</h2></div><span class="head-note">${originalMode() ? '原版自动牌组 · 开局 7 职业 + 7 次要发展' : '在学习职业或小型设施行动打出'}</span></div><div class="hand-grid">${p.hand.occupations.map(id => row(id, 'occupations')).join('')}${p.hand.improvements.map(id => row(id, 'improvements')).join('')}</div><div class="played-cards">已打出：${played || '无'}</div>${automaticAbilityPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
 }
 function majorPanel() {
   const cards = MAJORS.map(card => `<div class="hand-card ${game.majorSupply.includes(card.id) ? '' : 'major-taken'}"><b>${card.name}</b><span>${card.effect}</span><small>${cardCost(card)} · ${card.points} 分${game.majorSupply.includes(card.id) ? '' : ' · 已建造'}</small></div>`).join('');
@@ -806,12 +849,13 @@ function shuffledCards(kind, deck) {
   for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
   return cards;
 }
-function originalCosts(card) {
+function originalCosts(card, player) {
+  if (automaticEnabled() && player) return autoRules.cardCosts(player,card);
   if (card.id === 'A020' && game.round >= 4) return [{ grain: 1, food: 1 }];
   return card.costs;
 }
 function originalRequirement(p, c) {
-  const n = p.played.occupations.length, f = farmCount(p, 'field'), pasture = farmCount(p, 'pasture');
+  const n = p.played.occupations.length, f = automaticEnabled() ? autoRules.fields(p).length : farmCount(p, 'field'), pasture = automaticEnabled() ? autoRules.pastures(p).length : farmCount(p, 'pasture');
   const grainFields = p.farm.filter(t => t.crop === 'grain' && t.qty > 0).length;
   const vegFields = p.farm.filter(t => t.crop === 'veg' && t.qty > 0).length;
   const animals = p.sheep + p.boar + p.cattle;
@@ -832,86 +876,83 @@ function originalRequirement(p, c) {
     '人物が4人以下': p.family <= 4, '家族1人が「漁」にいる': game.occupied.fish === game.players.indexOf(p),
     '手元にレンガ5以上': p.clay >= 5, '畑タイル6と、全種類の家畜': f >= 6 && p.sheep > 0 && p.boar > 0 && p.cattle > 0,
     '下記参照': pasture >= game.round - 1,
-    // The simplified farm has no individual fence pieces or upgraded pottery.
-    // These two prerequisites are explicitly left to the table's host.
-    'ストックに柵が1本以上ある': true, '製陶所(またはその改良進歩)': true
+    'ストックに柵が1本以上ある': !automaticEnabled() || autoRules.fenceCount(p)<15, '製陶所(またはその改良進歩)': p.majors.includes('pottery')
   };
+  if(c.id==='B154' && p.sheep>=7)return false;
   const before = c.requirementCode.match(/^ラウンド(\d+)またはその前に出す$/);
   return before ? game.round <= Number(before[1]) : checks[c.requirementCode] === true;
 }
 function originalPlayOptions(p, type) {
   return p.hand[type].flatMap(id => {
     const c = findHandCard(id);
-    if (!c?.original || !originalRequirement(p, c)) return [];
-    if (type === 'occupations') return p.food >= (p.played.occupations.length ? 2 : 1) ? [{ ...c, choiceId: id }] : [];
+    if (!c?.original || !originalRequirement(p, c) || type==='improvements'&&c.id==='A010') return [];
+    if (type === 'occupations') {
+      const fee=p.played.occupations.length?2:1;
+      const quote={...p,food:p.food+(hasCard(p,'B063')&&p.grain?4:0)+(hasCard(p,'B109')&&p.wood?p.played.occupations.length:0)};
+      return autoRules.occupationPayments(p,fee).flatMap(({cost,pool},i)=>canPay(quote,cost)?[{...c,cost,pool,choiceId:i?`${id}:pay${i}`:id,paymentLabel:`${autoRules.label(cost)}${pool?`、旅行艺人格 ${pool} 食物`:''}`}]:[]);
+    }
     if (c.returnCooking) return p.majors.filter(id => /^(fireplace|hearth)/.test(id)).map(id => ({ ...c, choiceId: `${c.id}:${id}`, paymentLabel: `归还${MAJORS.find(m => m.id === id).name}` }));
-    return originalCosts(c).flatMap((cost, i) => canPay(p, cost) ? [{ ...c, cost, choiceId: `${c.id}:${i}`, paymentLabel: cardCost({ cost }) }] : []);
+    return originalCosts(c,p).flatMap((cost, i) => canPay(hasCard(p,'B075')?{...p,wood:p.wood+1}:p, cost) ? [{ ...c, cost, choiceId: `${c.id}:${i}`, paymentLabel: cardCost({ cost }) }] : []);
   });
 }
 function originalDeckPicker() {
-  return `<label>手牌牌组<select data-setting="cardDeck">${[['simple','精简牌组 · 自动结算'],['AB','原版 A + B · 336 张 · 手动效果'],['A','原版 A · 168 张 · 手动效果'],['B','原版 B · 168 张 · 手动效果']].map(([v,n]) => `<option value="${v}" ${(ui.setup.cardDeck || 'simple') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><p class="deck-help">原版模式供真人桌面协作：随机各发 7 张，自动扣打牌费用、计固定分、传递牌；卡牌效果由房主手动结算。棋盘仍用本作简化规则。</p>`;
+  return `<label>手牌牌组<select data-setting="cardDeck">${[['simple','精简牌组 · 自动结算'],['AB','原版 A + B · 336 张 · 自动效果'],['A','原版 A · 168 张 · 自动效果'],['B','原版 B · 168 张 · 自动效果']].map(([v,n]) => `<option value="${v}" ${(ui.setup.cardDeck || 'simple') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><p class="deck-help">原版自动模式：随机各发 7 张，自动扣打牌费用、计固定分、传递牌；卡牌效果自动触发，可选效果由持牌玩家选择。棋盘仍用本作简化规则。</p>`;
 }
 function cardDetailDialog() {
   const c = findHandCard(ui.detailCard);
   if (!c) return '';
-  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><p class="eyebrow">${c.id} · ${c.kind === 'occupation' ? '职业' : '次要发展'} · ${c.id[0]} 牌组</p><h2>${escapeHTML(c.name)}</h2><p class="card-english">${escapeHTML(c.nameEn || '')}</p><dl><dt>费用</dt><dd>${c.kind === 'occupation' ? '按学习职业行动支付费用' : escapeHTML(c.costLabel)}</dd><dt>前置条件</dt><dd>${escapeHTML(c.requirement)}</dd><dt>卡面固定分</dt><dd>${c.points} 分</dd><dt>效果摘要</dt><dd>${escapeHTML(c.effect)}</dd>${c.passing ? '<dt>传递牌</dt><dd>使用后传入下一位玩家手牌，不留在自己面前。</dd>' : ''}</dl><p class="deck-help">中文为规则摘要与自译名称。原版牌效果需房主手动处理；费用与固定分自动处理。前置条件涉及个别围栏或升级牌时需房主核对。</p><a href="${escapeHTML(c.url)}" target="_blank" rel="noopener noreferrer">查阅来源 ↗</a><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
+  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><p class="eyebrow">${c.id} · ${c.kind === 'occupation' ? '职业' : '次要发展'} · ${c.id[0]} 牌组</p><h2>${escapeHTML(c.name)}</h2><p class="card-english">${escapeHTML(c.nameEn || '')}</p><dl><dt>费用</dt><dd>${c.kind === 'occupation' ? '按学习职业行动支付费用' : escapeHTML(c.costLabel)}</dd><dt>前置条件</dt><dd>${escapeHTML(c.requirement)}</dd><dt>卡面固定分</dt><dd>${c.points} 分</dd><dt>效果摘要</dt><dd>${escapeHTML(c.effect)}</dd>${c.passing ? '<dt>传递牌</dt><dd>使用后传入下一位玩家手牌，不留在自己面前。</dd>' : ''}</dl><p class="deck-help">中文为规则摘要与自译名称。资源、触发效果、费用与分数自动处理；可选效果由持牌玩家选择。前置条件与费用会自动检查。</p><a href="${escapeHTML(c.url)}" target="_blank" rel="noopener noreferrer">查阅来源 ↗</a><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
+}
+
+function automaticEnabled() { return !!autoRules?.active; }
+function originalCanOccupy(p, a) { return automaticEnabled() ? autoRules.canOccupy(p,a) : a.repeatable || !(a.id in game.occupied); }
+function automaticChoiceDialog() {
+  const t=autoRules.choice();if(!t)return '';
+  const card=findHandCard(t.card),owner=game.players[t.seat],mine=t.seat===meIndex();
+  return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(card?.name||t.title||'选择附加行动')}</h2>${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
+}
+function automaticAbilityPanel(p) {
+  if(!automaticEnabled())return '';
+  const abilities=autoRules.abilities(p);
+  return abilities.length?`<div class="card-abilities"><h3>随时效果</h3>${abilities.map(t=>`<button class="ghost-btn" data-rule-ability="${t.card}" ${!canControl()?'disabled':''}>${escapeHTML(findHandCard(t.card).name)}</button>`).join('')}</div>`:'';
+}
+function automaticContinue(task) {
+  if(task.kind==='base') {
+    const p=game.players[task.seat],before=JSON.parse(JSON.stringify(p));
+    const context={pile:game.piles[task.action.id]||0,hasLargePile:Object.values(game.piles).some(n=>n>=5),extra:task.extra,finish:!task.extra,sameWorker:task.sameWorker};
+    applyAction(task.seat,task.action,task.option,{before,...context});
+  } else if(task.kind==='advance') {
+    ui.mode=null;ui.dialog=null;advanceTurn(task.seat);
+  } else if(task.kind==='roundEnd') {
+    finishRound(true);
+  } else if(task.kind==='fields') {
+    game.ruleHarvest=game.players.map(p=>({crops:autoRules.collectFields(p)}));
+    for(let i=0;i<game.players.length;i++)autoRules.event('feed',i);
+    autoRules.add({type:'continue',kind:'feed'});
+  } else if(task.kind==='feed') {
+    game.harvestSummary=game.players.map((p,i)=>({...feed(p,true),crops:game.ruleHarvest[i].crops}));
+    delete game.ruleHarvest;
+    for(let i=0;i<game.players.length;i++)autoRules.event('harvestAfter',i);
+    autoRules.add({type:'continue',kind:'harvestDone'});
+  } else if(task.kind==='harvestDone') {
+    game.phase='harvest';addLog(game,`第 ${game.round} 轮收获与卡牌效果已自动结算。`);
+  }
+}
+function automaticExtraAction(seat,id,options={}) {
+  const action=availableActions().find(a=>a.id===id);if(!action)return;
+  autoRules.ask(game.players[seat],options.card,'actionChoice',{action,sameWorker:options.sameWorker},false);
+}
+function initAutomaticRules() {
+  return new window.OriginalRules({
+    game:()=>game,card:findHandCard,majors:MAJORS,log:message=>addLog(game,message),actions:()=>availableActions(),
+    animals:addAnimals,capacity:animalCapacity,requirement:originalRequirement,canAct,save,render,
+    continue:automaticContinue,extraAction:automaticExtraAction,
+    choices:(p,id)=>availableActions().find(a=>a.id===id)?.ruleOp ? {options:[]} : choiceOptions(p,id),cells:(p,id)=>selectedCells(p,{id}),
+    aiChoice:(seat,value)=>{clearTimeout(ui.aiTimer);ui.aiTimer=setTimeout(()=>autoRules.choose(seat,autoRules.aiOption(autoRules.choice())||value),120);}
+  });
 }
 
 function originalMode() { return game.settings.cards && ['A', 'B', 'AB'].includes(game.settings.cardDeck); }
-function settlementButton() { return room.active && room.host && originalMode() ? '<button class="ghost-btn" data-settlement-open="1">原版牌手动结算</button>' : ''; }
-function settlementDialog() {
-  const d = ui.settlement ||= { seat: 0, card: '', resource: 'food', delta: 1, note: '' };
-  const p = game.players[d.seat] || game.players[0];
-  const ids = [...new Set(p.played.occupations.concat(p.played.improvements, (p.cardHistory || []).slice(-5)))];
-  const c = findHandCard(d.card);
-  const resources = RESOURCES.concat([['cardBonus','卡牌奖励分','★'],['begging','乞讨标记',''],['sick','卧床家人',''],['family','家庭成员',''],['quota','本轮派工额度','']]);
-  return `<div class="modal-backdrop"><section class="modal settlement-modal" role="dialog" aria-modal="true" aria-label="原版牌手动结算"><p class="eyebrow">TABLETOP · 暂停派工</p><h2>按卡牌效果结算</h2><p>费用与卡面固定分已自动处理。房主核对效果，修改资源或农场；每次修改会公开记入日志。没有触发效果可直接继续。</p><div class="setup-grid"><label>玩家<select data-settlement="seat">${game.players.map((p,i) => `<option value="${i}" ${Number(d.seat)===i?'selected':''}>${escapeHTML(p.name)}</option>`).join('')}</select></label><label>对应卡牌<select data-settlement="card"><option value="">选择已打出的牌</option>${ids.map(id=>`<option value="${id}" ${d.card===id?'selected':''}>${id} · ${escapeHTML(findHandCard(id)?.name || id)}</option>`).join('')}</select></label></div>${c ? `<div class="settlement-rule"><b>${escapeHTML(c.name)}</b><p>${escapeHTML(c.effect)}</p>${c.passing ? '<small>传递牌已交给下一位玩家。</small>' : ''}</div>` : ''}<div class="settlement-controls"><label>资源 / 分数<select data-settlement="resource">${resources.map(([k,n])=>`<option value="${k}" ${d.resource===k?'selected':''}>${n} · 当前 ${k==='quota'?game.workerQuota[d.seat]:p[k]||0}</option>`).join('')}</select></label><label>增减数量<input type="number" min="-99" max="99" step="1" data-settlement="delta" value="${d.delta}"></label><button class="primary-btn" data-settlement-apply="resource">记入账本</button></div><details><summary>调整农场地块 / 房屋 / 牲畜棚</summary><div class="settlement-controls"><label>地块<select data-settlement="cell">${p.farm.map((cell,i)=>`<option value="${i}" ${Number(d.cell||0)===i?'selected':''}>第 ${i+1} 格 · ${({empty:'空地',house:'住房',field:'田地',pasture:'牧场',forest:'森林',moor:'泥沼',circle:'怪圈'})[cell.type]}</option>`).join('')}</select></label><label>改为<select data-settlement="tile">${[['empty','空地'],['house','住房'],['field','空田'],['grain','谷物田'],['veg','蔬菜田'],['sheep','羊牧场'],['boar','猪牧场'],['cattle','牛牧场'],['horse','马牧场']].map(([k,n])=>`<option value="${k}" ${(d.tile||'empty')===k?'selected':''}>${n}</option>`).join('')}</select></label><label>田上作物数<input type="number" min="1" max="20" data-settlement="qty" value="${d.qty||3}"></label><button class="ghost-btn" data-settlement-apply="cell">更新地块</button></div><div class="settlement-controls"><label>房屋材料<select data-settlement="material">${[['wood','木屋'],['clay','黏土屋'],['stone','石屋']].map(([k,n])=>`<option value="${k}" ${(d.material||p.houseMaterial)===k?'selected':''}>${n}</option>`).join('')}</select></label><button class="ghost-btn" data-settlement-apply="material">更新房屋</button><label>牲畜棚<select data-settlement="animal">${Object.entries(ANIMALS).map(([k,n])=>`<option value="${k}" ${(d.animal||'sheep')===k?'selected':''}>${n} · 当前 ${p.stables[k]}</option>`).join('')}</select></label><button class="ghost-btn" data-settlement-apply="stable">增加 1 棚</button></div></details><label class="online-field">结算说明 / 后续提醒<textarea data-settlement="note" maxlength="300" placeholder="例如：下轮再得 1 食物">${escapeHTML(d.note||'')}</textarea></label><button class="ghost-btn" data-settlement-apply="note">保存提醒</button>${p.cardNotes ? `<p class="deck-help">已保存：${escapeHTML(p.cardNotes)}</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-settlement-done="1">结算完成，继续游戏</button></div></section></div>`;
-}
-function executeSettlement(seat, command) {
-  if (seat !== 0 || !originalMode()) return '原版牌结算由房主操作。';
-  if (command.type === 'settlement-open') { game.cardReview = true; ui.dialog = 'settlement'; ui.mode = null; save(); render(); return; }
-  if (!game.cardReview) return '请先暂停并打开卡牌结算。';
-  if (command.type === 'settlement-done') {
-    game.cardReview = false; ui.dialog = null;
-    if (Number.isInteger(game.pendingCardAdvance)) { const who = game.pendingCardAdvance; delete game.pendingCardAdvance; advanceTurn(who); }
-    else { save(); render(); }
-    return;
-  }
-  if (command.type !== 'settlement-edit') return '未知结算操作。';
-  const p = game.players[command.seat];
-  if (!Number.isInteger(command.seat) || !p) return '玩家不存在。';
-  const card = findHandCard(command.card);
-  if (!card?.original || !p.played.occupations.concat(p.played.improvements, p.cardHistory || []).includes(card.id)) return '请选择该玩家已打出的原版牌。';
-  let change = '';
-  if (command.operation === 'resource') {
-    const allowed = RESOURCES.map(r=>r[0]).concat(['cardBonus','begging','sick','family','quota']);
-    const { resource, delta } = command;
-    if (!allowed.includes(resource) || !Number.isInteger(delta) || Math.abs(delta) > 99 || delta === 0) return '增减数量须为非零整数，范围 −99 到 99。';
-    const before = resource === 'quota' ? game.workerQuota[command.seat] : p[resource] || 0;
-    const after = before + delta;
-    if (resource !== 'cardBonus' && after < 0 || resource === 'family' && (after < 1 || after > 5) || resource === 'sick' && after > p.family || resource === 'quota' && after < game.usedCount[command.seat]) return '调整后的数量超出范围。';
-    if (resource === 'quota') game.workerQuota[command.seat] = after; else p[resource] = after;
-    const label = RESOURCES.find(r=>r[0]===resource)?.[1] || ({cardBonus:'奖励分',begging:'乞讨',sick:'卧床家人',family:'家人',quota:'本轮派工额度'})[resource];
-    change = `${label} ${before} → ${after}`;
-  } else if (command.operation === 'cell') {
-    if (!Number.isInteger(command.cell) || command.cell < 0 || command.cell >= 15 || !['empty','house','field','grain','veg',...Object.keys(ANIMALS)].includes(command.tile)) return '无效地块。';
-    if (['grain','veg'].includes(command.tile) && (!Number.isInteger(command.qty) || command.qty < 1 || command.qty > 20)) return '作物数须为 1–20。';
-    p.farm[command.cell] = ['grain','veg'].includes(command.tile) ? { type:'field',crop:command.tile,qty:command.qty } : command.tile in ANIMALS ? {type:'pasture',animal:command.tile} : command.tile === 'field' ? {type:'field',crop:null,qty:0} : {type:command.tile};
-    change = `第 ${command.cell + 1} 格调整为${({empty:'空地',house:'住房',field:'空田',grain:'谷物田',veg:'蔬菜田',sheep:'羊牧场',boar:'猪牧场',cattle:'牛牧场',horse:'马牧场'})[command.tile]}`;
-  } else if (command.operation === 'material') {
-    if (!['wood','clay','stone'].includes(command.material)) return '无效房屋材料。';
-    p.houseMaterial = command.material; change = `房屋改为${({wood:'木屋',clay:'黏土屋',stone:'石屋'})[command.material]}`;
-  } else if (command.operation === 'stable') {
-    if (!Object.hasOwn(ANIMALS, command.animal) || Object.values(p.stables).reduce((a,b)=>a+b,0) >= 4) return '牲畜棚数量已达 4。';
-    p.stables[command.animal]++; change = `${ANIMALS[command.animal]}棚 +1`;
-  } else if (command.operation === 'note') {
-    if (typeof command.note !== 'string' || !command.note.trim() || command.note.length > 300) return '请填写 1–300 字说明。';
-    p.cardNotes = `${card.id}：${command.note.trim()}`; change = p.cardNotes;
-  } else return '未知结算操作。';
-  addLog(game, `${p.name} · ${card.id} ${card.name} · 房主手动结算：${change}。`);
-  save(); render();
-}
-
 function catalogDialog() {
   const state = ui.catalog, query = state.query.trim().toLocaleLowerCase();
   const filtered = ORIGINAL_CARD_CATALOG.filter(c => (state.kind === 'all' || c.kind === state.kind) && (state.deck === 'all' || c.id.startsWith(state.deck)) && (!query || `${c.id} ${c.name} ${c.nameEn} ${c.effect}`.toLocaleLowerCase().includes(query)));
@@ -919,10 +960,10 @@ function catalogDialog() {
   state.page = Math.min(state.page, pages - 1);
   const visible = filtered.slice(state.page * 36, (state.page + 1) * 36);
   const items = visible.map(c => `<button class="catalog-card ${c.kind}" data-card-detail="${c.id}"><b>${c.id} · ${c.kind === 'occupation' ? '职业' : '次要发展'}${c.passing ? ' · 传递' : ''}</b><span>${escapeHTML(c.name)}</span><em>${escapeHTML(c.nameEn)}</em><p>${escapeHTML(c.effect)}</p><small>${c.kind === 'minor' ? `${escapeHTML(c.costLabel)} · ${c.points} 分` : '职业牌'}<br>前置：${escapeHTML(c.requirement)}</small></button>`).join('');
-  return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 + 168 张次要发展。中文规则摘要、费用、条件、固定分均可离线查看。真人房间可选完整牌组；卡牌效果需房主手动结算。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 + 168 张次要发展。中文规则摘要、费用、条件、固定分均可离线查看。真人房间可选完整牌组；卡牌效果自动触发。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>收获时田地产物、牲畜繁殖，再喂养家人，每人需 2 食物。不足的食物变成乞讨标记。</li><li>每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '当前原版牌组的费用、固定分与传递自动处理，其他效果由房主结算；每次行动后暂停，房主确认后继续。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时田地产物、牲畜繁殖，再喂养家人，每人需 2 食物。'}不足的食物变成乞讨标记。</li><li>${originalMode()?'住房共享 1 个宠物位置；牧场每格容量为 2，同一牧场内每座马厩使容量翻倍。':'每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。'}两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '当前原版牌组的费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
 }
 function choiceOptions(p, id) {
   let options = [], title = '选择';
@@ -931,9 +972,9 @@ function choiceOptions(p, id) {
     title = id === 'pasture' ? '选择牧场牲畜' : '选择牲畜';
     options = [['sheep', '🐑 羊', true, id === 'animalMarket' ? '另得 1 食物' : ''], ['boar', '🐗 猪', true, ''], ['cattle', '🐄 牛', id !== 'animalMarket' || p.food > 0, id === 'animalMarket' ? '需付 1 食物' : '']];
     if (game.settings.moor && id === 'pasture') options.push(['horse', '🐎 马', true, '']);
-  } else if (id === 'lessons') { title = '选择职业'; options = playableCards(p, 'occupations').map(c => [c.choiceId || c.id, c.name, true, `${c.original ? '效果需手动结算 · ' : ''}${c.effect}`]); }
+  } else if (id === 'lessons') { title = '选择职业'; options = playableCards(p, 'occupations').map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel ? c.paymentLabel+' · ' : ''}${c.original ? '效果自动触发 · ' : ''}${c.effect}`]); }
   else if (id === 'major') { title = '建造主要发展'; options = playableMajors(p).map(c => [c.id, c.name, true, `${cardCost({ cost: majorCost(c) })} · ${c.effect}`]); }
-  else if (id === 'minor' || id === 'minor6' || id === 'black') { title = '选择小设施'; options = (id === 'black' ? blackMarketCards(p) : playableCards(p, 'improvements')).map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel || cardCost(c)} · ${c.original ? '效果需手动结算 · ' : ''}${c.effect}`]); }
+  else if (id === 'minor' || id === 'minor6' || id === 'black') { title = '选择小设施'; options = (id === 'black' ? blackMarketCards(p) : playableCards(p, 'improvements')).map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel || cardCost(c)} · ${c.original ? '效果自动触发 · ' : ''}${c.effect}`]); }
   else if (id === 'illicit') { title = '选择大型设施'; options = ['horseCook', 'kiln', 'lodge'].filter(major => canAct(p, EXTRA_ACTIONS.find(a => a.id === major))).map(major => { const a = EXTRA_ACTIONS.find(x => x.id === major); return [major, a.name, true, a.detail]; }); }
   else if (id === 'farmSupplies') { title = '选择农具补给'; options = [['plow', '⚒ 开田', emptyCells(p).length > 0 && p.food >= (seasonName() === '冬' ? 2 : 1), `付 ${seasonName() === '冬' ? 2 : 1} 食物，在空地开田`], ['grain', '🌾 谷种', true, '付 1 食物，获得 1 谷种']]; }
   else if (id === 'seasonSpring') { title = '春日耕育'; options = [['breed', '只繁殖', true, '立刻进行一次牲畜繁殖'], ['grain', '繁殖并播谷', p.grain > 0 && emptyFields(p).length > 0, '再选择 1 块空田'], ['veg', '繁殖并播菜', p.veg > 0 && emptyFields(p).length > 0, '再选择 1 块空田']]; }
@@ -950,17 +991,17 @@ function choiceDialog() {
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">CHOOSE</p><h2>${title}</h2><div class="modal-choice ${options.length > 3 ? 'many' : ''}">${options.map(([value, label, enabled, detail]) => `<button class="choice-btn" data-choice="${value}" ${enabled ? '' : 'disabled'}><b>${label}</b><small>${detail}</small></button>`).join('')}</div><div class="modal-actions"><button class="ghost-btn" data-cancel="1">取消</button></div></div></div>`;
 }
 function harvestDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获季到了</h2><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>家人口粮：${s.fed}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${settlementButton()}${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获季到了</h2><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>家人口粮：${s.fed}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
 }
 function endingDialog() {
   const mine = score(game.players[meIndex()]);
   const exact42 = game.alienActive.includes('X13') && game.players.some(p => score(p).total === 42);
   const ranking = game.players.map((p, i) => ({ name: p.name, points: score(p).total, i })).sort((a, b) => Number(exact42 && b.points === 42) - Number(exact42 && a.points === 42) || b.points - a.points);
   const labels = { family: '家庭成员', rooms: '住房', fields: '田地', pastures: '牧场', varieties: '物产种类', herd: '牲畜数量', hearth: '灶台', empty: '未利用土地', begging: '乞讨标记', horses: '马', moorBuildings: '沼泽建筑', moorBonus: '沼泽奖励', cards: '小设施', cardBonus: '卡牌奖励', majors: '主要发展', craftBonus: '工坊余材', aliens: '外星卡' };
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">THE FOURTEENTH HARVEST</p><h2>${ranking[0].i === meIndex() ? '你的农场欣欣向荣' : '还有一个春天等着你'}</h2><p>14 轮经营结束，最终排名如下。${exact42 ? '外星事件：恰好 42 分优先获胜。' : ''}</p><div class="ranking">${ranking.map((r, i) => `<div class="score-row"><span>${i + 1}. ${r.name}</span><b>${r.points} 分</b></div>`).join('')}</div><h3>你的农场账本</h3>${Object.entries(mine.parts).map(([key, value]) => `<div class="score-row"><span>${labels[key]}</span><b>${value > 0 ? '+' : ''}${value}</b></div>`).join('')}<div class="modal-actions">${settlementButton()}<button class="primary-btn" data-new-confirm="1">再玩一局</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">THE FOURTEENTH HARVEST</p><h2>${ranking[0].i === meIndex() ? '你的农场欣欣向荣' : '还有一个春天等着你'}</h2><p>14 轮经营结束，最终排名如下。${exact42 ? '外星事件：恰好 42 分优先获胜。' : ''}</p><div class="ranking">${ranking.map((r, i) => `<div class="score-row"><span>${i + 1}. ${r.name}</span><b>${r.points} 分</b></div>`).join('')}</div><h3>你的农场账本</h3>${Object.entries(mine.parts).map(([key, value]) => `<div class="score-row"><span>${labels[key]}</span><b>${value > 0 ? '+' : ''}${value}</b></div>`).join('')}<div class="modal-actions"><button class="primary-btn" data-new-confirm="1">再玩一局</button></div></div></div>`;
 }
 function newDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">NEW GAME</p><h2>开启一座新农场</h2><p>选择要启用的扩展。开始后会替换当前进度。</p><div class="setup-grid"><label>玩家数（你 + 电脑）<select data-setting="players">${[2, 3, 4, 5, 6].map(n => `<option value="${n}" ${ui.setup.players === n ? 'selected' : ''}>${n} 人${n >= 5 ? ' · 扩展行动格' : ''}</option>`).join('')}</select></label><label class="check-row"><input type="checkbox" data-setting="moor" ${ui.setup.moor ? 'checked' : ''}> 沼泽农夫：森林、泥沼、燃料、马、特殊行动</label><label class="check-row"><input type="checkbox" data-setting="seasons" ${ui.setup.seasons ? 'checked' : ''}> 四季流转：季节行动与资源变化</label><label class="check-row"><input type="checkbox" data-setting="cards" ${ui.setup.cards ? 'checked' : ''}> 职业与小设施：原创精简牌组</label><label class="check-row"><input type="checkbox" data-setting="aliens" ${ui.setup.aliens ? 'checked' : ''}> 外星人：24 张 X 卡，采石场触发</label></div><div class="modal-actions"><button class="ghost-btn" data-close="new">返回</button><button class="primary-btn" data-new="1">开始新游戏</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">NEW GAME</p><h2>开启一座新农场</h2><p>选择要启用的扩展。开始后会替换当前进度。</p><div class="setup-grid"><label>玩家数（你 + 电脑）<select data-setting="players">${[2, 3, 4, 5, 6].map(n => `<option value="${n}" ${ui.setup.players === n ? 'selected' : ''}>${n} 人${n >= 5 ? ' · 扩展行动格' : ''}</option>`).join('')}</select></label><label class="check-row"><input type="checkbox" data-setting="moor" ${ui.setup.moor ? 'checked' : ''}> 沼泽农夫：森林、泥沼、燃料、马、特殊行动</label><label class="check-row"><input type="checkbox" data-setting="seasons" ${ui.setup.seasons ? 'checked' : ''}> 四季流转：季节行动与资源变化</label><label class="check-row"><input type="checkbox" data-setting="cards" ${ui.setup.cards ? 'checked' : ''}> 职业与次要发展</label>${originalDeckPicker()}<label class="check-row"><input type="checkbox" data-setting="aliens" ${ui.setup.aliens ? 'checked' : ''}> 外星人：24 张 X 卡，采石场触发</label></div><div class="modal-actions"><button class="ghost-btn" data-close="new">返回</button><button class="primary-btn" data-new="1">开始新游戏</button></div></div></div>`;
 }
 function render() {
   const me = game.players[meIndex()];
@@ -972,9 +1013,9 @@ function render() {
   const actions = availableActions();
   const currentActions = actions.filter(a => a.unlock <= game.round);
   const laterActions = actions.filter(a => a.unlock > game.round);
-  const basicActions = currentActions.filter(a => ACTIONS.includes(a));
-  const expansionActions = currentActions.filter(a => EXTRA_ACTIONS.includes(a));
-  const alienActions = currentActions.filter(a => ALIEN_ACTIONS.includes(a));
+  const basicActions = currentActions.filter(a => !EXTRA_ACTIONS.some(x=>x.id===a.id)&&!ALIEN_ACTIONS.some(x=>x.id===a.id)&&!SEASON_ACTIONS.some(x=>x.id===a.id)&&!a.rulePublic&&a.owner===undefined);
+  const expansionActions = currentActions.filter(a => EXTRA_ACTIONS.some(x=>x.id===a.id)||a.rulePublic||a.owner!==undefined);
+  const alienActions = currentActions.filter(a => ALIEN_ACTIONS.some(x=>x.id===a.id));
   const seasonAction = game.settings.seasons ? SEASON_ACTIONS[(game.round - 1) % 4] : null;
   const seasonSection = seasonAction ? `<div class="action-section season-section"><div class="section-title"><h3>${SEASONS[(game.round - 1) % 4].icon} ${seasonName()}季行动</h3><span>${SEASONS[(game.round - 1) % 4].note}</span></div><div class="action-list">${actionCard(seasonAction)}</div></div>` : '';
   const alienSection = game.settings.aliens ? `<div class="action-section alien-section"><div class="section-title"><h3>🛸 外星行动</h3><span>采石场翻牌后开放</span></div><div class="action-list">${alienActions.map(actionCard).join('') || '<p class="empty-actions">尚无已翻开的外星行动卡</p>'}</div></div>` : '';
@@ -995,7 +1036,7 @@ function render() {
   const resourceTray = `<section class="resource-tray"><div class="tray-heading"><span>资源收纳盒</span><small>剩余派工 ${Math.max(0, game.workerQuota[meIndex()] - game.usedCount[meIndex()])} / ${game.workerQuota[meIndex()]}</small></div><div class="summary-strip ${game.settings.moor ? 'expanded' : ''}">${resources.map(r => resCard(r, me)).join('')}</div>${game.settings.moor ? `<div class="expansion-line"><button data-convert="woodFuel" ${me.wood && game.phase === 'play' && canControl() ? '' : 'disabled'}>1 木材 → 1 燃料</button></div>` : ''}</section>`;
   const scorePanel = `<section class="panel info-box tabletop-score"><h3>计分与收获</h3>${scores}<div class="score-row"><span>下次收获</span><b>${nextHarvest ? `第 ${nextHarvest} 轮` : '已结束'}</b></div><div class="score-row"><span>当前先手</span><b>${game.players[game.startPlayer].name}</b></div></section>`;
   const logPanel = `<section class="panel info-box tabletop-log"><h3>农场日志</h3><div class="log-list">${game.logs.slice(0, 6).map(item => `<div class="log-line"><time>第 ${item.round} 轮</time><span>${escapeHTML(item.message)}</span></div>`).join('')}</div></section>`;
-  app.innerHTML = `<div class="shell tabletop-shell" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'settlement' && room.host ? settlementDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : ui.mode?.choice ? choiceDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
+  app.innerHTML = `<div class="shell tabletop-shell" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
 }
 function toast(message) {
   ui.toast = message; clearTimeout(ui.toastTimer); render();
@@ -1017,7 +1058,7 @@ function scrollToSectionOnMobile(selector) {
 }
 function beginAction(action) {
   if (game.phase !== 'play' || !canControl() || ui.dialog || ui.mode) return;
-  if (action.special ? !canSpecial(game.players[meIndex()], action, meIndex()) : action.unlock > game.round || (!action.repeatable && action.id in game.occupied) || !canAct(game.players[meIndex()], action)) return;
+  if (action.special ? !canSpecial(game.players[meIndex()], action, meIndex()) : action.unlock > game.round || !originalCanOccupy(game.players[meIndex()],action) || !canAct(game.players[meIndex()], action)) return;
   if (action.kind === 'target' || action.kind === 'choice') {
     ui.view = meIndex();
     ui.mode = { id: action.id, special: !!action.special, choice: action.kind === 'choice' || ['sow', 'pasture'].includes(action.id) };
@@ -1051,12 +1092,8 @@ app.addEventListener('click', event => {
   if (handleOnlineClick(d)) return;
   if (d.cardDetail) { ui.cardReturn = ui.dialog; ui.detailCard = d.cardDetail; ui.dialog = 'cardDetail'; render(); return; }
   if (d.cardBack) { ui.dialog = ui.cardReturn; render(); return; }
-  if (d.settlementOpen) { room.submit({type:'settlement-open'}); return; }
-  if (d.settlementDone) { room.submit({type:'settlement-done'}); return; }
-  if (d.settlementApply) {
-    const v = ui.settlement;
-    room.submit({type:'settlement-edit', seat:Number(v.seat), card:v.card, operation:d.settlementApply, resource:v.resource, delta:Number(v.delta), cell:Number(v.cell || 0), tile:v.tile || 'empty', qty:Number(v.qty || 3), material:v.material || game.players[v.seat].houseMaterial, animal:v.animal || 'sheep', note:v.note || ''}); return;
-  }
+  if(d.ruleChoice) { if(room.active)room.submit({type:'ruleChoice',value:d.ruleChoice});else autoRules.choose(meIndex(),d.ruleChoice);return; }
+  if(d.ruleAbility) { if(room.active)room.submit({type:'ruleAbility',id:d.ruleAbility});else autoRules.activate(meIndex(),d.ruleAbility);return; }
   if (d.mobileTab && ['actions', 'farm', 'cards', 'overview'].includes(d.mobileTab)) { ui.mobileTab = d.mobileTab; render(); window.scrollTo({ top: 0, behavior: 'instant' }); }
   else if (d.action) beginAction(availableActions().find(a => a.id === d.action));
   else if (d.special) beginAction({ ...SPECIALS.find(a => a.id === d.special), special: true });
@@ -1074,17 +1111,11 @@ app.addEventListener('click', event => {
   else if (d.close) { ui.dialog = null; if (d.close === 'rules') { try { localStorage.setItem(SEEN_KEY, '1'); } catch (_) {} } render(); scheduleAI(); }
   else if (d.newConfirm) { if (room.active) { ui.dialog = 'online'; render(); return; } ui.setup = { ...DEFAULT_SETTINGS }; ui.dialog = 'new'; render(); }
   else if (d.new) { if (room.active) return; clearTimeout(ui.aiTimer); game = freshGame(ui.setup); ui.mobileTab = 'actions'; ui.actionCategory = 'basic'; ui.mode = null; ui.dialog = null; ui.view = meIndex(); save(); render(); }
-  else if (d.continue) { if (room.active) { room.submit({ type: 'continue' }); return; } if (game.round === 14) { game.phase = 'ended'; save(); render(); } else nextRound(); }
+  else if (d.continue) { if (room.active) { room.submit({ type: 'continue' }); return; } if (game.round === 14) { if(automaticEnabled())autoRules.finalize(); game.phase = 'ended'; save(); render(); } else nextRound(); }
   else if (d.convert === 'woodFuel' && game.settings.moor && game.phase === 'play' && canControl() && meHasWood()) { if (room.active) room.submit({ type: 'convert' }); else { game.players[meIndex()].wood--; game.players[meIndex()].fuel++; save(); render(); } }
 });
 function meHasWood() { return game.players[meIndex()].wood > 0; }
 app.addEventListener('change', event => {
-  const field = event.target.dataset?.settlement;
-  if (field) {
-    ui.settlement[field] = event.target.value;
-    if (field === 'seat') { ui.settlement.card = ''; ui.settlement.material = ''; }
-    if (['seat','card','resource'].includes(field)) render(); return;
-  }
   const setting = event.target.dataset?.setting;
   if (setting === 'cardDeck') ui.setup.cardDeck = event.target.value;
   if (setting === 'players') ui.setup.players = Number(event.target.value);
@@ -1093,7 +1124,6 @@ app.addEventListener('change', event => {
   if (event.target.matches('[data-catalog-deck]')) { ui.catalog.deck = event.target.value; ui.catalog.page = 0; render(); }
 });
 app.addEventListener('input', event => {
-  if (event.target.dataset.settlement && !event.target.matches('select')) { ui.settlement[event.target.dataset.settlement] = event.target.value; return; }
   if (event.target.dataset.onlineField) { ui.onlineDraft ||= {}; ui.onlineDraft[event.target.dataset.onlineField] = event.target.value; return; }
   if (!event.target.matches('[data-catalog-query]')) return;
   const position = event.target.selectionStart;
@@ -1107,11 +1137,12 @@ document.addEventListener('keydown', event => {
 });
 function executeOnlineCommand(seat, command) {
   if (!room.host || !room.started || room.paused || !command || typeof command !== 'object') return '房间尚未就绪。';
-  if (typeof command.type === 'string' && command.type.startsWith('settlement-')) return executeSettlement(seat, command);
-  if (game.cardReview) return '等待房主完成原版牌结算。';
+  if(command.type==='ruleChoice')return autoRules.choose(seat,command.value);
+  if(command.type==='ruleAbility')return autoRules.activate(seat,command.id);
+  if(automaticEnabled() && autoRules.queue.length)return '等待卡牌效果结算。';
   if (command.type === 'continue') {
     if (seat !== 0 || game.phase !== 'harvest') return '等待房主推进收获。';
-    if (game.round === 14) { game.phase = 'ended'; save(); render(); } else nextRound();
+    if (game.round === 14) { if(automaticEnabled())autoRules.finalize(); game.phase = 'ended'; save(); render(); } else nextRound();
     return;
   }
   if (game.phase !== 'play' || game.turn !== seat || game.usedCount[seat] >= game.workerQuota[seat]) return '还没轮到你，请等待其他玩家。';
@@ -1123,7 +1154,7 @@ function executeOnlineCommand(seat, command) {
   if (command.type !== 'action') return '未知操作。';
   const action = command.special === true ? SPECIALS.map(a => ({ ...a, special: true })).find(a => a.id === command.id) : availableActions().find(a => a.id === command.id);
   if (!action) return '行动不存在。';
-  if (action.special ? !canSpecial(player, action, seat) : action.unlock > game.round || (!action.repeatable && action.id in game.occupied) || !canAct(player, action)) return '这个行动当前不可用。';
+  if (action.special ? !canSpecial(player, action, seat) : action.unlock > game.round || !originalCanOccupy(player,action) || !canAct(player, action)) return '这个行动当前不可用。';
   const option = {};
   for (const key of ['cell', 'crop', 'animal', 'card', 'major', 'supply', 'trade']) {
     const value = command.option?.[key];
@@ -1131,17 +1162,17 @@ function executeOnlineCommand(seat, command) {
   }
   const id = action.id;
   const field = ({ sow: 'crop', pasture: 'animal', animalMarket: 'animal', lessons: 'card', major: 'major', minor: 'card', minor6: 'card', black: 'card', illicit: 'major', farmSupplies: 'supply', seasonSummer: 'supply', alienTransform: 'trade', resourceTrade: 'trade', alienStable: 'animal', sideJob: 'animal' })[id];
-  const options = choiceOptions(player, id).options;
+  const options = action.ruleOp ? [] : choiceOptions(player, id).options;
   const value = id === 'seasonSpring' ? option.crop || 'breed' : option[field];
   if (options.length && !options.some(([v, , enabled]) => enabled && v === value)) return '所选卡牌、资源或牲畜当前不可用。';
   const needsCell = action.kind === 'target' || id === 'farmSupplies' && option.supply === 'plow' || id === 'seasonSpring' && option.crop || id === 'seasonSummer' && ['plow', 'both', 'plowBake'].includes(option.supply);
   if (needsCell && (!Number.isInteger(option.cell) || !selectedCells(player, { id }).includes(option.cell))) return '请选择可用的农场地块。';
-  applyAction(seat, action, option);
+  if(automaticEnabled())autoRules.begin(seat,action,option);else applyAction(seat, action, option);
 }
 function onlineBar() {
   const offline = room.members.filter(m => !m.online).map(m => m.name);
   const state = room.pending ? '正在同步行动…' : room.status === 'disconnected' ? '连接已断开，等待重连' : offline.length ? `暂停 · 等待 ${offline.join('、')} 重连` : room.started ? `你是 ${room.members[room.seat]?.name || '农场主'} · ${room.members.length} 人对局` : '等待朋友加入';
-  return `<div class="online-bar"><button data-online="1">房间 ${escapeHTML(room.code)}</button><span role="status">${game.cardReview ? '暂停派工 · 等待房主结算原版牌' : escapeHTML(state)}</span>${settlementButton()}${room.status === 'disconnected' ? '<button data-room-retry="1">重新连接</button>' : ''}</div>`;
+  return `<div class="online-bar"><button data-online="1">房间 ${escapeHTML(room.code)}</button><span role="status">${automaticEnabled() && autoRules.choice() ? `等待${escapeHTML(game.players[autoRules.choice().seat].name)}选择卡牌效果` : escapeHTML(state)}</span>${room.status === 'disconnected' ? '<button data-room-retry="1">重新连接</button>' : ''}</div>`;
 }
 function onlineDialog() {
   ui.onlineDraft ||= { name: '', code: new URLSearchParams(location.search).get('room') || '' };

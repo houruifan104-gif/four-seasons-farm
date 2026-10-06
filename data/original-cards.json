@@ -16,7 +16,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A002",
@@ -37,7 +37,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A003",
@@ -58,7 +58,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A004",
@@ -82,7 +82,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A005",
@@ -103,7 +103,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A006",
@@ -122,7 +122,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A007",
@@ -143,7 +143,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A008",
@@ -164,7 +164,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A009",
@@ -185,7 +185,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A010",
@@ -207,7 +207,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A011",
@@ -226,7 +226,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A012",
@@ -247,7 +247,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A013",
@@ -268,7 +268,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A014",
@@ -289,7 +289,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A015",
@@ -310,7 +310,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A016",
@@ -329,7 +329,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A017",
@@ -350,7 +350,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A018",
@@ -371,7 +371,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A019",
@@ -392,7 +392,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A020",
@@ -413,7 +413,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A021",
@@ -432,7 +432,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A022",
@@ -453,7 +453,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A023",
@@ -475,7 +475,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A024",
@@ -496,7 +496,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A025",
@@ -518,7 +518,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A026",
@@ -539,7 +539,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A027",
@@ -558,7 +558,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A028",
@@ -580,7 +580,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A029",
@@ -601,7 +601,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A030",
@@ -620,7 +620,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A031",
@@ -641,7 +641,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A032",
@@ -662,7 +662,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A033",
@@ -681,7 +681,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A034",
@@ -702,7 +702,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A035",
@@ -723,7 +723,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A036",
@@ -744,7 +744,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A037",
@@ -765,7 +765,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A038",
@@ -784,7 +784,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A039",
@@ -806,7 +806,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A040",
@@ -828,7 +828,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A041",
@@ -849,7 +849,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A042",
@@ -870,7 +870,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A043",
@@ -889,7 +889,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A044",
@@ -910,7 +910,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A045",
@@ -931,7 +931,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A046",
@@ -952,7 +952,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A047",
@@ -973,7 +973,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A048",
@@ -994,7 +994,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A049",
@@ -1015,7 +1015,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A050",
@@ -1036,7 +1036,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A051",
@@ -1058,7 +1058,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A052",
@@ -1079,7 +1079,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A053",
@@ -1100,7 +1100,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A054",
@@ -1119,7 +1119,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A055",
@@ -1141,7 +1141,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A056",
@@ -1162,7 +1162,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A057",
@@ -1183,7 +1183,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A058",
@@ -1204,7 +1204,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A059",
@@ -1225,7 +1225,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A060",
@@ -1244,7 +1244,7 @@
     "passing": false,
     "returnCooking": true,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A061",
@@ -1265,7 +1265,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A062",
@@ -1286,7 +1286,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A063",
@@ -1308,7 +1308,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A064",
@@ -1334,7 +1334,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A065",
@@ -1353,7 +1353,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A066",
@@ -1374,7 +1374,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A067",
@@ -1395,7 +1395,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A068",
@@ -1414,7 +1414,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A069",
@@ -1435,7 +1435,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A070",
@@ -1456,7 +1456,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A071",
@@ -1477,7 +1477,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A072",
@@ -1496,7 +1496,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A073",
@@ -1515,7 +1515,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A074",
@@ -1536,7 +1536,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A075",
@@ -1557,7 +1557,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A076",
@@ -1578,7 +1578,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A077",
@@ -1599,7 +1599,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A078",
@@ -1620,7 +1620,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A079",
@@ -1641,7 +1641,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A080",
@@ -1662,7 +1662,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A081",
@@ -1683,7 +1683,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A082",
@@ -1702,7 +1702,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A083",
@@ -1723,7 +1723,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A084",
@@ -1742,7 +1742,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A085",
@@ -1761,7 +1761,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A086",
@@ -1780,7 +1780,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A087",
@@ -1799,7 +1799,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A088",
@@ -1818,7 +1818,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A089",
@@ -1837,7 +1837,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A090",
@@ -1856,7 +1856,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A091",
@@ -1875,7 +1875,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A092",
@@ -1894,7 +1894,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A093",
@@ -1913,7 +1913,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A094",
@@ -1932,7 +1932,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A095",
@@ -1951,7 +1951,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A096",
@@ -1970,7 +1970,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A097",
@@ -1989,7 +1989,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A098",
@@ -2008,7 +2008,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A099",
@@ -2027,7 +2027,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A100",
@@ -2046,7 +2046,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A101",
@@ -2065,7 +2065,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A102",
@@ -2084,7 +2084,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A103",
@@ -2103,7 +2103,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A104",
@@ -2122,7 +2122,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A105",
@@ -2141,7 +2141,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A106",
@@ -2160,7 +2160,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A107",
@@ -2179,7 +2179,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A108",
@@ -2198,7 +2198,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A109",
@@ -2217,7 +2217,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A110",
@@ -2236,7 +2236,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A111",
@@ -2255,7 +2255,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A112",
@@ -2274,7 +2274,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A113",
@@ -2293,7 +2293,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A114",
@@ -2312,7 +2312,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A115",
@@ -2331,7 +2331,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A116",
@@ -2350,7 +2350,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A117",
@@ -2369,7 +2369,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A118",
@@ -2388,7 +2388,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A119",
@@ -2407,7 +2407,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A120",
@@ -2426,7 +2426,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A121",
@@ -2445,7 +2445,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A122",
@@ -2464,7 +2464,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A123",
@@ -2483,7 +2483,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A124",
@@ -2502,7 +2502,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A125",
@@ -2521,7 +2521,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A126",
@@ -2540,7 +2540,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A127",
@@ -2559,7 +2559,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A128",
@@ -2578,7 +2578,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A129",
@@ -2597,7 +2597,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A130",
@@ -2616,7 +2616,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A131",
@@ -2635,7 +2635,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A132",
@@ -2654,7 +2654,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A133",
@@ -2673,7 +2673,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A134",
@@ -2692,7 +2692,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A135",
@@ -2711,7 +2711,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A136",
@@ -2730,7 +2730,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A137",
@@ -2749,7 +2749,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A138",
@@ -2768,7 +2768,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A139",
@@ -2787,7 +2787,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A140",
@@ -2806,7 +2806,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A141",
@@ -2825,7 +2825,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A142",
@@ -2844,7 +2844,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A143",
@@ -2863,7 +2863,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A144",
@@ -2882,7 +2882,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A145",
@@ -2901,7 +2901,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A146",
@@ -2920,7 +2920,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A147",
@@ -2939,7 +2939,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A148",
@@ -2958,7 +2958,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A149",
@@ -2977,7 +2977,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A150",
@@ -2996,7 +2996,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A151",
@@ -3015,7 +3015,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A152",
@@ -3034,7 +3034,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A153",
@@ -3053,7 +3053,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A154",
@@ -3072,7 +3072,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A155",
@@ -3091,7 +3091,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A156",
@@ -3110,7 +3110,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A157",
@@ -3129,7 +3129,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A158",
@@ -3148,7 +3148,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A159",
@@ -3167,7 +3167,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A160",
@@ -3186,7 +3186,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A161",
@@ -3205,7 +3205,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A162",
@@ -3224,7 +3224,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A163",
@@ -3243,7 +3243,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A164",
@@ -3262,7 +3262,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A165",
@@ -3281,7 +3281,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A166",
@@ -3300,7 +3300,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A167",
@@ -3319,7 +3319,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "A168",
@@ -3338,7 +3338,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B001",
@@ -3359,7 +3359,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B002",
@@ -3380,7 +3380,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B003",
@@ -3399,7 +3399,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B004",
@@ -3418,7 +3418,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B005",
@@ -3437,7 +3437,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B006",
@@ -3458,7 +3458,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B007",
@@ -3477,7 +3477,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B008",
@@ -3498,7 +3498,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B009",
@@ -3517,7 +3517,7 @@
     "passing": true,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B010",
@@ -3539,7 +3539,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B011",
@@ -3561,7 +3561,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B012",
@@ -3583,7 +3583,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B013",
@@ -3605,7 +3605,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B014",
@@ -3626,7 +3626,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B015",
@@ -3647,7 +3647,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B016",
@@ -3668,7 +3668,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B017",
@@ -3689,7 +3689,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B018",
@@ -3710,7 +3710,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B019",
@@ -3731,7 +3731,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B020",
@@ -3752,7 +3752,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B021",
@@ -3773,7 +3773,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B022",
@@ -3792,7 +3792,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B023",
@@ -3811,7 +3811,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B024",
@@ -3832,7 +3832,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B025",
@@ -3853,7 +3853,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B026",
@@ -3872,7 +3872,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B027",
@@ -3893,7 +3893,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B028",
@@ -3914,7 +3914,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B029",
@@ -3935,7 +3935,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B030",
@@ -3956,7 +3956,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B031",
@@ -3975,7 +3975,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B032",
@@ -3996,7 +3996,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B033",
@@ -4017,7 +4017,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B034",
@@ -4036,7 +4036,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B035",
@@ -4057,7 +4057,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B036",
@@ -4076,7 +4076,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B037",
@@ -4095,7 +4095,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B038",
@@ -4114,7 +4114,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B039",
@@ -4135,7 +4135,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B040",
@@ -4154,7 +4154,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B041",
@@ -4175,7 +4175,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B042",
@@ -4197,7 +4197,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B043",
@@ -4221,7 +4221,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B044",
@@ -4245,7 +4245,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B045",
@@ -4266,7 +4266,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B046",
@@ -4290,7 +4290,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B047",
@@ -4311,7 +4311,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B048",
@@ -4335,7 +4335,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B049",
@@ -4356,7 +4356,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B050",
@@ -4377,7 +4377,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B051",
@@ -4398,7 +4398,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B052",
@@ -4420,7 +4420,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B053",
@@ -4441,7 +4441,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B054",
@@ -4462,7 +4462,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B055",
@@ -4481,7 +4481,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B056",
@@ -4500,7 +4500,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B057",
@@ -4522,7 +4522,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B058",
@@ -4543,7 +4543,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B059",
@@ -4564,7 +4564,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B060",
@@ -4583,7 +4583,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B061",
@@ -4602,7 +4602,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B062",
@@ -4623,7 +4623,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B063",
@@ -4644,7 +4644,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B064",
@@ -4665,7 +4665,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B065",
@@ -4692,7 +4692,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B066",
@@ -4713,7 +4713,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B067",
@@ -4734,7 +4734,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B068",
@@ -4755,7 +4755,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B069",
@@ -4776,7 +4776,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B070",
@@ -4795,7 +4795,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B071",
@@ -4818,7 +4818,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B072",
@@ -4837,7 +4837,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B073",
@@ -4858,7 +4858,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B074",
@@ -4877,7 +4877,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B075",
@@ -4898,7 +4898,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B076",
@@ -4919,7 +4919,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B077",
@@ -4940,7 +4940,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B078",
@@ -4961,7 +4961,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B079",
@@ -4982,7 +4982,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B080",
@@ -5003,7 +5003,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B081",
@@ -5024,7 +5024,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B082",
@@ -5043,7 +5043,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B083",
@@ -5064,7 +5064,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B084",
@@ -5085,7 +5085,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B085",
@@ -5104,7 +5104,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B086",
@@ -5123,7 +5123,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B087",
@@ -5142,7 +5142,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B088",
@@ -5161,7 +5161,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B089",
@@ -5180,7 +5180,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B090",
@@ -5199,7 +5199,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B091",
@@ -5218,7 +5218,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B092",
@@ -5237,7 +5237,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B093",
@@ -5256,7 +5256,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B094",
@@ -5275,7 +5275,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B095",
@@ -5294,7 +5294,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B096",
@@ -5313,7 +5313,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B097",
@@ -5332,7 +5332,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B098",
@@ -5351,7 +5351,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B099",
@@ -5370,7 +5370,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B100",
@@ -5389,7 +5389,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B101",
@@ -5408,7 +5408,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B102",
@@ -5427,7 +5427,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B103",
@@ -5446,7 +5446,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B104",
@@ -5465,7 +5465,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B105",
@@ -5484,7 +5484,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B106",
@@ -5503,7 +5503,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B107",
@@ -5522,7 +5522,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B108",
@@ -5541,7 +5541,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B109",
@@ -5560,7 +5560,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B110",
@@ -5579,7 +5579,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B111",
@@ -5598,7 +5598,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B112",
@@ -5617,7 +5617,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B113",
@@ -5636,7 +5636,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B114",
@@ -5655,7 +5655,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B115",
@@ -5674,7 +5674,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B116",
@@ -5693,7 +5693,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B117",
@@ -5712,7 +5712,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B118",
@@ -5731,7 +5731,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B119",
@@ -5750,7 +5750,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B120",
@@ -5769,7 +5769,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B121",
@@ -5788,7 +5788,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B122",
@@ -5807,7 +5807,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B123",
@@ -5826,7 +5826,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B124",
@@ -5845,7 +5845,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B125",
@@ -5864,7 +5864,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B126",
@@ -5883,7 +5883,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B127",
@@ -5902,7 +5902,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B128",
@@ -5921,7 +5921,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B129",
@@ -5940,7 +5940,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B130",
@@ -5959,7 +5959,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B131",
@@ -5978,7 +5978,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B132",
@@ -5997,7 +5997,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B133",
@@ -6016,7 +6016,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B134",
@@ -6035,7 +6035,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B135",
@@ -6054,7 +6054,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B136",
@@ -6073,7 +6073,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B137",
@@ -6092,7 +6092,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B138",
@@ -6111,7 +6111,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B139",
@@ -6130,7 +6130,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B140",
@@ -6149,7 +6149,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B141",
@@ -6168,7 +6168,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B142",
@@ -6187,7 +6187,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B143",
@@ -6206,7 +6206,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B144",
@@ -6225,7 +6225,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B145",
@@ -6244,7 +6244,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B146",
@@ -6263,7 +6263,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B147",
@@ -6282,7 +6282,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B148",
@@ -6301,7 +6301,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B149",
@@ -6320,7 +6320,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B150",
@@ -6339,7 +6339,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B151",
@@ -6358,7 +6358,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B152",
@@ -6377,7 +6377,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B153",
@@ -6396,7 +6396,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B154",
@@ -6415,7 +6415,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B155",
@@ -6434,7 +6434,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B156",
@@ -6453,7 +6453,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B157",
@@ -6472,7 +6472,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B158",
@@ -6491,7 +6491,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B159",
@@ -6510,7 +6510,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B160",
@@ -6529,7 +6529,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B161",
@@ -6548,7 +6548,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B162",
@@ -6567,7 +6567,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B163",
@@ -6586,7 +6586,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B164",
@@ -6605,7 +6605,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B165",
@@ -6624,7 +6624,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B166",
@@ -6643,7 +6643,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B167",
@@ -6662,7 +6662,7 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   },
   {
     "id": "B168",
@@ -6681,6 +6681,6 @@
     "passing": false,
     "returnCooking": false,
     "original": true,
-    "resolution": "manual"
+    "resolution": "automatic"
   }
 ]
