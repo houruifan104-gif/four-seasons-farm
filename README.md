@@ -22,6 +22,7 @@
 ## 开发与验证
 
 - `python3 scripts/build.py`：更新可直接打开的 `play.html`。
+- `node scripts/test-original.cjs`：校验原版牌数量、无重复发牌、费用、传递、结算权限、计分和中文检索。
 - `node scripts/test-online.cjs`：校验多人座位、轮次与行动权限、资源与地块、断线暂停及 6 人完整 14 轮。
 - `vendor/peerjs.min.js`：固定 PeerJS 1.5.5，保留 MIT 许可证。离线单人游戏不依赖外部脚本下载。
 
@@ -45,15 +46,19 @@
 
 ### 5/6 人
 
-- 新游戏可选最多 6 人，目前为 1 位玩家加电脑对手。
+- 新游戏可选最多 6 人；本地为你加电脑，联机房间为 2–6 位真人。
 - 5/6 人局加入小树林、河岸林、树林、土坑、旅人、资源市场和牲畜市场等行动；6 人局再加入农具补给、资源交易、畜栏、副业与额外小设施。
 
-### 职业与小设施
+### 原版牌库与手牌
 
-- “学习职业”“小型设施”会打出手牌，支付对应费用并持续生效。开局每人有 4 张职业与 4 张小设施。
-- 本作的可玩手牌仍是 8 张职业、8 张小设施的原创精简牌组。
-- 页首“原版牌库”可检索 15 周年版 A/B 牌组的 336 张卡号和英文名称（168 职业、168 次要发展），并打开对应的在线资料页。目录仅供查阅，不参与发牌或自动结算。
-- 目录数据位于 `card-catalog.js`，可用 `python3 scripts/import_catalog.py` 更新；不包含原卡图像或卡面文字。A113 在主目录缺失，名称从修订版卡牌汇编补齐。
+- 页首「原版牌库」收录 **15 周年版 A/B 共 336 张：168 职业、168 次要发展**。每张含中英文名称、中文效果摘要、费用、前置条件、固定分、传递标记与来源链接。支持中英文、卡号、效果搜索和 A/B、类型筛选；详情可离线查看。
+- 创建多人房间时，在「手牌牌组」选 A、B 或 A+B。每人随机获得 7 张职业、7 张次要发展，共用牌堆、不重复发牌；开局后不能更换牌组。已有存档与默认精简牌组保持原样。
+- **原版模式为真人手动效果模式，不是完整自动规则引擎。** 打牌费用（含二选一费用）、常见前置条件、卡面固定分和使用后的传递自动处理。归还壁炉/灶台的牌会把对应主要发展放回公共供应。
+- 每次行动后暂停，房主核对触发的卡牌效果，在结算面板选择玩家与已打出的卡牌，调整资源、奖励分、田地、房屋、牲畜棚或派工额度，随后点击「结算完成」。修改同步并记入公开日志，也可存提醒。其他玩家不能修改结算。
+- 收获和最终结算弹窗也有手动入口。系统收获仍按精简规则运行，需要修正的喂养、繁殖和奖励由房主核对；新家人需当轮行动时另调「本轮派工额度」。围栏几何、牌上混种、特殊占位、职业适用人数和所有连锁效果尚未实现，不能用此模式替代严格的原版对局。
+- 中文名称与效果为自行整理的规则摘要，不是官方中文卡面的逐字转录，也不含原卡图像。
+- `data/original-cards.json` 是运行数据源；`python3 scripts/import_catalog.py` 从本地数据生成 `card-catalog.js`，再运行 `python3 scripts/build.py` 更新单文件版本。`data/original-card-notes.tsv` 保存中文整理稿。A113 来源为修订版汇编，其余卡均有逐卡来源链接。
+- 与电脑对战仍使用 8 职业 + 8 小设施的自动精简牌组，开局各发 4 张。
 
 ### 四季流转
 
@@ -71,6 +76,6 @@
 
 ## 与官方规则的关系
 
-这是独立设计的精简改编，包含主要扩展机制，**不是官方规则与所有卡牌的逐项还原**。牧场容量、建筑费用、卡牌效果、行动格和计分采用了适合本电子版的简化实现。不使用原作卡面图像或逐字文案。原版 336 张职业与次要发展目前只有名称目录，效果尚未实现。
+这是独立设计的精简改编，包含主要扩展机制，**不是官方规则与所有卡牌的逐项还原**。牧场容量、建筑费用、卡牌效果、行动格和计分采用了适合本电子版的简化实现。不使用原作卡面图像或逐字文案。原版 336 张职业与次要发展已提供完整资料和真人手动效果模式；费用、固定分与传递自动执行，其他效果没有实现自动执行。
 
 参考：[15 周年版官方规则（336 张手牌）](https://www.lookout-spiele.de/upload/de_15jahreagricolajubilaeumsbox.html_Argicola_Aniversery_Rules_155_EN_WEB.pdf) · [官方附录（四季与 X 卡）](https://www.lookout-spiele.de/upload/en_15yearsofagricolaanniversarybox.html_Argicola_Aniversery_Appendix_155_EN_WEB.pdf) · [A/B 卡牌目录](https://agricola.cloudfree.jp/cardlist_en/) · [修订版卡牌汇编](https://www.scribd.com/document/749914746/Agricola-Revised-Edition-Unofficial-Compendium-v4-1) · [沼泽农夫规则](https://www.lookout-spiele.de/upload/de_agricolare_moorbauern.html_Rules_Agricola-RE-Farmers_EN.pdf) · [5/6 人扩展规则](https://lookout-spiele.de/upload/de_agricolare_56spieler.html_Rules_Agricola-RE-56Expansion_EN.pdf)。原作由 Uwe Rosenberg 设计，Lookout Games 发行。
