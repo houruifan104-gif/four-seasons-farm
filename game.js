@@ -276,7 +276,7 @@ function replenish(g) {
   if (g.settings.cards) for (const player of g.players) if (player.majorBuiltRound.wellMajor && g.round > player.majorBuiltRound.wellMajor && g.round <= player.majorBuiltRound.wellMajor + 5) player.food++;
 }
 function farmCount(player, type) { return player.farm.filter(c => c.type === type).length; }
-function emptyCells(player) { return player.farm.map((c, i) => c.type === 'empty' ? i : -1).filter(i => i >= 0); }
+function emptyCells(player) { return automaticEnabled() ? autoRules.empty(player) : player.farm.map((c, i) => c.type === 'empty' ? i : -1).filter(i => i >= 0); }
 function emptyFields(player) { return player.farm.map((c, i) => c.type === 'field' && !c.crop ? i : -1).filter(i => i >= 0); }
 function roomCells(player) {
   return emptyCells(player).filter(i => [i % 5 > 0 ? i - 1 : -1, i % 5 < 4 ? i + 1 : -1, i - 5, i + 5]
@@ -380,7 +380,7 @@ function addAnimals(player, type, amount) {
   return { kept, excess, cooked: worth > 0 && excess > 0 };
 }
 function actionText(who, action, extra = '') { return `${!room.active && who === 0 ? '你' : game.players[who].name}：${action.name}${extra ? '，' + extra : ''}。`; }
-function playCard(player, type, choiceId) {
+function playCard(player, type, choiceId, source = 'minor') {
   const card = playableCards(player, type).find(c => (c.choiceId || c.id) === choiceId);
   if (!card) return '';
   if(card.original && type==='improvements' && hasCard(player,'B075'))autoRules.gain(player,'B075',{wood:1});
@@ -394,7 +394,7 @@ function playCard(player, type, choiceId) {
   player.hand[type] = player.hand[type].filter(x => x !== card.id);
   if (card.passing) game.players[(game.players.indexOf(player) + 1) % game.players.length].hand[type].push(card.id);
   else player.played[type].push(card.id);
-  if (card.original) { player.cardHistory ||= []; player.cardHistory.push(card.id); autoRules.event('play',game.players.indexOf(player),{id:card.id,cost:card.cost,action:ui.mode?.id||'minor'}); autoRules.event(type==='occupations'?'occupation':'improvement',game.players.indexOf(player),{id:card.id,action:ui.mode?.id||'minor'}); }
+  if (card.original) { player.cardHistory ||= []; player.cardHistory.push(card.id); autoRules.event('play',game.players.indexOf(player),{id:card.id,cost:card.cost,action:source}); autoRules.event(type==='occupations'?'occupation':'improvement',game.players.indexOf(player),{id:card.id,action:source}); }
   return card.name;
 }
 function playMajorCard(player, id) {
@@ -511,9 +511,9 @@ function applyAction(who, action, option = {}, ruleContext = null) {
       detail = `播下${option.crop === 'grain' ? '谷物' : '蔬菜'}`; break;
     case 'pasture': player.wood -= Math.max(0, 2 - Number(seasonName() === '春' || hasCard(player, 'fenceKit')) - Number(hasAlien(player, 'X11'))); player.farm[option.cell] = { type: 'pasture', animal: option.animal }; detail = `建成${ANIMALS[option.animal]}牧场${seasonName() === '春' ? '，春季围栏优惠' : ''}`; break;
     case 'room': pay(player, roomCost(player)); player.farm[option.cell] = { type: 'house' }; if (seasonName() === '夏' && Object.values(player.stables).reduce((a, b) => a + b, 0) < 4) { const type = Object.keys(ANIMALS).filter(t => t !== 'horse' || game.settings.moor).sort((a, b) => player[b] - player[a])[0]; player.stables[type]++; } detail = `新增 1 间住房${seasonName() === '夏' ? '及免费牲畜棚' : ''}`; break;
-    case 'lessons': detail = `学会职业「${playCard(player, 'occupations', option.card)}」`; break;
+    case 'lessons': detail = `学会职业「${playCard(player, 'occupations', option.card, action.id)}」`; break;
     case 'major': detail = `建造主要发展「${playMajorCard(player, option.major)}」`; break;
-    case 'minor': case 'minor6': detail = `建造小设施「${playCard(player, 'improvements', option.card)}」`; break;
+    case 'minor': case 'minor6': detail = `建造小设施「${playCard(player, 'improvements', option.card, action.id)}」`; break;
     case 'market': player.wood++; player.reed++; player.stone++; detail = '获得木材、芦苇、石料各 1'; break;
     case 'animalMarket': {
       if (option.animal === 'cattle') player.food--;
@@ -542,7 +542,7 @@ function applyAction(who, action, option = {}, ruleContext = null) {
     case 'burn': player.farm[option.cell] = { type: 'field', crop: null, qty: 0 }; detail = '森林变为田地'; break;
     case 'horseMarket': player.food--; { const result = addAnimals(player, 'horse', 1); detail = result.excess ? '获得马，但没有位置留养' : '获得 1 匹马'; } break;
     case 'fair': player.food++; detail = '获得 1 食物'; break;
-    case 'black': player.fuel--; detail = `建造小设施「${playCard(player, 'improvements', option.card)}」`; break;
+    case 'black': player.fuel--; detail = `建造小设施「${playCard(player, 'improvements', option.card, action.id)}」`; break;
     case 'illicit': player.food--; player.fuel--; detail = buildMajor(player, option.major); break;
   }
   if (action.special) {
@@ -827,7 +827,22 @@ function handPanel() {
     return `<div class="hand-card ${type === 'occupations' ? 'occupation-card' : 'minor-card'}"><div class="card-illustration" aria-hidden="true">${type === 'occupations' ? '👩‍🌾' : '🛠️'}</div><b>${c.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c.name}</b><span>${escapeHTML(c.effect)}</span><small>${type === 'occupations' ? '职业' : `次要发展 · ${cardCost(c)} · ${c.points} 分`}${c.original ? `<br>前置：${escapeHTML(c.requirement)}<br>效果自动触发` : ''}</small></div>`;
   };
   const played = p.played.occupations.concat(p.played.improvements).map(id => { const c = findHandCard(id); return c?.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c?.name; }).join('、');
-  return `<section class="panel cards-panel"><div class="panel-head"><div><p class="eyebrow">CARDS</p><h2>你的手牌</h2></div><span class="head-note">${originalMode() ? '原版自动牌组 · 开局 7 职业 + 7 次要发展' : '在学习职业或小型设施行动打出'}</span></div><div class="hand-grid">${p.hand.occupations.map(id => row(id, 'occupations')).join('')}${p.hand.improvements.map(id => row(id, 'improvements')).join('')}</div><div class="played-cards">已打出：${played || '无'}</div>${automaticAbilityPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
+  return `<section class="panel cards-panel"><div class="panel-head"><div><p class="eyebrow">CARDS</p><h2>你的手牌</h2></div><span class="head-note">${originalMode() ? '原版自动牌组 · 开局 7 职业 + 7 次要发展' : '在学习职业或小型设施行动打出'}</span></div><div class="hand-grid">${p.hand.occupations.map(id => row(id, 'occupations')).join('')}${p.hand.improvements.map(id => row(id, 'improvements')).join('')}</div><div class="played-cards">已打出：${played || '无'}</div>${activeMinorPanel(p)}${automaticAbilityPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
+}
+function activeMinorPanel(p) {
+  if(!automaticEnabled())return '';
+  const cards=p.played.improvements.map(findHandCard).filter(c=>c?.original);
+  if(!cards.length)return '';
+  const special={_plow:'开田',_stable:'免费马厩',_worker:'临时家人',_stoneRoom:'免费石屋',_minor:'次要发展',_sowFence:'播种或围栏'};
+  return `<div class="active-minors"><h3>生效中的次要发展 · ${cards.length}</h3>${cards.map(c=>{
+    const s=p.rules?.[c.id]||{},status=[];
+    if(s.schedule?.length)status.push(s.schedule.map(x=>`第 ${x.round} 轮：${Object.entries(x.goods).map(([k,n])=>special[k]||autoRules.label({[k]:n})).join('、')}`).join('；'));
+    if(s.food!==undefined)status.push(`卡上剩余 ${s.food} 食物`);
+    if(s.goods?.length)status.push(`下一份：${autoRules.label({[s.goods[0]]:1})} · 卡上剩余 ${s.goods.length} 份`);
+    if(c.id==='B019'||c.id==='A018')status.push(`剩余使用次数：${Math.max(0,(c.id==='B019'?2:1)-(s.used||0))}`);
+    for(const f of (p.cardFields||[]).filter(f=>f.card===c.id))status.push(f.crop?`牌上田地：${autoRules.label({[f.crop]:f.qty})}`:'牌上田地：尚未播种');
+    return `<details><summary>${c.id} · ${escapeHTML(c.name)}</summary><p>${escapeHTML(c.effect)}</p>${status.length?`<p class="minor-state">${escapeHTML(status.join(' · '))}</p>`:''}</details>`;
+  }).join('')}</div>`;
 }
 function majorPanel() {
   const cards = MAJORS.map(card => `<div class="hand-card ${game.majorSupply.includes(card.id) ? '' : 'major-taken'}"><b>${card.name}</b><span>${card.effect}</span><small>${cardCost(card)} · ${card.points} 分${game.majorSupply.includes(card.id) ? '' : ' · 已建造'}</small></div>`).join('');
@@ -918,6 +933,7 @@ function automaticAbilityPanel(p) {
 }
 function automaticContinue(task) {
   if(task.kind==='base') {
+    game.ruleActionSerial=(game.ruleActionSerial||0)+1;
     const p=game.players[task.seat],before=JSON.parse(JSON.stringify(p));
     const context={pile:game.piles[task.action.id]||0,hasLargePile:Object.values(game.piles).some(n=>n>=5),extra:task.extra,finish:!task.extra,sameWorker:task.sameWorker};
     applyAction(task.seat,task.action,task.option,{before,...context});

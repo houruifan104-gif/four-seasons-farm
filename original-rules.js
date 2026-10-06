@@ -33,7 +33,7 @@
     offer(p,id,offers,optional=true,title='选择卡牌效果') { this.add({seat:this.seat(p),card:id,type:'offer',offers,optional,title}); }
     ask(p,id,type,args={},optional=true) {
       if(type==='sow'&&!args.sowStarted){args={...args,sowStarted:true};if(!args.restricted){if(this.has(p,'A065'))this.gain(p,'A065',{grain:1});this.event('beforeSow',this.seat(p),{restricted:false});}}
-      if(type==='bake'&&this.has(p,'B067')&&!args.prepared){this.gain(p,'B067',{grain:this.stats(p).actions.filter(a=>a.kind==='pile').length});args={...args,prepared:true};}
+      if(type==='bake'&&!args.noBakeEvent&&this.has(p,'B067')&&!args.prepared){this.gain(p,'B067',{grain:this.stats(p).actions.filter(a=>a.kind==='pile').length});args={...args,prepared:true};}
       this.add({seat:this.seat(p),card:id,type,...args,optional});
     }
     event(type,seat,info={}) { if(this.active)this.add({type:'event',event:type,seat,info}); }
@@ -56,6 +56,7 @@
       let options=[];
       const add=(value,label,effect={})=>options.push({value:String(value),label,...effect});
       if(t.type==='offer')for(const [i,o] of t.offers.entries())if(this.affordable(p,o.cost)&&(!o.test||this.test(p,o.test)))add(i,o.label||`${this.label(o.cost||{})} → ${this.label(o.gain||{})}${o.bonus?`、${o.bonus} 分`:''}`,o);
+      if(t.type==='feeding')for(const ability of this.abilities(p).filter(a=>['A060','B032','B083'].includes(a.card)))for(const o of this.options(ability).filter(o=>o.value!=='skip'))add(`${ability.card}:${o.value}`,`${this.api.card(ability.card).name} · ${o.label}`,{...o,value:`${ability.card}:${o.value}`,abilityCard:ability.card});
       if(t.type==='plow')for(const i of this.empty(p).filter(i=>!p.farm.some(c=>c.type==='field')||p.farm.some((c,j)=>c.type==='field'&&this.adjacent(i,j))))add(i,`开垦第 ${i+1} 格`,{cost:t.cost||{},cell:i});
       if(t.type==='sow') {
         this.fields(p).forEach((c,i)=>{if(!c.crop)for(const crop of ['grain','veg'])if(p[crop]>0&&(!c.only||c.only===crop))add(`${i}:${crop}`,`第 ${i+1} 块田种${LABELS[crop]}`,{field:i,crop,cost:{[crop]:1}});});
@@ -103,7 +104,8 @@
       }
       if(t.type==='bake') {
         const rates=this.bakeRates(p);for(const [id,rate,limit] of rates)for(let n=1;n<=Math.min(p.grain,limit,t.max||99);n++)add(`${id}:${n}`,`烤 ${n} 谷物 → ${rate*n} 食物`,{cost:{grain:n},gain:{food:rate*n},oven:id,qty:n});
-        if(this.has(p,'A097'))add('occupation','改为免费打出职业',{next:[{type:'occupation',free:true}]});
+        if(!t.noBakeEvent&&this.has(p,'A030'))add('A030:1','烤盘：1 谷物 → 2 食物、1 奖励分',{cost:{grain:1},gain:{food:2},bonus:1,oven:'A030',qty:1});
+        if(!t.noBakeEvent&&this.has(p,'A097'))add('occupation','改为免费打出职业',{next:[{type:'occupation',free:true}]});
       }
       if(t.type==='takePile')for(const a of this.api.actions())if(a.kind==='pile'&&MATERIALS.includes(a.key)&&(this.g.piles[a.id]||0)>=(t.thresholds?.[a.key]||t.min||1))add(a.id,`从${a.name}取 1 ${LABELS[a.key]}`,{take:{action:a.id,key:a.key,n:1}});
       if(t.type==='harvestExtra')this.fields(p).forEach((c,i)=>{if(c.crop==='grain'&&c.qty>=2&&!(this.state(p,'A112').extraFields||[]).includes(i))add(i,`第 ${i+1} 块谷物田多收 1 谷物`,{harvestExtra:i});});
@@ -147,18 +149,19 @@
       const choice=this.choice();if(choice&&this.p(choice.seat).ai)this.api.aiChoice(choice.seat,choice.options.find(o=>o.value!=='skip')?.value||'skip');
     }
     resolve(t,o) {
-      const p=this.p(t.seat),id=t.card;if(o.pool)this.g.piles.travelers-=o.pool;
+      const p=this.p(t.seat),id=o.abilityCard||t.card;if(o.pool)this.g.piles.travelers-=o.pool;
+      if(o.grainField!==undefined){const field=this.fields(p)[o.grainField];field.qty--;if(!field.qty){field.crop=field.underCrop||null;field.qty=field.underQty||0;delete field.underCrop;delete field.underQty;}}
       if(o.returnMajor){p.majors=p.majors.filter(id=>id!==o.returnMajor);delete p.majorBuiltRound[o.returnMajor];this.g.majorSupply.push(o.returnMajor);}
       if((o.major||o.kind==='improvements')&&this.has(p,'B075'))this.gain(p,'B075',{wood:1});this.pay(p,o.cost);
       if(o.transfer){const q=this.p(o.transfer.seat);for(const [k,n] of Object.entries(o.transfer.goods))q[k]=(q[k]||0)+n;}
       if(o.putBack){this.g.piles[o.putBack.action]=(this.g.piles[o.putBack.action]||0)+o.putBack.n;}
       if(o.take){this.g.piles[o.take.action]-=o.take.n;this.gain(p,id,{[o.take.key]:o.take.n});}
-      if(o.gain)this.gain(p,id,o.gain);if(o.cooking)this.event('cook',t.seat);if(o.bonus)this.bonus(p,id,o.bonus);
+      if(o.gain)this.gain(p,id,o.gain);if(o.cooking)this.event('cook',t.seat,{feeding:t.type==='feeding'});if(o.bonus)this.bonus(p,id,o.bonus);
       if(o.state)Object.assign(this.state(p,id),o.state);
       if(o.allOpponents)for(const q of this.g.players)if(q!==p)this.gain(q,id,o.allOpponents);
       if(o.discard)p.hand[o.discard.kind]=p.hand[o.discard.kind].filter(c=>c!==o.discard.id);
       if(o.schedule)for(const s of o.schedule)this.schedule(p,id,s.offsets,s.goods);
-      if(t.type==='plow'){const before=JSON.parse(JSON.stringify(p.farm));p.farm[o.cell]={type:'field',crop:null,qty:0};this.stats(p).placedGoods=true;this.log(p,id,`开垦第 ${o.cell+1} 格`);this.notifyBuild(p,'plow',before,{cells:[o.cell]});if((t.count||1)>1)this.ask(p,id,'plow',{...t,count:t.count-1},true);}
+      if(t.type==='plow'){if(t.useCharge)this.state(p,id).used=(this.state(p,id).used||0)+1;const before=JSON.parse(JSON.stringify(p.farm));p.farm[o.cell]={type:'field',crop:null,qty:0};this.stats(p).placedGoods=true;this.log(p,id,`开垦第 ${o.cell+1} 格`);this.notifyBuild(p,'plow',before,{cells:[o.cell]});if((t.count||1)>1)this.ask(p,id,'plow',{...t,count:t.count-1,useCharge:false},true);}
       if(t.type==='sow'){
         const c=this.fields(p)[o.field];c.crop=o.crop;c.qty=o.crop==='grain'?3:2;this.stats(p).placedGoods=true;
         if(this.has(p,'B115'))this.offer(p,'B115',[{label:`第 ${o.field+1} 块田多放 1 ${LABELS[o.crop]}`,extraCrop:o.field}]);
@@ -177,7 +180,7 @@
       if(t.type==='pasture'&&o.cells){if(t.removeStables)p.removedStables=(p.removedStables||0)+t.removeStables;const previousFences=this.fenceCount(p);const before=JSON.parse(JSON.stringify(p.farm));const pastureId=`${this.g.round}-${t.seat}-${o.cells[0]}`;o.cells.forEach(i=>p.farm[i]={...p.farm[i],type:'pasture',animal:o.animal,pastureId});p.fenceEdges=[...new Set((p.fenceEdges||[]).concat(o.edges))];p.fences=previousFences+o.edges.length-(o.palisades||0);if(o.palisades)this.bonus(p,'B030',o.palisades);this.notifyBuild(p,'pasture',before,{cells:o.cells,fences:o.edges.length});this.log(p,id,'建成牧场');}
       if(o.cardId&&t.type!=='selectThree')this.install(p,o.cardId,{kind:o.kind,cost:o.cost,source:id,action:t.type==='develop'?'major':t.type});
       if(o.major){p.majors.push(o.major);p.majorBuiltRound[o.major]=this.g.round;this.g.majorSupply=this.g.majorSupply.filter(c=>c!==o.major);this.event('improvement',t.seat,{id:o.major,major:true,returnedFireplace:o.returnMajor?.startsWith('fireplace')});if(['clayOven','stoneOven'].includes(o.major))this.ask(p,o.major,'bake');}
-      if(t.type==='bake'&&o.oven&&!t.noBakeEvent){this.event('bake',t.seat,{qty:o.qty});}
+      if(t.type==='bake'&&o.oven&&!t.noBakeEvent){this.event('bake',t.seat,{qty:o.qty,oven:o.oven});}
       if(t.type==='crop'){const c=this.fields(p)[o.field];c.qty--;if(!c.qty)c.crop=null;if(t.sellOption)this.offer(p,id,[{cost:{veg:1},gain:{food:3},bonus:1}]);}
       if(t.type==='actionChoice'||t.type==='actionTarget'){
         const a=t.action,v=o.baseValue,option=t.baseOption||{animal:v,card:v,major:v,supply:v,trade:v,crop:v};
@@ -201,6 +204,7 @@
       if(t.type==='stable'&&(t.count||1)>1)this.ask(p,id,'stable',{count:t.count-1});
       if(t.type==='occupation'&&(t.count||1)>1)this.ask(p,id,'occupation',{free:t.free,fee:t.fee,count:t.count-1});
       for(const next of o.next||[])this.ask(p,id,next.type,next,next.optional!==false);
+      if(t.type==='feeding')this.ask(p,'喂养前兑换','feeding');
       this.event('milestone',t.seat);
     }
     install(p,id,info={}) {
@@ -320,7 +324,7 @@
         case 'A139':ask('major',{allowed:['fireplace2','fireplace3']});break;
         case 'A144':s.reed=true;s.clay=true;break;
         case 'B001':gain({clay:5});ask('renovate');break;
-        case 'B002':ask('pasture',{free:true});break;
+        case 'B002':ask('pasture',{size:1,free:true});break;
         case 'B003':{const card=p.hand.occupations[Math.floor(Math.random()*p.hand.occupations.length)];if(card)offer([...(this.api.requirement(p,this.api.card(card))?[{label:`支付 2 食物，打出${this.api.card(card).name}`,cost:{food:2},next:[{type:'occupation',allowed:[card],free:true,optional:false}]}]:[]),{label:`传给下一位玩家：${this.api.card(card).name}`,state:{passOccupation:card},passOccupation:card}],false);break;}
         case 'B004':gain({wood:this.stats(p).actions.filter(a=>a.kind==='pile').length});break;
         case 'B005':gain({[p.hand.occupations.length<=4?'stone':p.hand.occupations.length===5?'reed':p.hand.occupations.length===6?'clay':'wood']:1});break;
@@ -381,6 +385,7 @@
       }
       if(['play','renovate'].includes(type))for(const p of this.g.players)this.transitions(p);
       if(['play','milestone','gain','pasture','plow','room'].includes(type))this.milestones();
+      if(type==='feed')this.ask(player,'喂养前兑换','feeding');
     }
     transitions(p) {
       const h=id=>this.has(p,id);
@@ -406,6 +411,7 @@
       const exchange=(cost,gain,other={})=>offer([{cost,gain,...other}]);
       const back=(n,goods,next=[])=>exchange({[key]:n},goods,{putBack:{action:a.id,n},next});
       if(type==='endAction'&&own){
+        if(id==='B027'&&(this.rooms(p)>this.rooms(e.before)||this.stables(p)>this.stables(e.before)||this.fenceCount(p)>this.fenceCount(e.before)))ask('major',{allowed:['joinery','pottery','basketmaker']});
         if(id==='A073'&&this.empty({ ...p,farm:e.before.farm }).length-this.empty(p).length>=2)ask('sow',{count:15});
         if(id==='A167'&&this.rooms(p)>this.rooms(e.before)&&this.stables(p)>this.stables(e.before))gain({[({wood:'sheep',clay:'boar',stone:'cattle'})[p.houseMaterial]]:1});
         if(id==='A040'&&s.cells){const used=s.cells.filter(i=>p.farm[i].type!=='empty');s.cells=s.cells.filter(i=>p.farm[i].type==='empty');for(const i of used)offer([{gain:{clay:1}},{gain:{food:2}}],false);}
@@ -449,7 +455,7 @@
           if(direct[id])gain(direct[id]);
           if(id==='A015'&&wood&&p.wood>=7)ask('stable',{cost:{wood:1}});
           if(id==='A017'&&animal&&!s.used&&(p[key]||0)>=(before[key]||0)+pile){s.used=true;ask('plow');}
-          if(id==='A018'&&is('plow','plowSow')&&e.workerOrder===1&&!s.used){s.used=true;ask('plow',{count:2});}
+          if(id==='A018'&&is('plow','plowSow')&&e.workerOrder===1&&!s.used)ask('plow',{count:2,useCharge:true});
           if(id==='A021'&&is('room')&&this.rooms({farm:before.farm||[]})>(before.family||0)){gain({food:1});ask('grow');}
           if(id==='A023'&&stone)ask('develop',{needStone:true});
           if(id==='A024'&&is('plow','plowSow'))ask('bake');
@@ -473,7 +479,7 @@
           if(id==='A168'&&is('lessons'))offer([{gain:{sheep:1}},{cost:{food:1},gain:{boar:1}},{cost:{food:2},gain:{cattle:1}}]);
           if(id==='B015'&&wood)ask('pasture',{discount:1,maxWood:pile});
           if(id==='B017'&&wood)back(2,{},[{type:'plow'}]);
-          if(id==='B019'&&is('plow')&&(s.used||0)<2){s.used=(s.used||0)+1;ask('plow');}
+          if(id==='B019'&&is('plow')&&(s.used||0)<2)ask('plow',{useCharge:true});
           if(id==='B028'&&is('wood'))back(2,{},[{type:'occupation',free:true}]);
           if(id==='B034'&&animal&&!s.used&&p[key]>=(before[key]||0)+pile){s.used=true;this.bonus(p,id,pile);}
           if(id==='B043'&&is('grain','veg'))this.schedule(p,id,a.id==='grain'?[1,2,3]:[1,2],{food:1});
@@ -524,14 +530,13 @@
         if(id==='A111')this.schedule(p,id,[1,2,3,4],{food:1});
         if(id==='B111'&&e.material==='clay'){gain({food:(e.count||1)*2});this.bonus(p,id,e.count||1);}
       }
-      if(['room','stable','pasture'].includes(type)&&own&&id==='B027')ask('major',{allowed:['joinery','pottery','basketmaker']});
       if(type==='pasture'&&own){
         if(id==='A034'&&this.fenceCount(p)<15)offer([{cost:{wood:1},gain:{food:2},bonus:1,removeFence:1}]);
         if(id==='A068'&&e.fences>=r)gain({veg:1});
         if(id==='A083'&&e.cells?.length>=4)gain({sheep:2});
         if(id==='B124'&&s.lastRound!==r){s.lastRound=r;gain({stone:2});}
       }
-      if(type==='stable'&&own){if(id==='A043')this.schedule(p,id,[1,2,3],{food:1});if(id==='A074')this.schedule(p,id,[1,2,3],{wood:1});}
+      if(type==='stable'&&own&&['A043','A074'].includes(id)&&s.stableAction!==(this.g.ruleActionSerial||0)){s.stableAction=this.g.ruleActionSerial||0;this.schedule(p,id,[1,2,3],{[id==='A043'?'food':'wood']:1});}
       if(type==='renovate'&&own){
         if(id==='A037')exchange({wood:1},{grain:1},{bonus:1});
         if(id==='A110'&&e.from==='clay'&&e.to==='stone')gain({food:3});
@@ -555,9 +560,9 @@
         if(own&&id==='A079'&&!e.restricted&&e.crop==='veg')gain({clay:1,stone:1});
         if(own&&id==='B054'&&!e.restricted)gain({food:this.stables(p)});
       }
-      if((type==='bake'||type==='cook')&&own&&id==='B029'&&stats.actions.at(-1)?.id==='lessons')this.once(p,id,`cooked${this.g.round}-${this.g.usedCount[this.seat(p)]}`,()=>this.bonus(p,id,1));
+      if((type==='bake'||type==='cook')&&!e.feeding&&own&&id==='B029'&&stats.actions.at(-1)?.id==='lessons')this.once(p,id,`cooked${this.g.round}-${this.g.usedCount[this.seat(p)]}`,()=>this.bonus(p,id,1));
       if(type==='bake'&&own){
-        if(id==='A030')exchange({grain:1},{food:2},{bonus:1});
+        if(id==='A030'&&e.oven!=='A030')exchange({grain:1},{food:2},{bonus:1});
         if(id==='A063'&&HARVESTS.includes(r-1))gain({food:3});
       }
       if(type==='gain'&&own){
@@ -595,7 +600,7 @@
         if(id==='A054'&&!HARVESTS.includes(r)){if(p.food)p.food--;else p.begging++;}
         if(id==='A058'&&[8,10,12].includes(r))ask('crop',{crop:'veg',sellOption:true});
         if(id==='A070'&&!HARVESTS.includes(r))ask('crop',{crop:'veg'});
-        if(id==='A084'&&!HARVESTS.includes(r))offer(ANIMALS.slice(0,3).filter(k=>p[k]>=2&&p[k]<this.api.capacity(p,k)).map(k=>({cost:{grain:1},gain:{[k]:1}})));
+        if(id==='A084'&&!HARVESTS.includes(r))offer(ANIMALS.slice(0,3).filter(k=>p[k]>=2&&p[k]<this.api.capacity(p,k)).flatMap(k=>[{cost:{grain:1},gain:{[k]:1}},...this.fields(p).flatMap((f,i)=>f.crop==='grain'&&f.qty>0?[{label:`从第 ${i+1} 块田取 1 谷物，繁殖 1 ${LABELS[k]}`,grainField:i,gain:{[k]:1}}]:[])]));
         if(id==='A100'&&stats.actions.filter(a=>a.kind==='pile').length>=3)exchange({food:1},{},{bonus:1});
         if(id==='A127'&&r===9&&p.family>this.housing(p)-1){p.family--;this.log(p,id,'临时住房到期，无法安置的家人离开');}
         if(id==='A141'&&'day'in this.g.occupied&&'grain'in this.g.occupied)gain({veg:1});
@@ -642,8 +647,11 @@
       if(id==='room'){this.ask(p,'房屋扩建','room',{batch:true});this.ask(p,'房屋扩建','stable',{count:4});}
       if(id==='pasture')this.ask(p,'围栏行动','pasture');
       if(id==='sow'){
-        if(this.has(p,'B026'))this.offer(p,'B026',[{label:'播种',next:[{type:'sow',count:15}]},{label:'用播种行动换建围栏',next:[{type:'pasture'}]}]);else this.ask(p,'播种行动','sow',{count:20});
-        this.ask(p,'烤面包行动','bake');
+        if(this.has(p,'B026'))this.offer(p,'B026',[
+          {label:'播种，然后烤面包',next:[{type:'sow',count:20},{type:'bake'}]},
+          {label:'播种，然后建围栏（替代烤面包）',next:[{type:'sow',count:20},{type:'pasture'}]},
+          {label:'建围栏，然后烤面包（替代播种）',next:[{type:'pasture'},{type:'bake'}]}
+        ],false);else{this.ask(p,'播种行动','sow',{count:20});this.ask(p,'烤面包行动','bake');}
       }
       if(id==='major')this.ask(p,'主要发展行动','develop');
       if(id==='renovate')this.ask(p,'翻修行动','renovate',{thenDevelop:true});
@@ -653,6 +661,8 @@
     }
     canCore(p,a) {
       if(a.ruleOp==='pasture')return this.options({type:'pasture',seat:this.seat(p),size:1,optional:false}).length>0;
+      if(a.ruleOp==='sow'&&this.has(p,'B026')&&this.options({type:'pasture',seat:this.seat(p),size:1}).length)return true;
+      if(a.ruleOp==='sow'&&this.has(p,'B067')&&this.stats(p).actions.some(a=>a.kind==='pile')&&(this.bakeRates(p).length||this.has(p,'A030')))return true;
       if(a.owner!==undefined&&a.ruleOp&&a.owner!==this.seat(p))return false;
       const types=({room:['room','stable'],pasture:['pasture'],sow:['sow','bake'],major:['develop'],renovate:['renovate'],renovateFence:['renovate'],growNoRoom:['grow'],plowSow:['plow','sow']})[a.ruleOp];
       return !types||types.some(type=>this.options({type,seat:this.seat(p),batch:type==='room',noRoom:a.ruleOp==='growNoRoom',card:'',optional:false}).length)||a.ruleOp==='sow'&&this.has(p,'A065')&&this.fields(p).some(c=>!c.crop);
@@ -675,7 +685,7 @@
       }
       return out;
     }
-    aiOption(t){if(!t)return null;const options=t.options;const chosen=options.find(o=>o.finishSelection)||options.find(o=>o.cells||o.cardId||o.major||o.oven||o.gain)||options.find(o=>o.selectCell!==undefined)||options.find(o=>o.value==='skip')||options[0];return chosen?.value;}
+    aiOption(t){if(!t)return null;if(t.type==='feeding'&&this.p(t.seat).food>=this.p(t.seat).family*2-this.stats(this.p(t.seat)).newborn)return 'skip';const options=t.options;const chosen=options.find(o=>o.finishSelection)||options.find(o=>o.cells||o.cardId||o.major||o.oven||o.gain)||options.find(o=>o.selectCell!==undefined)||options.find(o=>o.value==='skip')||options[0];return chosen?.value;}
     activate(seat,id) {if(this.queue.length||this.g.turn!==seat||this.g.phase!=='play')return '请在自己的回合使用卡牌。';const t=this.abilities(this.p(seat)).find(t=>t.card===id);if(!t)return '卡牌效果当前不可用。';this.add(t);this.drain();}
     canOccupy(p,a) {
       if(!(a.id in this.g.occupied)||a.repeatable)return true;
@@ -732,6 +742,7 @@
     collectFields(p) {
       const summary={grainFields:0,vegFields:0,grain:0,veg:0,lastGrain:0,lastVeg:0};
       for(const [i,c] of this.fields(p).entries())if(c.crop&&c.qty>0){const crop=c.crop,n=Math.min(c.qty,crop==='grain'&&this.has(p,'A112')&&this.state(p,'A112').extraFields?.includes(i)?2:1);p[crop]+=n;summary[crop]+=n;summary[crop+'Fields']++;c.qty-=n;if(!c.qty){summary[crop==='grain'?'lastGrain':'lastVeg']++;c.crop=c.underCrop||null;c.qty=c.underQty||0;delete c.underCrop;delete c.underQty;}}
+      if(summary.grain||summary.veg)this.event('gain',this.seat(p),{goods:{grain:summary.grain,veg:summary.veg},source:'收获田地'});
       this.event('fields',this.seat(p),summary);return summary.grain+summary.veg;
     }
     finalize() {for(const p of this.g.players)if(this.has(p,'B133'))this.once(p,'B133','final',()=>this.gain(p,'B133',{veg:Math.min(p.majors.length,p.played.improvements.length,p.played.occupations.length)}));this.drain();}

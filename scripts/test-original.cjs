@@ -38,3 +38,4 @@ p=reset();let turns=0;while(game.round<=14&&game.phase!=='harvest'&&turns++<150)
 
 console.log('PASS: auto occupation resource effects, optional choices, guest authority, costs, round income, passing immediate effects, schedules, harvest hooks, persisted choices and anytime conversions');
 `, sandbox);
+module.exports = { sandbox };
