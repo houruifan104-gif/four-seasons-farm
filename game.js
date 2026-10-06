@@ -191,23 +191,54 @@ function freshPlayer(name, ai = false, settings = DEFAULT_SETTINGS, index = 0) {
 function freshGame(settings = DEFAULT_SETTINGS) {
   settings = { players: Math.min(6, Math.max(2, Number(settings.players) || 2)), moor: !!settings.moor, cards: !!settings.cards, seasons: !!settings.seasons, aliens: !!settings.aliens, cardDeck: ['A', 'B', 'AB'].includes(settings.cardDeck) ? settings.cardDeck : 'simple' };
   const players = Array.from({ length: settings.players }, (_, i) => freshPlayer(i ? `电脑 ${i}` : '你的农场', i > 0, settings, i));
+  let draft=null;
   if (settings.cards && settings.cardDeck !== 'simple') {
     const occupations = shuffledCards('occupation', settings.cardDeck);
     const improvements = shuffledCards('minor', settings.cardDeck);
-    players.forEach(p => { p.hand = { occupations: occupations.splice(0, 7), improvements: improvements.splice(0, 7) }; });
+    players.forEach(p => { p.hand = { occupations: [], improvements: [] }; });
+    draft={pools:{occupations:occupations.slice(0,players.length*7),improvements:improvements.slice(0,players.length*7)},limits:{occupations:7,improvements:7},turn:0,picks:0,total:players.length*14};
   }
   players[0].food = 2;
   const game = {
-    version: 2, settings, round: 1, phase: 'play', startPlayer: 0, nextStart: 0, turn: 0,
+    version: 2, settings, round: 1, phase: draft?'draft':'play', draft, startPlayer: 0, nextStart: 0, turn: 0,
     usedCount: players.map(() => 0), workerQuota: players.map(() => 2), occupied: {}, specialUsed: {}, piles: {}, players,
     ruleRoundDeck: settings.cardDeck !== 'simple' ? originalRoundDeck() : undefined,
     logs: [], harvestSummary: null, majorSupply: MAJORS.map(c => c.id),
     alienDeck: settings.aliens ? ALIEN_CARDS.map(c => c.id).sort(() => Math.random() - .5) : [],
     alienActive: [], alienClaims: {}, alienEvents: [], alienGlobal: {}
   };
-  replenish(game);
-  addLog(game, '春耕开始：你先派出一名家庭成员。');
+  if(!draft)replenish(game);
+  addLog(game, draft?`开局选牌：职业和次要发展各公开 ${players.length*7} 张，按座位顺序每次选 1 张，每类上限 7 张。`:'春耕开始：你先派出一名家庭成员。');
   return game;
+}
+
+function pickDraftCard(seat,id) {
+  const d=game.draft;
+  if(game.phase!=='draft'||!d||d.turn!==seat||typeof id!=='string')return '还没轮到你选牌。';
+  const kind=['occupations','improvements'].find(k=>d.pools[k].includes(id));
+  if(!kind)return '这张牌已被选走或不在公共卡池。';
+  const p=game.players[seat];
+  if(p.hand[kind].length>=d.limits[kind])return `${kind==='occupations'?'职业':'次要发展'}已达到 ${d.limits[kind]} 张上限，请选另一类。`;
+  d.pools[kind]=d.pools[kind].filter(c=>c!==id);p.hand[kind].push(id);d.picks++;
+  d.lastPick={seat,id};addLog(game,`${p.name}选取${kind==='occupations'?'职业':'次要发展'}「${findHandCard(id).name}」。`);
+  if(game.players.every(p=>['occupations','improvements'].every(k=>p.hand[k].length===d.limits[k]))){
+    d.completed=true;d.turn=null;game.phase='play';game.turn=game.startPlayer;replenish(game);
+    addLog(game,'公共选牌完成：每人 7 张职业、7 张次要发展。第一轮开始。');
+    ui.mobileTab='actions';ui.mode=null;
+  }else{
+    for(let offset=1;offset<=game.players.length;offset++){const next=(seat+offset)%game.players.length;if(['occupations','improvements'].some(k=>game.players[next].hand[k].length<d.limits[k])){d.turn=next;game.turn=next;break;}}
+  }
+  save();render();scheduleAI();
+}
+function chooseDraftAI(seat) {
+  const d=game.draft,p=game.players[seat];
+  if(game.phase!=='draft'||!d||d.turn!==seat)return null;
+  const kinds=['occupations','improvements'].filter(k=>p.hand[k].length<d.limits[k]&&d.pools[k].length);
+  kinds.sort((a,b)=>p.hand[a].length-p.hand[b].length);
+  const cards=(d.pools[kinds[0]]||[]).map(findHandCard);
+  // Favor cards with simple conditions and low material costs for the computer's opening hand.
+  const value=c=>Number(c.requirement==='无')*5+(c.points||0)-Math.min(...c.costs.map(cost=>Object.values(cost).reduce((a,b)=>a+b,0)));
+  return cards.sort((a,b)=>value(b)-value(a))[0]?.id;
 }
 
 function loadGame() {
@@ -240,7 +271,7 @@ const room = new window.FarmRoom({
   command: (seat, command) => executeOnlineCommand(seat, command)
 });
 function meIndex() { return room.active && room.started ? room.seat : 0; }
-function canControl() { return !(automaticEnabled() && autoRules.queue.length) && (!room.active || room.started && !room.paused && !room.pending) && game.turn === meIndex(); }
+function canControl() { return game.phase==='play' && !(automaticEnabled() && autoRules.queue.length) && (!room.active || room.started && !room.paused && !room.pending) && game.turn === meIndex(); }
 function commitPlayerAction(action, option = {}) {
   if (room.active) { ui.mode = null; room.submit({ type: 'action', id: action.id, special: !!action.special, option }); }
   else if (automaticEnabled()) autoRules.begin(meIndex(),action,option);
@@ -684,6 +715,7 @@ function performAI() {
 }
 function scheduleAI() {
   clearTimeout(ui.aiTimer);
+  if(!room.active&&game.phase==='draft'&&!ui.dialog&&game.players[game.draft.turn].ai){ui.aiTimer=setTimeout(()=>{const seat=game.draft?.turn;if(game.phase==='draft'&&game.players[seat]?.ai){const id=chooseDraftAI(seat);if(id)pickDraftCard(seat,id);}},350);return;}
   if (!(automaticEnabled() && autoRules.queue.length) && !room.active && game.phase === 'play' && game.players[game.turn].ai && !ui.dialog) ui.aiTimer = setTimeout(performAI, game.players.length > 2 ? 250 : 550);
 }
 
@@ -925,7 +957,7 @@ function originalPlayOptions(p, type) {
   });
 }
 function originalDeckPicker() {
-  return `<label>手牌牌组<select data-setting="cardDeck">${[['simple','精简牌组 · 自动结算'],['AB','原版 A + B · 336 张 · 自动效果'],['A','原版 A · 168 张 · 自动效果'],['B','原版 B · 168 张 · 自动效果']].map(([v,n]) => `<option value="${v}" ${(ui.setup.cardDeck || 'simple') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><p class="deck-help">原版自动模式：随机各发 7 张，自动扣打牌费用、计固定分、传递牌；卡牌效果自动触发，可选效果由持牌玩家选择。棋盘仍用本作简化规则。</p>`;
+  return `<label>手牌牌组<select data-setting="cardDeck">${[['simple','精简牌组 · 自动结算'],['AB','原版 A + B · 336 张 · 自动效果'],['A','原版 A · 168 张 · 自动效果'],['B','原版 B · 168 张 · 自动效果']].map(([v,n]) => `<option value="${v}" ${(ui.setup.cardDeck || 'simple') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><p class="deck-help">原版开局：职业、次要发展各公开人数 × 7 张，轮流选 1 张，每人每类上限 7 张。选满后开始经营，自动扣打牌费用、计固定分、传递牌；卡牌效果自动触发，可选效果由持牌玩家选择。棋盘仍用本作简化规则。</p>`;
 }
 function cardDetailDialog() {
   const c = findHandCard(ui.detailCard);
@@ -993,7 +1025,7 @@ function catalogDialog() {
   return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 + 168 张次要发展。中文规则摘要、费用、条件、固定分均可离线查看。真人房间可选完整牌组；卡牌效果自动触发。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>${originalMode()?'住房共享 1 个宠物位置；牧场每格容量为 2，同一牧场内每座马厩使容量翻倍。':'每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。'}两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '当前原版牌组的费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>${originalMode()?'住房共享 1 个宠物位置；牧场每格容量为 2，同一牧场内每座马厩使容量翻倍。':'每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。'}两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '原版开局先从公共卡池轮流选牌：每次选 1 张，每人选满 7 张职业和 7 张次要发展后进入第一轮。打牌费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
 }
 function choiceOptions(p, id) {
   let options = [], title = '选择';
@@ -1033,7 +1065,22 @@ function endingDialog() {
 function newDialog() {
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">NEW GAME</p><h2>开启一座新农场</h2><p>选择要启用的扩展。开始后会替换当前进度。</p><div class="setup-grid"><label>玩家数（你 + 电脑）<select data-setting="players">${[2, 3, 4, 5, 6].map(n => `<option value="${n}" ${ui.setup.players === n ? 'selected' : ''}>${n} 人${n >= 5 ? ' · 扩展行动格' : ''}</option>`).join('')}</select></label><label class="check-row"><input type="checkbox" data-setting="moor" ${ui.setup.moor ? 'checked' : ''}> 沼泽农夫：森林、泥沼、燃料、马、特殊行动</label><label class="check-row"><input type="checkbox" data-setting="seasons" ${ui.setup.seasons ? 'checked' : ''}> 四季流转：季节行动与资源变化</label><label class="check-row"><input type="checkbox" data-setting="cards" ${ui.setup.cards ? 'checked' : ''}> 职业与次要发展</label>${originalDeckPicker()}<label class="check-row"><input type="checkbox" data-setting="aliens" ${ui.setup.aliens ? 'checked' : ''}> 外星人：24 张 X 卡，采石场触发</label></div><div class="modal-actions"><button class="ghost-btn" data-close="new">返回</button><button class="primary-btn" data-new="1">开始新游戏</button></div></div></div>`;
 }
+function draftPanel() {
+  const d=game.draft,me=game.players[meIndex()],owner=game.players[d.turn];
+  const available=!room.active||room.started&&!room.paused&&!room.pending;
+  const mine=d.turn===meIndex()&&available;
+  if(!['occupations','improvements'].includes(ui.draftKind))ui.draftKind='occupations';
+  const kind=ui.draftKind,label=kind==='occupations'?'职业':'次要发展',full=me.hand[kind].length>=7;
+  const progress=game.players.map((p,i)=>`<div class="draft-seat ${i===d.turn?'is-current':''}"><strong>${i+1}. ${escapeHTML(p.name)}${i===meIndex()?' · 你':''}</strong><span>职业 ${p.hand.occupations.length}/7 · 次发 ${p.hand.improvements.length}/7</span>${i===d.turn?'<b>正在选牌</b>':''}</div>`).join('');
+  const pool=d.pools[kind].map(id=>{const c=findHandCard(id);return `<article class="draft-card ${kind}"><div class="draft-card-top"><span>${id}</span><span>${c.points?`${c.points} 分`:label}</span></div><button class="card-title-button" data-card-detail="${id}">${escapeHTML(c.name)}</button><p>${escapeHTML(c.effect)}</p><small>${kind==='improvements'?`费用：${escapeHTML(c.costLabel)}<br>`:''}打出前置：${escapeHTML(c.requirement)}</small><button class="primary-btn" data-draft-pick="${id}" ${!mine||full?'disabled':''}>${full?'该类已满 7 张':mine?'选入手牌':'等待轮到你'}</button></article>`;}).join('');
+  const hands=game.players.map((p,i)=>`<details ${i===meIndex()?'open':''}><summary>${escapeHTML(p.name)} · 已选 ${p.hand.occupations.length+p.hand.improvements.length}/14</summary>${['occupations','improvements'].map(k=>`<div><b>${k==='occupations'?'职业':'次要发展'} ${p.hand[k].length}/7</b><p>${p.hand[k].map(id=>`<button class="card-title-button" data-card-detail="${id}">${escapeHTML(findHandCard(id).name)}</button>`).join('、')||'尚未选择'}</p></div>`).join('')}</details>`).join('');
+  return `<main class="shell draft-shell"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>开局 · 公共选牌</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-online="1">${room.active?'房间':'多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-new-confirm="1" ${room.active?'disabled':''}>新游戏</button></div></header>${room.active?onlineBar():''}<section class="draft-intro"><h2>${mine?'轮到你，选择 1 张牌':`等待${escapeHTML(owner.name)}选择 1 张牌`}</h2><p>职业、次要发展各公开 ${game.players.length} × 7 = ${game.players.length*7} 张。按 1 → ${game.players.length} → 1 的顺序轮流选择，每次任选一类拿 1 张，每人每类上限 7 张。</p><p>选牌免费，不执行卡牌效果；所有人选满后开始第一轮。</p><progress max="${d.total}" value="${d.picks}" aria-label="公共选牌进度"></progress><span>已选 ${d.picks} / ${d.total} 张</span>${d.lastPick?`<p class="draft-last" role="status">${escapeHTML(game.players[d.lastPick.seat].name)}刚选了「${escapeHTML(findHandCard(d.lastPick.id).name)}」</p>`:''}</section><section class="draft-seats" aria-label="选牌顺序">${progress}</section><div class="draft-layout"><section class="draft-pool"><nav class="draft-tabs" aria-label="公共卡池类别">${[['occupations','职业'],['improvements','次要发展']].map(([k,n])=>`<button class="ghost-btn ${k===kind?'active':''}" data-draft-kind="${k}" aria-pressed="${k===kind}">${n}池 · 剩 ${d.pools[k].length} 张<span>你已选 ${me.hand[k].length}/7</span></button>`).join('')}</nav><div class="draft-grid">${pool||'<p class="draft-empty">这一类的牌已全部选完。</p>'}</div></section><aside class="draft-hands"><h2>已选手牌</h2>${hands}</aside></div></main>`;
+}
 function render() {
+  if(game.phase==='draft'){
+    const overlay=(room.active&&!room.started)||ui.dialog==='online'?onlineDialog():ui.dialog==='rules'?rulesDialog():ui.dialog==='cardDetail'?cardDetailDialog():ui.dialog==='catalog'?catalogDialog():ui.dialog==='new'?newDialog():'';
+    app.innerHTML=draftPanel()+overlay+(ui.toast?`<div class="notice" role="status">${escapeHTML(ui.toast)}</div>`:'');return;
+  }
   const me = game.players[meIndex()];
   if (ui.view >= game.players.length) ui.view = meIndex();
   const currentTurn = game.phase === 'play' ? canControl() ? me.sick ? '病人需先前往医务所' : '轮到你派工' : `${escapeHTML(game.players[game.turn].name)}${room.active ? '派工中' : '正在思考…'}` : game.phase === 'harvest' ? '收获季' : '游戏结束';
@@ -1120,6 +1167,8 @@ app.addEventListener('click', event => {
   const button = event.target.closest('button'); if (!button) return;
   const d = button.dataset;
   if (handleOnlineClick(d)) return;
+  if(d.draftKind&&['occupations','improvements'].includes(d.draftKind)){ui.draftKind=d.draftKind;render();return;}
+  if(d.draftPick){if(room.active)room.submit({type:'draftPick',id:d.draftPick});else{const error=pickDraftCard(meIndex(),d.draftPick);if(error)toast(error);}return;}
   if (d.cardDetail) { ui.cardReturn = ui.dialog; ui.detailCard = d.cardDetail; ui.dialog = 'cardDetail'; render(); return; }
   if (d.cardBack) { ui.dialog = ui.cardReturn; render(); return; }
   if(d.ruleChoice) { if(room.active)room.submit({type:'ruleChoice',value:d.ruleChoice});else autoRules.choose(meIndex(),d.ruleChoice);return; }
@@ -1167,6 +1216,8 @@ document.addEventListener('keydown', event => {
 });
 function executeOnlineCommand(seat, command) {
   if (!room.host || !room.started || room.paused || !command || typeof command !== 'object') return '房间尚未就绪。';
+  if(command.type==='draftPick')return pickDraftCard(seat,command.id);
+  if(game.phase==='draft')return '请先完成公共选牌，再开始第一轮。';
   if(command.type==='ruleChoice')return autoRules.choose(seat,command.value);
   if(command.type==='ruleAbility')return autoRules.activate(seat,command.id);
   if(automaticEnabled() && autoRules.queue.length)return '等待卡牌效果结算。';
@@ -1226,7 +1277,7 @@ function handleOnlineClick(d) {
     if (!room.host || room.started || room.status !== 'lobby' || room.members.length < 2 || room.members.some(m => !m.online)) return true;
     game = freshGame({ ...room.settings, players: room.members.length });
     game.players.forEach((p, i) => { p.name = room.members[i].name; p.ai = false; });
-    game.logs = []; addLog(game, `联机对局开始，${game.players[0].name}先派工。`);
+    game.logs = []; addLog(game, `联机对局开始，${game.players[0].name}${game.phase==='draft'?'先选牌':'先派工'}。`);
     ui.dialog = null; ui.view = 0; ui.mode = null; ui.mobileTab = 'actions'; room.start(game); return true;
   }
   if (d.roomLeave) { room.close(); game = loadGame(); ui.dialog = null; ui.mode = null; ui.view = 0; render(); scheduleAI(); return true; }

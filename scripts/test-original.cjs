@@ -12,11 +12,12 @@ sandbox.assert = assert; sandbox.app = app;
 vm.runInContext(`
 room.active=true;room.host=true;room.started=true;room.status='playing';room.seat=0;
 room.members=[{name:'甲',online:true},{name:'乙',online:true}];
-function reset(){game=freshGame({...DEFAULT_SETTINGS,players:2,moor:false,cardDeck:'AB'});game.players.forEach(p=>p.ai=false);ui.dialog=null;ui.mode=null;return game.players[0];}
+function readyGame(settings){const g=freshGame(settings);if(g.phase==='draft'){for(const p of g.players)for(const k of ['occupations','improvements'])p.hand[k]=g.draft.pools[k].splice(0,7);g.draft.completed=true;g.draft.turn=null;g.draft.picks=g.draft.total;g.phase='play';replenish(g);}return g;}
+function reset(){game=readyGame({...DEFAULT_SETTINGS,players:2,moor:false,cardDeck:'AB'});game.players.forEach(p=>p.ai=false);ui.dialog=null;ui.mode=null;return game.players[0];}
 function finishChoices(prefer){let limit=0;while(autoRules.queue.length&&limit++<100){autoRules.drain();const c=autoRules.choice();if(!c)continue;assert.equal(autoRules.choose(c.seat,prefer?.(c)||c.options.find(o=>o.finishFeeding)?.value||c.options.find(o=>o.value==='skip')?.value||c.options[0].value),undefined);}assert.ok(limit<100,'effects must terminate');}
 function doAction(seat,id,option={}){const error=executeOnlineCommand(seat,{type:'action',id,option});assert.equal(error,undefined,error);}
 assert.equal(ORIGINAL_CARD_CATALOG.length,336);
-for(const deck of ['A','B','AB']){const g=freshGame({...DEFAULT_SETTINGS,players:6,cardDeck:deck});const cards=g.players.flatMap(p=>p.hand.occupations.concat(p.hand.improvements));assert.equal(cards.length,84);assert.equal(new Set(cards).size,84);}
+for(const deck of ['A','B','AB']){const g=readyGame({...DEFAULT_SETTINGS,players:6,cardDeck:deck});const cards=g.players.flatMap(p=>p.hand.occupations.concat(p.hand.improvements));assert.equal(cards.length,84);assert.equal(new Set(cards).size,84);}
 let p=reset();render();assert.ok(app.innerHTML.includes('data-action=\"wood\"'),'cloned original actions remain visible');p.hand.occupations=['A116'];doAction(0,'lessons',{card:'A116'});assert.ok(p.played.occupations.includes('A116'));assert.equal(game.turn,1);assert.equal(autoRules.queue.length,0,'no host confirmation');doAction(1,'day');doAction(0,'wood');assert.equal(p.wood,4,'Wood Cutter adds one on real action');assert.equal(game.turn,1);
 p=reset();p.played.occupations=['A105'];doAction(0,'plow',{cell:2});assert.equal(p.clay,1);assert.equal(p.food,3,'Barrow Pusher gives clay and food after plowing');
 p=reset();p.played.occupations=['B142'];doAction(0,'grain');assert.equal(p.grain,1);assert.equal(p.veg,1,'Greengrocer gives vegetable');
