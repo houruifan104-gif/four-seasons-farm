@@ -193,8 +193,8 @@ function freshGame(settings = DEFAULT_SETTINGS) {
   const players = Array.from({ length: settings.players }, (_, i) => freshPlayer(i ? `电脑 ${i}` : '你的农场', i > 0, settings, i));
   let draft=null;
   if (settings.cards && settings.cardDeck !== 'simple') {
-    const occupations = shuffledCards('occupation', settings.cardDeck);
-    const improvements = shuffledCards('minor', settings.cardDeck);
+    const occupations = shuffledCards('occupation', settings.cardDeck, players.length);
+    const improvements = shuffledCards('minor', settings.cardDeck, players.length);
     players.forEach(p => { p.hand = { occupations: [], improvements: [] }; });
     draft={pools:{occupations:occupations.slice(0,players.length*7),improvements:improvements.slice(0,players.length*7)},limits:{occupations:7,improvements:7},turn:0,picks:0,total:players.length*14};
   }
@@ -217,6 +217,7 @@ function pickDraftCard(seat,id) {
   if(game.phase!=='draft'||!d||d.turn!==seat||typeof id!=='string')return '还没轮到你选牌。';
   const kind=['occupations','improvements'].find(k=>d.pools[k].includes(id));
   if(!kind)return '这张牌已被选走或不在公共卡池。';
+  if(!cardAllowedForPlayers(findHandCard(id),game.players.length))return '这张职业卡不适用于当前人数。';
   const p=game.players[seat];
   if(p.hand[kind].length>=d.limits[kind])return `${kind==='occupations'?'职业':'次要发展'}已达到 ${d.limits[kind]} 张上限，请选另一类。`;
   d.pools[kind]=d.pools[kind].filter(c=>c!==id);p.hand[kind].push(id);d.picks++;
@@ -257,6 +258,7 @@ function loadGame() {
       saved.majorSupply ||= MAJORS.map(c => c.id).filter(id => !saved.players.some(p => p.majors?.includes(id)));
       saved.alienDeck ||= []; saved.alienActive ||= []; saved.alienClaims ||= {}; saved.alienEvents ||= []; saved.alienGlobal ||= {};
       saved.players.forEach(p => { p.stables ||= { sheep: 0, boar: 0, cattle: 0, horse: 0 }; p.majors ||= []; p.majorBuiltRound ||= {}; p.alienArtifacts ||= []; p.alienPoints ||= 0; p.woozles ||= 0; p.woozlePenalty ||= 0; p.candyActions ||= []; p.alienBonusUntil ||= 0; p.frozenUntil ||= 0; p.thawRound ||= 0; });
+      if(repairDraftPlayerLimits(saved)){try{localStorage.setItem(SAVE_KEY,JSON.stringify(saved));}catch(_){}}
       return saved;
     }
   } catch (_) { /* private browsing can block storage */ }
@@ -267,7 +269,7 @@ autoRules = initAutomaticRules();
 if (game.cardReview) { game.cardReview = false; if (Number.isInteger(game.pendingCardAdvance)) { autoRules.add({type:'continue',kind:'advance',seat:game.pendingCardAdvance}); delete game.pendingCardAdvance; } }
 const room = new window.FarmRoom({
   change: () => { clearTimeout(ui.aiTimer); if (room.active && room.status === 'disconnected') ui.dialog = 'online'; render(); },
-  state: (snapshot, seat) => { game = snapshot; ui.view = seat; ui.mode = null; ui.dialog = null; ui.mobileTab = 'actions'; },
+  state: (snapshot, seat) => { game = snapshot; if(room.host&&repairDraftPlayerLimits(game))room.publish(game); ui.view = seat; ui.mode = null; ui.dialog = null; ui.mobileTab = 'actions'; },
   command: (seat, command) => executeOnlineCommand(seat, command)
 });
 function meIndex() { return room.active && room.started ? room.seat : 0; }
@@ -892,7 +894,7 @@ function cardFace(c, kind, {link=false, english=false}={}) {
   const title = link ? `<button class="card-title-button" data-card-detail="${c.id}">${escapeHTML(c.name)}</button>` : escapeHTML(c.name);
   const cost = kind==='occupation' ? '按学习行动支付' : cardCost(c);
   const requirement = c.requirement || '无';
-  return `<span class="fc-top"><span class="fc-type">${type}</span><span class="fc-id">${escapeHTML(c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span><span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span><span class="fc-rules"><span class="fc-label">卡牌效果</span><span class="fc-effect">${escapeHTML(c.effect)}</span></span><span class="fc-bottom"><span class="fc-requirement">${requirement==='无'?'无前置条件':`前置 · ${escapeHTML(requirement)}`}</span>${c.passing?'<span class="fc-passing">传递牌 ↗</span>':''}</span>`;
+  return `<span class="fc-top"><span class="fc-type">${type}${kind==='occupation'&&c.minPlayers?`<span class="fc-players" title="至少 ${c.minPlayers} 人可用">${c.minPlayers}+ 人</span>`:''}</span><span class="fc-id">${escapeHTML(c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span><span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span><span class="fc-rules"><span class="fc-label">卡牌效果</span><span class="fc-effect">${escapeHTML(c.effect)}</span></span><span class="fc-bottom"><span class="fc-requirement">${requirement==='无'?'无前置条件':`前置 · ${escapeHTML(requirement)}`}</span>${c.passing?'<span class="fc-passing">传递牌 ↗</span>':''}</span>`;
 }
 
 function handPanel() {
@@ -936,8 +938,24 @@ function alienPanel() {
   return `<section class="panel cards-panel alien-panel"><div class="panel-head"><div><p class="eyebrow">X DECK</p><h2>外星人扩展</h2></div><span class="head-note">牌堆剩余 ${game.alienDeck.length} 张</span></div>${status ? `<div class="alien-status">${status}</div>` : ''}<div class="hand-grid">${cards || '<div class="played-cards">第 5 轮起，使用采石场翻开外星卡。</div>'}</div></section>`;
 }
 function findHandCard(id) { return ORIGINAL_CARD_CATALOG.find(c => c.id === id) || OCCUPATIONS.concat(IMPROVEMENTS).find(c => c.id === id); }
-function shuffledCards(kind, deck) {
-  const cards = ORIGINAL_CARD_CATALOG.filter(c => c.kind === kind && (deck === 'AB' || c.id.startsWith(deck))).map(c => c.id);
+function cardAllowedForPlayers(card, playerCount) {
+  return !!card && (card.kind !== 'occupation' || Number.isInteger(card.minPlayers) && card.minPlayers <= playerCount);
+}
+function repairDraftPlayerLimits(g) {
+  if(g.phase!=='draft'||!g.draft||!['A','B','AB'].includes(g.settings.cardDeck))return false;
+  const pool=g.draft.pools.occupations,n=g.players.length;
+  const valid=id=>cardAllowedForPlayers(findHandCard(id),n);
+  if(pool.every(valid))return false;
+  const used=new Set([...pool,...g.players.flatMap(p=>p.hand.occupations.concat(p.played.occupations))]);
+  const replacements=shuffledCards('occupation',g.settings.cardDeck,n).filter(id=>!used.has(id));
+  const invalid=pool.filter(id=>!valid(id)).length;
+  if(replacements.length<invalid)return false;
+  g.draft.pools.occupations=pool.map(id=>valid(id)?id:replacements.shift());
+  addLog(g,`已按 ${n} 人局替换公共池中 ${invalid} 张不适用的职业牌，已选手牌保留。`);
+  return true;
+}
+function shuffledCards(kind, deck, playerCount) {
+  const cards = ORIGINAL_CARD_CATALOG.filter(c => c.kind === kind && (deck === 'AB' || c.id.startsWith(deck)) && cardAllowedForPlayers(c,playerCount)).map(c => c.id);
   for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
   return cards;
 }
@@ -1105,7 +1123,7 @@ function draftPanel() {
   const progress=game.players.map((p,i)=>`<div class="draft-seat ${i===d.turn?'is-current':''}"><strong>${i+1}. ${escapeHTML(p.name)}${i===meIndex()?' · 你':''}</strong><span>职业 ${p.hand.occupations.length}/7 · 次发 ${p.hand.improvements.length}/7</span>${i===d.turn?'<b>正在选牌</b>':''}</div>`).join('');
   const pool=d.pools[kind].map(id=>{const c=findHandCard(id),type=kind==='occupations'?'occupation':'minor';return `<article class="draft-card farm-card fc-${type}">${cardFace(c,type,{link:true})}<button class="primary-btn fc-pick" data-draft-pick="${id}" ${!mine||full?'disabled':''}>${full?'该类已满 7 张':mine?'选入手牌':'等待轮到你'}</button></article>`;}).join('');
   const hands=game.players.map((p,i)=>`<details ${i===meIndex()?'open':''}><summary>${escapeHTML(p.name)} · 已选 ${p.hand.occupations.length+p.hand.improvements.length}/14</summary>${['occupations','improvements'].map(k=>`<div><b>${k==='occupations'?'职业':'次要发展'} ${p.hand[k].length}/7</b><p>${p.hand[k].map(id=>`<button class="card-title-button" data-card-detail="${id}">${escapeHTML(findHandCard(id).name)}</button>`).join('、')||'尚未选择'}</p></div>`).join('')}</details>`).join('');
-  return `<main class="shell draft-shell"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>开局 · 公共选牌</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active?'房间':'多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-new-confirm="1" ${room.active?'disabled':''}>新游戏</button></div></header>${room.active?onlineBar():''}<section class="draft-intro"><h2>${mine?'轮到你，选择 1 张牌':`等待${escapeHTML(owner.name)}选择 1 张牌`}</h2><p>职业、次要发展各公开 ${game.players.length} × 7 = ${game.players.length*7} 张。按 1 → ${game.players.length} → 1 的顺序轮流选择，每次任选一类拿 1 张，每人每类上限 7 张。</p><p>选牌免费，不执行卡牌效果；所有人选满后开始第一轮。</p><progress max="${d.total}" value="${d.picks}" aria-label="公共选牌进度"></progress><span>已选 ${d.picks} / ${d.total} 张</span>${d.lastPick?`<p class="draft-last" role="status">${escapeHTML(game.players[d.lastPick.seat].name)}刚选了「${escapeHTML(findHandCard(d.lastPick.id).name)}」</p>`:''}</section><section class="draft-seats" aria-label="选牌顺序">${progress}</section><div class="draft-layout"><section class="draft-pool"><nav class="draft-tabs" aria-label="公共卡池类别">${[['occupations','职业'],['improvements','次要发展']].map(([k,n])=>`<button class="ghost-btn ${k===kind?'active':''}" data-draft-kind="${k}" aria-pressed="${k===kind}">${n}池 · 剩 ${d.pools[k].length} 张<span>你已选 ${me.hand[k].length}/7</span></button>`).join('')}</nav><div class="draft-grid">${pool||'<p class="draft-empty">这一类的牌已全部选完。</p>'}</div></section><aside class="draft-hands"><h2>已选手牌</h2>${hands}</aside></div></main>`;
+  return `<main class="shell draft-shell"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>开局 · 公共选牌</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active?'房间':'多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-new-confirm="1" ${room.active?'disabled':''}>新游戏</button></div></header>${room.active?onlineBar():''}<section class="draft-intro"><h2>${mine?'轮到你，选择 1 张牌':`等待${escapeHTML(owner.name)}选择 1 张牌`}</h2><p>职业、次要发展各公开 ${game.players.length} × 7 = ${game.players.length*7} 张。按 1 → ${game.players.length} → 1 的顺序轮流选择，每次任选一类拿 1 张，每人每类上限 7 张。</p><p>职业池已按当前 ${game.players.length} 人筛选。选牌免费，不执行卡牌效果；所有人选满后开始第一轮。</p><progress max="${d.total}" value="${d.picks}" aria-label="公共选牌进度"></progress><span>已选 ${d.picks} / ${d.total} 张</span>${d.lastPick?`<p class="draft-last" role="status">${escapeHTML(game.players[d.lastPick.seat].name)}刚选了「${escapeHTML(findHandCard(d.lastPick.id).name)}」</p>`:''}</section><section class="draft-seats" aria-label="选牌顺序">${progress}</section><div class="draft-layout"><section class="draft-pool"><nav class="draft-tabs" aria-label="公共卡池类别">${[['occupations','职业'],['improvements','次要发展']].map(([k,n])=>`<button class="ghost-btn ${k===kind?'active':''}" data-draft-kind="${k}" aria-pressed="${k===kind}">${n}池 · 剩 ${d.pools[k].length} 张<span>你已选 ${me.hand[k].length}/7</span></button>`).join('')}</nav><div class="draft-grid">${pool||'<p class="draft-empty">这一类的牌已全部选完。</p>'}</div></section><aside class="draft-hands"><h2>已选手牌</h2>${hands}</aside></div></main>`;
 }
 function render() {
   if(game.phase==='draft'){
