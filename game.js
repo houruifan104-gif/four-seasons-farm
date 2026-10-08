@@ -98,17 +98,19 @@ const IMPROVEMENTS = [
   { id: 'fenceKit', name: '围栏工具', effect: '围建牧场少付 1 木材', cost: { wood: 1, reed: 1 }, points: 1 }
 ];
 const MAJORS = [
-  { id: 'fireplace2', name: '壁炉（2 黏土）', cost: { clay: 2 }, points: 1, effect: '可烹饪牲畜；烤面包每谷种 2 食物', cook: { sheep: 2, boar: 2, cattle: 3 }, bake: 2 },
-  { id: 'fireplace3', name: '壁炉（3 黏土）', cost: { clay: 3 }, points: 1, effect: '可烹饪牲畜；烤面包每谷种 2 食物', cook: { sheep: 2, boar: 2, cattle: 3 }, bake: 2 },
-  { id: 'hearth4', name: '烹饪灶台（4 黏土）', cost: { clay: 4 }, points: 1, effect: '牲畜烹饪收益提高；烤面包每谷种 3 食物', cook: { sheep: 2, boar: 3, cattle: 4 }, bake: 3 },
-  { id: 'hearth5', name: '烹饪灶台（5 黏土）', cost: { clay: 5 }, points: 1, effect: '牲畜烹饪收益提高；烤面包每谷种 3 食物', cook: { sheep: 2, boar: 3, cattle: 4 }, bake: 3 },
-  { id: 'wellMajor', name: '水井', cost: { stone: 3, wood: 1 }, points: 4, effect: '之后最多 5 轮，每轮获得 1 食物' },
-  { id: 'clayOven', name: '黏土烤炉', cost: { clay: 3, stone: 1 }, points: 2, effect: '烤面包时，1 谷种可换 5 食物', bake: 5 },
-  { id: 'stoneOven', name: '石头烤炉', cost: { clay: 1, stone: 3 }, points: 3, effect: '烤面包时，至多 2 谷种各换 4 食物', bake: 4 },
-  { id: 'joinery', name: '木工坊', cost: { stone: 2, wood: 2 }, points: 2, effect: '收获喂养时可用 1 木材换 2 食物；余材加分', craft: 'wood' },
-  { id: 'pottery', name: '陶器坊', cost: { stone: 2, clay: 2 }, points: 2, effect: '收获喂养时可用 1 黏土换 2 食物；余材加分', craft: 'clay' },
-  { id: 'basketmaker', name: '编篮坊', cost: { stone: 2, reed: 2 }, points: 2, effect: '收获喂养时可用 1 芦苇换 3 食物；余材加分', craft: 'reed' }
+  { id: 'fireplace2', name: '壁炉', cost: { clay: 2 }, points: 1, cook: { sheep: 2, boar: 2, cattle: 3 }, vegetableFood: 2, bake: 2 },
+  { id: 'fireplace3', name: '壁炉', cost: { clay: 3 }, points: 1, cook: { sheep: 2, boar: 2, cattle: 3 }, vegetableFood: 2, bake: 2 },
+  { id: 'hearth4', name: '烹饪灶台', cost: { clay: 4 }, points: 1, cook: { sheep: 2, boar: 3, cattle: 4 }, vegetableFood: 3, bake: 3, returnFireplace: true },
+  { id: 'hearth5', name: '烹饪灶台', cost: { clay: 5 }, points: 1, cook: { sheep: 2, boar: 3, cattle: 4 }, vegetableFood: 3, bake: 3, returnFireplace: true },
+  { id: 'wellMajor', name: '水井', cost: { stone: 3, wood: 1 }, points: 4 },
+  { id: 'clayOven', name: '黏土烤炉', cost: { clay: 3, stone: 1 }, points: 2, bake: 5, bakeLimit: 1 },
+  { id: 'stoneOven', name: '石头烤炉', cost: { clay: 1, stone: 3 }, points: 3, bake: 4, bakeLimit: 2 },
+  { id: 'joinery', name: '木工坊', cost: { stone: 2, wood: 2 }, points: 2, craft: 'wood', craftPoints: [3,5,7] },
+  { id: 'pottery', name: '陶器坊', cost: { stone: 2, clay: 2 }, points: 2, craft: 'clay', craftPoints: [3,5,7] },
+  { id: 'basketmaker', name: '编篮坊', cost: { stone: 2, reed: 2 }, points: 2, craft: 'reed', craftPoints: [2,4,5] }
 ];
+MAJORS.forEach((card,index)=>{card.displayId=String(index+1);card.effect=majorEffectText(card);});
+
 const ALIEN_CARDS = [
   ['X01', '地外肥料', '行动'], ['X02', '自制太空船', '行动'], ['X03', '变形装置', '行动'],
   ['X04', '木星商人', '商人'], ['X05', '火星商人', '商人'], ['X06', '冥王星商人', '商人'],
@@ -889,12 +891,37 @@ function cardArtwork(card, kind) {
   };
   return `<svg class="fc-art-svg" viewBox="0 0 280 120" aria-hidden="true" focusable="false"><circle cx="206" cy="28" r="15" fill="#dfc489" opacity=".65"/><path d="M0 91Q49 56 100 85T210 80T280 84V120H0Z" fill="#a8b18c" opacity=".3"/><path d="M0 107Q62 85 119 104T280 93V120H0Z" fill="#97a17b" opacity=".25"/><g fill="none" stroke="#66583e" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${motifs[theme]}<path d="M36 105L39 93M38 99L31 95M241 108L243 96M243 101L249 97" opacity=".4"/></g></svg>`;
 }
+// Card rule data is shared by the compact text and the visible conversion rows.
+function majorRuleGroups(card) {
+  const rows=[];
+  if(card.cook){
+    rows.push({title:'随时',exchanges:[['蔬菜',card.vegetableFood],['羊',card.cook.sheep],['野猪',card.cook.boar],['牛',card.cook.cattle]].map(([resource,food])=>({resource,food}))});
+  }
+  if(card.bake){
+    rows.push({title:'烤面包行动',exchanges:[{resource:'谷物',food:card.bake}],text:card.bakeLimit?`每次最多转换 ${card.bakeLimit} 个谷物。`:''});
+    if(card.bakeLimit)rows.push({text:'建造此卡时，立即获得一次烤面包行动。'});
+  }
+  if(card.craft){
+    const resource={wood:'木材',clay:'黏土',reed:'芦苇'}[card.craft];
+    rows.push({title:'收获时',exchanges:[{resource,food:card.craft==='reed'?3:2}],text:'每次收获最多转换 1 个。'});
+    rows.push({title:'游戏结束计分',text:`库存至少有 ${card.craftPoints.join('／')} 个${resource}时，分别获得 1／2／3 奖励分。`});
+  }
+  if(card.id==='wellMajor')rows.push({text:'在接下来的 5 个轮次格上各放置 1 食物。这些轮次开始时，领取相应的食物。'});
+  return rows;
+}
+function majorEffectText(card) {
+  return majorRuleGroups(card).map(group=>`${group.title?`${group.title}：`:''}${(group.exchanges||[]).map(row=>`1 ${row.resource} → ${row.food} 食物`).join('；')}${group.exchanges?'。':''}${group.text||''}`).join('\n');
+}
+function majorRulesMarkup(card) {
+  return `<span class="major-rules">${majorRuleGroups(card).map(group=>`<span class="major-rule-group">${group.title?`<span class="major-rule-title">${escapeHTML(group.title)}</span>`:''}${group.exchanges?`<span class="major-exchanges">${group.exchanges.map(row=>`<span class="major-exchange"><span>1 ${escapeHTML(row.resource)}</span><span aria-hidden="true">→</span><strong>${row.food} 食物</strong></span>`).join('')}</span>`:''}${group.text?`<span class="major-rule-text">${escapeHTML(group.text)}</span>`:''}</span>`).join('')}</span>`;
+}
+
 function cardFace(c, kind, {link=false, english=false}={}) {
   const type = {occupation:'职业',minor:'次要发展',major:'主要发展'}[kind];
   const title = link ? `<button class="card-title-button" data-card-detail="${c.id}">${escapeHTML(c.name)}</button>` : escapeHTML(c.name);
-  const cost = kind==='occupation' ? '按学习行动支付' : cardCost(c);
+  const cost = cardCost(c)+(c.returnFireplace?'，或归还 1 张壁炉':'');
   const requirement = c.requirement || '无';
-  return `<span class="fc-top"><span class="fc-type">${type}${kind==='occupation'&&c.minPlayers?`<span class="fc-players" title="至少 ${c.minPlayers} 人可用">${c.minPlayers}+ 人</span>`:''}</span><span class="fc-id">${escapeHTML(c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span><span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span><span class="fc-rules"><span class="fc-label">卡牌效果</span><span class="fc-effect">${escapeHTML(c.effect)}</span></span><span class="fc-bottom"><span class="fc-requirement">${requirement==='无'?'无前置条件':`前置 · ${escapeHTML(requirement)}`}</span>${c.passing?'<span class="fc-passing">传递牌 ↗</span>':''}</span>`;
+  return `<span class="fc-top"><span class="fc-type">${type}${kind==='occupation'&&c.minPlayers?`<span class="fc-players" title="至少 ${c.minPlayers} 人可用">${c.minPlayers}+ 人</span>`:''}</span><span class="fc-id">${escapeHTML(c.displayId||c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span>${kind==='occupation'?'':`<span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span>`}<span class="fc-rules">${kind==='major'?majorRulesMarkup(c):`<span class="fc-effect">${escapeHTML(c.effect)}</span>`}</span>${requirement!=='无'||c.passing?`<span class="fc-bottom">${requirement!=='无'?`<span class="fc-requirement">前置 · ${escapeHTML(requirement)}</span>`:''}${c.passing?'<span class="fc-passing-rule">打出后，将此牌传给左手边的玩家，加入其手牌。</span>':''}</span>`:''}`;
 }
 
 function handPanel() {
@@ -924,7 +951,7 @@ function activeMinorPanel(p) {
   }).join('')}</div>`;
 }
 function majorPanel() {
-  const cards = MAJORS.map(card => `<article class="hand-card farm-card fc-major ${game.majorSupply.includes(card.id) ? '' : 'major-taken'}">${cardFace(card,'major')}${game.majorSupply.includes(card.id)?'':'<span class="fc-owned">已建造</span>'}</article>`).join('');
+  const cards = MAJORS.map(card => `<article class="hand-card farm-card fc-major ${game.majorSupply.includes(card.id) ? '' : 'major-taken'}">${cardFace(card,'major',{link:true})}${game.majorSupply.includes(card.id)?'':'<span class="fc-owned">已建造</span>'}</article>`).join('');
   return `<section class="panel cards-panel major-panel"><div class="panel-head"><div><p class="eyebrow">MAJOR IMPROVEMENTS</p><h2>主要发展</h2></div><span class="head-note">公共牌，每张只能建造一次</span></div><div class="hand-grid">${cards}</div></section>`;
 }
 function alienPanel() {
@@ -1009,9 +1036,10 @@ function originalDeckPicker() {
   return `<label>手牌牌组<select data-setting="cardDeck">${[['simple','精简牌组 · 自动结算'],['AB','原版 A + B · 336 张 · 自动效果'],['A','原版 A · 168 张 · 自动效果'],['B','原版 B · 168 张 · 自动效果']].map(([v,n]) => `<option value="${v}" ${(ui.setup.cardDeck || 'simple') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label><p class="deck-help">原版开局：职业、次要发展各公开人数 × 7 张，轮流选 1 张，每人每类上限 7 张。选满后开始经营，自动扣打牌费用、计固定分、传递牌；卡牌效果自动触发，可选效果由持牌玩家选择。棋盘仍用本作简化规则。</p>`;
 }
 function cardDetailDialog() {
-  const c = findHandCard(ui.detailCard);
+  const c = findHandCard(ui.detailCard)||MAJORS.find(card=>card.id===ui.detailCard);
   if (!c) return '';
-  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><article class="detail-face farm-card fc-${c.kind}">${cardFace(c,c.kind,{english:true})}</article>${c.passing?'<p class="card-detail-note">传递牌：使用后传入下一位玩家手牌，不留在自己面前。</p>':''}<p class="card-detail-note">${c.id[0]} 牌组 · 固定 ${c.points||0} 分。中文为规则摘要与自译名称，插图为主题装饰。</p><a href="${escapeHTML(c.url)}" target="_blank" rel="noopener noreferrer">查阅来源 ↗</a><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
+  const kind=c.kind||(MAJORS.includes(c)?'major':OCCUPATIONS.includes(c)?'occupation':'minor');
+  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><article class="detail-face farm-card fc-${kind}">${cardFace(c,kind)}</article><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
 }
 
 function automaticEnabled() { return !!autoRules?.active; }
@@ -1019,7 +1047,7 @@ function originalCanOccupy(p, a) { return automaticEnabled() ? autoRules.canOccu
 function automaticChoiceDialog() {
   const t=autoRules.choice();if(!t)return '';
   const card=findHandCard(t.card),owner=game.players[t.seat],mine=t.seat===meIndex();
-  return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(t.type==='feeding'?'喂养家人':card?.name||t.title||'选择附加行动')}</h2>${t.type==='feeding'?`<p>本次需要 <strong>${familyFoodNeed(owner)}</strong> 食物，库存 <strong>${owner.food}</strong> 食物。${owner.food<familyFoodNeed(owner)?`还差 ${familyFoodNeed(owner)-owner.food} 食物，可选择下方兑换。`:'食物已经足够，可以完成喂养。'}</p><p>兑换由你决定，系统不会自动吃掉谷物、蔬菜或牲畜。喂养后才繁殖，每种最多增加 1 只。</p>`:''}${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
+  return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(t.type==='feeding'?'喂养家人':card?.name||t.title||'选择附加行动')}</h2>${t.type==='feeding'?`<p>本次需要 <strong>${familyFoodNeed(owner)}</strong> 食物，库存 <strong>${owner.food}</strong> 食物。${owner.food<familyFoodNeed(owner)?`还差 ${familyFoodNeed(owner)-owner.food} 食物，可选择下方兑换。`:'食物已经足够，可以完成喂养。'}</p><p>兑换由你决定，系统不会自动吃掉谷物、蔬菜或牲畜。喂养后才繁殖，每种最多增加 1 只。</p>`:''}${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}${o.major?majorRulesMarkup(MAJORS.find(c=>c.id===o.major)):''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
 }
 function automaticAbilityPanel(p) {
   if(!automaticEnabled())return '';
@@ -1071,7 +1099,7 @@ function catalogDialog() {
   state.page = Math.min(state.page, pages - 1);
   const visible = filtered.slice(state.page * 36, (state.page + 1) * 36);
   const items = visible.map(c => `<button class="catalog-card farm-card fc-${c.kind}" data-card-detail="${c.id}" aria-label="查看${escapeHTML(c.name)}详情">${cardFace(c,c.kind)}</button>`).join('');
-  return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 + 168 张次要发展。中文规则摘要、费用、条件、固定分均可离线查看。真人房间可选完整牌组；卡牌效果自动触发。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 · 168 张次要发展。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>${originalMode()?'住房共享 1 个宠物位置；牧场每格容量为 2，同一牧场内每座马厩使容量翻倍。':'每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。'}两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '原版开局先从公共卡池轮流选牌：每次选 1 张，每人选满 7 张职业和 7 张次要发展后进入第一轮。打牌费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
@@ -1083,9 +1111,9 @@ function choiceOptions(p, id) {
     title = id === 'pasture' ? '选择牧场牲畜' : '选择牲畜';
     options = [['sheep', '🐑 羊', true, id === 'animalMarket' ? '另得 1 食物' : ''], ['boar', '🐗 猪', true, ''], ['cattle', '🐄 牛', id !== 'animalMarket' || p.food > 0, id === 'animalMarket' ? '需付 1 食物' : '']];
     if (game.settings.moor && id === 'pasture') options.push(['horse', '🐎 马', true, '']);
-  } else if (id === 'lessons') { title = '选择职业'; options = playableCards(p, 'occupations').map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel ? c.paymentLabel+' · ' : ''}${c.original ? '效果自动触发 · ' : ''}${c.effect}`]); }
+  } else if (id === 'lessons') { title = '选择职业'; options = playableCards(p, 'occupations').map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel ? c.paymentLabel+' · ' : ''}${c.effect}`]); }
   else if (id === 'major') { title = '建造主要发展'; options = playableMajors(p).map(c => [c.id, c.name, true, `${cardCost({ cost: majorCost(c) })} · ${c.effect}`]); }
-  else if (id === 'minor' || id === 'minor6' || id === 'black') { title = '选择小设施'; options = (id === 'black' ? blackMarketCards(p) : playableCards(p, 'improvements')).map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel || cardCost(c)} · ${c.original ? '效果自动触发 · ' : ''}${c.effect}`]); }
+  else if (id === 'minor' || id === 'minor6' || id === 'black') { title = '选择小设施'; options = (id === 'black' ? blackMarketCards(p) : playableCards(p, 'improvements')).map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel || cardCost(c)} · ${c.effect}`]); }
   else if (id === 'illicit') { title = '选择大型设施'; options = ['horseCook', 'kiln', 'lodge'].filter(major => canAct(p, EXTRA_ACTIONS.find(a => a.id === major))).map(major => { const a = EXTRA_ACTIONS.find(x => x.id === major); return [major, a.name, true, a.detail]; }); }
   else if (id === 'farmSupplies') { title = '选择农具补给'; options = [['plow', '⚒ 开田', emptyCells(p).length > 0 && p.food >= (seasonName() === '冬' ? 2 : 1), `付 ${seasonName() === '冬' ? 2 : 1} 食物，在空地开田`], ['grain', '🌾 谷种', true, '付 1 食物，获得 1 谷种']]; }
   else if (id === 'seasonSpring') { title = '春日耕育'; options = [['breed', '只繁殖', true, '立刻进行一次牲畜繁殖'], ['grain', '繁殖并播谷', p.grain > 0 && emptyFields(p).length > 0, '再选择 1 块空田'], ['veg', '繁殖并播菜', p.veg > 0 && emptyFields(p).length > 0, '再选择 1 块空田']]; }
@@ -1099,7 +1127,7 @@ function choiceOptions(p, id) {
 function choiceDialog() {
   if (!ui.mode?.choice) return '';
   const { options, title } = choiceOptions(game.players[meIndex()], ui.mode.id);
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">CHOOSE</p><h2>${title}</h2><div class="modal-choice ${options.length > 3 ? 'many' : ''}">${options.map(([value, label, enabled, detail]) => `<button class="choice-btn" data-choice="${value}" ${enabled ? '' : 'disabled'}><b>${label}</b><small>${detail}</small></button>`).join('')}</div><div class="modal-actions"><button class="ghost-btn" data-cancel="1">取消</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">CHOOSE</p><h2>${title}</h2><div class="modal-choice ${options.length > 3 ? 'many' : ''}">${options.map(([value, label, enabled, detail]) => `<button class="choice-btn" data-choice="${value}" ${enabled ? '' : 'disabled'}><b>${label}</b>${ui.mode.id==='major'?`<small>${cardCost({cost:majorCost(MAJORS.find(c=>c.id===value))})}</small>${majorRulesMarkup(MAJORS.find(c=>c.id===value))}`:`<small>${detail}</small>`}</button>`).join('')}</div><div class="modal-actions"><button class="ghost-btn" data-cancel="1">取消</button></div></div></div>`;
 }
 function harvestDialog() {
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获结算</h2><p>收田 → 喂养 → 繁殖。新生牲畜不能用于本次喂养。</p><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>喂养：应付 ${s.fed} · 实付 ${s.fed-s.shortage}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
