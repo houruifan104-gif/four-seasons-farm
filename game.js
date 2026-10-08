@@ -875,7 +875,9 @@ const MAJOR_ARTWORK = Object.freeze({
   wellMajor:'well',clayOven:'clay-oven',stoneOven:'stone-oven',
   joinery:'joinery',pottery:'pottery',basketmaker:'basketmaker'
 });
+const OCCUPATION_ARTWORK = new Set(['A086','A088','A095','A102','A105','A108','A114','A116','A122','A124','A125','A135']);
 function cardArtwork(card, kind) {
+  if(kind==='occupation'&&OCCUPATION_ARTWORK.has(card.id))return `<img class="fc-art-image" src="./assets/occupations/${card.id}.jpg" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
   if(kind==='major'&&MAJOR_ARTWORK[card.id])return `<img class="fc-art-image" src="./assets/major-cards/${MAJOR_ARTWORK[card.id]}.jpg?v=pastoral-1" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
   const name = card.name || '';
   const theme = /炉|灶|烤|厨|烹|面包/.test(name) ? 'oven'
@@ -922,12 +924,17 @@ function majorRulesMarkup(card) {
   return `<span class="major-rules">${majorRuleGroups(card).map(group=>`<span class="major-rule-group">${group.title?`<span class="major-rule-title">${escapeHTML(group.title)}</span>`:''}${group.exchanges?`<span class="major-exchanges">${group.exchanges.map(row=>`<span class="major-exchange"><span>1 ${escapeHTML(row.resource)}</span><span aria-hidden="true">→</span><strong>${row.food} 食物</strong></span>`).join('')}</span>`:''}${group.text?`<span class="major-rule-text">${escapeHTML(group.text)}</span>`:''}</span>`).join('')}</span>`;
 }
 
+function cardRulesMarkup(effect) {
+  const text=String(effect||'');
+  if(text.length<=40)return escapeHTML(text);
+  return text.split(/(?<=[；。])/u).filter(Boolean).map(sentence=>`<span class="fc-rule-sentence">${escapeHTML(sentence)}</span>`).join('');
+}
 function cardFace(c, kind, {link=false, english=false}={}) {
   const type = {occupation:'职业',minor:'次要发展',major:'主要发展'}[kind];
   const title = link ? `<button class="card-title-button" data-card-detail="${c.id}">${escapeHTML(c.name)}</button>` : escapeHTML(c.name);
   const cost = cardCost(c)+(c.returnFireplace?'，或归还 1 张壁炉':'');
   const requirement = c.requirement || '无';
-  return `<span class="fc-top"><span class="fc-type">${type}${kind==='occupation'&&c.minPlayers?`<span class="fc-players" title="至少 ${c.minPlayers} 人可用">${c.minPlayers}+ 人</span>`:''}</span><span class="fc-id">${escapeHTML(c.displayId||c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span>${kind==='occupation'?'':`<span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span>`}<span class="fc-rules">${kind==='major'?majorRulesMarkup(c):`<span class="fc-effect">${escapeHTML(c.effect)}</span>`}</span>${requirement!=='无'||c.passing?`<span class="fc-bottom">${requirement!=='无'?`<span class="fc-requirement">前置 · ${escapeHTML(requirement)}</span>`:''}${c.passing?'<span class="fc-passing-rule">打出后，将此牌传给左手边的玩家，加入其手牌。</span>':''}</span>`:''}`;
+  return `<span class="fc-top"><span class="fc-type">${type}${kind==='occupation'&&c.minPlayers?`<span class="fc-players" title="至少 ${c.minPlayers} 人可用">${c.minPlayers}+ 人</span>`:''}</span><span class="fc-id">${escapeHTML(c.displayId||c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span>${kind==='occupation'?'':`<span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span>`}<span class="fc-rules">${kind==='major'?majorRulesMarkup(c):`<span class="fc-effect">${cardRulesMarkup(c.effect)}</span>`}</span>${requirement!=='无'||c.passing?`<span class="fc-bottom">${requirement!=='无'?`<span class="fc-requirement">前置 · ${escapeHTML(requirement)}</span>`:''}${c.passing?'<span class="fc-passing-rule">打出后，将此牌传给左手边的玩家，加入其手牌。</span>':''}</span>`:''}`;
 }
 
 function handPanel() {

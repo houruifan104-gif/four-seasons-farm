@@ -316,3 +316,15 @@ body.cover-active{background:#edf0f3!important;overflow:hidden}body.cover-active
 .fc-art-image{display:block;width:100%;height:100%;object-fit:cover}
 .card-detail{max-height:calc(100dvh - 32px)}
 .card-detail .detail-face.fc-major .fc-art{height:128px;aspect-ratio:auto}
+
+/* Occupation artwork and rules retain readable proportions as text grows. */
+.farm-card.farm-card.fc-occupation .fc-art{height:auto;aspect-ratio:3/2;border-radius:6px}
+.farm-card.farm-card .fc-effect{font-size:14px;line-height:1.85;white-space:normal;max-height:none;overflow:visible;text-overflow:clip;line-break:strict}
+.farm-card.farm-card .fc-rule-sentence{display:block;font:inherit;color:inherit}
+.farm-card.farm-card .fc-rule-sentence+.fc-rule-sentence{margin-top:.55em}
+.detail-face.farm-card .fc-effect{font-size:17px;line-height:1.9}
+.detail-face.farm-card.fc-occupation .fc-art{height:auto;aspect-ratio:3/2}
+@media(max-width:700px){
+  .farm-card.farm-card .fc-effect{font-size:14px;line-height:1.85}
+  .detail-face.farm-card .fc-effect{font-size:17px;line-height:1.9}
+}

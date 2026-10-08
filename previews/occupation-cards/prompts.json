@@ -1,0 +1,27 @@
+{
+  "tool": "Built-in image_gen",
+  "model": "Version not exposed by the tool.",
+  "purpose": "Two occupation card artwork previews.",
+  "assets": [
+    {
+      "id": "A116",
+      "name": "伐木工",
+      "file": "A116.jpg",
+      "prompt": "Use case: illustration-story. Create original landscape artwork for an occupation card in a farming board game, 1536 by 1024 pixels. Same warm European pastoral storybook aesthetic as a beautifully illustrated rustic farming board game: watercolor and gouache, fine pen contours, softly textured paper, earthy ochre and terracotta, moss green, muted blue-gray, natural warm daylight. Hand-painted, not 3D, not photographic. A single clearly readable human professional doing their job is the main focal point; authentic tools and farm scenery support the occupation. Medium distance, subject and action in central 70% of frame; artwork extends to all edges. No words, numbers, logos, frame or card UI. Do not copy existing commercial card art. Scene: A sturdy adult woodcutter in a rolled-sleeve cream linen shirt, russet waistcoat and worn brown trousers, chopping a short log on a broad tree stump with a clearly visible traditional axe. Calm focused expression. The axe blade meets the wood on the stump, with a few curled wood chips. A tidy stack of firewood nearby, edge of a green woodland, distant warm farmhouse softly suggested. The woodcutter, axe and stump are clearly dominant."
+    },
+    {
+      "id": "A114",
+      "name": "季节工",
+      "file": "A114.jpg",
+      "prompt": "Use case: illustration-story. Create original landscape artwork for an occupation card in a farming board game, 1536 by 1024 pixels. Same warm European pastoral storybook aesthetic as a beautifully illustrated rustic farming board game: watercolor and gouache, fine pen contours, softly textured paper, earthy ochre and terracotta, moss green, muted blue-gray, natural warm daylight. Hand-painted, not 3D, not photographic. A single clearly readable human professional doing their job is the main focal point; authentic tools and farm scenery support the occupation. Medium distance, subject and action in central 70% of frame; artwork extends to all edges. No words, numbers, logos, frame or card UI. Do not copy existing commercial card art. Scene: An adult female seasonal farm worker in a cream linen blouse, moss-green skirt and simple ochre apron, gathering a small golden wheat sheaf beside a vegetable plot. Warm focused expression, a straw sunhat. She holds the wheat sheaf prominently in one arm; a small wicker basket of freshly harvested root vegetables stands at her feet. A few golden wheat rows on one side and modest green vegetable rows on the other, softly suggested distant farmhouse. The farm worker and the two harvest crops are clearly dominant."
+    }
+  ],
+  "comparison": {
+    "file": "preview.png",
+    "references": [
+      "A116.jpg",
+      "A114.jpg"
+    ],
+    "prompt": "Create a clean, presentation-ready comparison of TWO COMPLETE Chinese occupation game cards side by side, using the two supplied images as the exact illustration inserts. Image 1 is the left woodcutter card artwork, Image 2 is the right seasonal worker card artwork. Preserve their painterly rural artwork and compositions. Landscape presentation, both upright portrait cards equal size, both fully visible, no overlap, on a uniform warm pale beige background. Each card: narrow cream paper rim, fine muted ochre border, softly rounded corners, warm ivory card stock; small top metadata line; large handsome Chinese serif title; large landscape artwork window showing the supplied image; an uncluttered ivory rules box under artwork with crisp black Chinese text. Type must be digitally clean and sharp, do not make letters distressed. The rules region takes about the bottom quarter, artwork dominates. Left card EXACT text, no additional text: small top left '职业  1+ 人', small top right 'A116', title '伐木工', rules '每次使用木材累积格，额外得一木。'. Right card EXACT text, no additional text: small top left '职业  1+ 人', small top right 'A114', title '季节工', rules '使用临时劳作格额外得一谷物；从第六轮起可改选一蔬菜。'. Wrap rules into 2 or 3 comfortable lines with equal font size on both cards. Do not add costs, points, footer, logos, English, captions or invented rules. Do not redraw the art into a different style. The final output is one high-resolution comparison image, not a photograph of cards on a table."
+  }
+}
