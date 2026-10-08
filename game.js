@@ -876,7 +876,7 @@ const MAJOR_ARTWORK = Object.freeze({
   joinery:'joinery',pottery:'pottery',basketmaker:'basketmaker'
 });
 function cardArtwork(card, kind) {
-  if(kind==='major'&&MAJOR_ARTWORK[card.id])return `<img class="fc-art-image" src="./assets/major-cards/${MAJOR_ARTWORK[card.id]}.jpg" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
+  if(kind==='major'&&MAJOR_ARTWORK[card.id])return `<img class="fc-art-image" src="./assets/major-cards/${MAJOR_ARTWORK[card.id]}.jpg?v=pastoral-1" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
   const name = card.name || '';
   const theme = /炉|灶|烤|厨|烹|面包/.test(name) ? 'oven'
     : /羊|牛|猪|牧场|牧羊|畜|马/.test(name) ? 'herd'
