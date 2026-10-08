@@ -1,0 +1,39 @@
+{
+  "tool": "Built-in image_gen",
+  "model": "Managed by the built-in tool; version is not exposed.",
+  "style": "Clean single-subject digital illustration; ivory background; no grain or scenery.",
+  "assets": [
+    {
+      "file": "fireplace.jpg",
+      "prompt": "Game card illustration. One compact open brick fireplace with a single hanging black cooking pot and a small tidy flame, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simple shapes, warm terracotta and charcoal. No room, landscape, furniture, people, animals, vegetation, scattered props, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    },
+    {
+      "file": "hearth.jpg",
+      "prompt": "Game card illustration. One compact terracotta cooking stove with two black cooking pots directly on its top and a tidy glowing firebox, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simple shapes. No room, landscape, furniture, people, animals, vegetation, scattered props, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    },
+    {
+      "file": "well.jpg",
+      "prompt": "Game card illustration. One circular stone water well with simple timber posts, a small tiled roof, rope spindle and one attached wooden bucket, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simple shapes, muted stone gray and warm brown. No courtyard, landscape, building, people, animals, vegetation, scattered props, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    },
+    {
+      "file": "clay-oven.jpg",
+      "prompt": "Game card illustration. One rounded ochre clay bread oven with an arched glowing opening and a single bread loaf at the entrance, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simple shapes. Clearly a smooth clay dome, no stone blocks. No room, landscape, furniture, people, animals, vegetation, scattered props, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    },
+    {
+      "file": "stone-oven.jpg",
+      "prompt": "Game card illustration. One rectangular gray stone bread oven with a broad arched glowing opening and two golden loaves at the entrance, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simple shapes. Clearly made of neat gray stone blocks, not a clay dome. No room, landscape, furniture, people, animals, vegetation, scattered props, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    },
+    {
+      "file": "joinery.jpg",
+      "prompt": "Game card illustration. One compact wooden carpenter's workbench with a single hand plane resting on one timber board, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simple shapes, warm honey brown wood. No workshop interior, landscape, other furniture, people, animals, vegetation, wood shavings, clutter, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    },
+    {
+      "file": "pottery.jpg",
+      "prompt": "Game card illustration. One compact traditional pottery wheel holding one large beautiful terracotta jug, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simple shapes, warm terracotta and wood brown. No workshop interior, landscape, shelves, other pots, people, animals, vegetation, clutter, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    },
+    {
+      "file": "basketmaker.jpg",
+      "prompt": "Game card illustration. One large half-woven golden reed basket with a few upright reed ends showing the weaving process, isolated on a uniform warm ivory background. Subject fully visible, centered, occupies 80 percent of the canvas. Clean polished hand-painted digital illustration with smooth color fills and restrained soft shading. Crisp readable silhouette, large simplified interlaced bands, warm honey gold. No workshop interior, landscape, bench, additional baskets, people, animals, vegetation, clutter, frame, lettering or numbers. No paper texture, grain, noise, speckles, scratches, watercolor mottling or distressed surfaces. Landscape 1536 by 1024 pixels. Make the main object complete and uncropped, with generous plain background on all sides. This is a clean digital game asset, not a textured painting."
+    }
+  ]
+}

@@ -870,7 +870,13 @@ function cardCost(card) {
   return Object.entries(card.cost || {}).filter(([, amount]) => amount > 0).map(([key, amount]) => `${amount} ${RESOURCES.find(r => r[0] === key)[1]}`).join('、') || '无材料';
 }
 // Shared card face; decorative artwork never supplies rules or resource values.
+const MAJOR_ARTWORK = Object.freeze({
+  fireplace2:'fireplace',fireplace3:'fireplace',hearth4:'hearth',hearth5:'hearth',
+  wellMajor:'well',clayOven:'clay-oven',stoneOven:'stone-oven',
+  joinery:'joinery',pottery:'pottery',basketmaker:'basketmaker'
+});
 function cardArtwork(card, kind) {
+  if(kind==='major'&&MAJOR_ARTWORK[card.id])return `<img class="fc-art-image" src="./assets/major-cards/${MAJOR_ARTWORK[card.id]}.jpg" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
   const name = card.name || '';
   const theme = /炉|灶|烤|厨|烹|面包/.test(name) ? 'oven'
     : /羊|牛|猪|牧场|牧羊|畜|马/.test(name) ? 'herd'
