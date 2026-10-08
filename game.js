@@ -865,12 +865,43 @@ function cardCost(card) {
   if (card.original) return card.costLabel;
   return Object.entries(card.cost || {}).filter(([, amount]) => amount > 0).map(([key, amount]) => `${amount} ${RESOURCES.find(r => r[0] === key)[1]}`).join('、') || '无材料';
 }
+// Shared card face; decorative artwork never supplies rules or resource values.
+function cardArtwork(card, kind) {
+  const name = card.name || '';
+  const theme = /炉|灶|烤|厨|烹|面包/.test(name) ? 'oven'
+    : /羊|牛|猪|牧场|牧羊|畜|马/.test(name) ? 'herd'
+    : /木|林|树|伐/.test(name) ? 'wood'
+    : /谷|麦|田|耕|种|犁|粮|菜|镰/.test(name) ? 'field'
+    : /井|鱼|水|池|钓/.test(name) ? 'water'
+    : /屋|房|建|庄|宿/.test(name) ? 'house'
+    : kind === 'occupation' ? 'worker' : 'tools';
+  const motifs = {
+    oven: '<path fill="#b17651" d="M100 101V68Q100 29 140 29T180 68V101Z"/><path fill="#eed5a3" d="M114 100V73Q114 48 140 48T166 73V100Z"/><path fill="#584a39" d="M120 99V77Q120 57 140 57T160 77V99Z"/><path fill="#d89b43" d="M130 95Q119 82 138 66Q134 79 148 78Q163 98 130 95Z"/><path d="M105 53H121M160 53H176M100 72H112M168 72H180M139 30V46M126 37L130 50M154 36L151 49M94 103H186"/><path d="M133 22Q121 13 134 4M150 22Q139 11 152 3" opacity=".4"/>',
+    herd: '<path fill="#d8d5b4" d="M93 80Q83 61 100 52Q103 33 122 39Q137 24 151 39Q178 33 177 59Q190 75 175 86L104 88Z"/><path fill="#eee8cc" d="M98 72Q90 54 103 50Q106 38 120 45Q134 33 145 44Q161 38 166 52L165 76Z"/><path fill="#656550" d="M166 53Q187 44 190 65L182 81L169 77Z"/><path d="M110 85V104M124 87V102M158 87V104M173 84V102M184 60H185M169 53L159 47M97 63L87 56"/><path d="M78 106H203M85 102L81 94M197 101L201 94" opacity=".5"/>',
+    wood: '<path fill="#5b7355" d="M96 78L117 39L107 41L128 9L149 41L140 39L160 78Z"/><path fill="#85916a" d="M153 87L168 59L161 60L179 31L197 60L190 59L205 87Z"/><path d="M128 56V104M179 72V103"/><path fill="#a47b50" d="M82 97L103 84L125 95L103 109Z"/><path fill="#e3c99a" d="M103 84L126 94V103L104 110L103 96L82 97V89Z"/><path d="M91 92L103 88M109 99L119 96"/>',
+    field: '<path fill="#c3b274" d="M67 108L115 75H172L217 108Z"/><path d="M92 108L130 77M124 108L143 77M155 108L156 77M187 108L168 77" opacity=".55"/><path d="M137 76V25M122 77V40M155 77V34"/><g fill="#d6aa4b"><path d="M137 60Q117 55 122 43Q138 46 137 60ZM137 46Q153 43 152 31Q137 35 137 46ZM137 34Q125 27 136 15Q146 26 137 34ZM122 66Q103 61 109 50Q123 53 122 66ZM155 64Q172 60 169 48Q154 50 155 64Z"/></g>',
+    water: '<ellipse cx="140" cy="101" rx="65" ry="9" fill="#9baea1" stroke="none"/><path fill="#c4bd98" d="M108 78Q139 68 170 78V98Q138 111 108 98Z"/><ellipse cx="139" cy="78" rx="31" ry="10" fill="#5b7169"/><path fill="#99704d" d="M108 37H116V81H108ZM162 37H170V81H162Z"/><path fill="#a67852" d="M93 40L139 13L185 40Z"/><path d="M139 40V69M107 88Q140 101 170 88M127 83V94M150 92V101"/><path fill="#c6a365" d="M132 63H148L145 77H135Z"/>',
+    house: '<path fill="#d3b580" d="M98 54H181V104H98Z"/><path fill="#92624b" d="M88 56L139 19L191 56Z"/><path fill="#e8d8b0" d="M119 62H136V80H119ZM153 62H170V80H153Z"/><path fill="#7a6950" d="M136 82H153V104H136Z"/><path d="M95 106H194M127 62V80M119 71H136M162 62V80M153 71H170M172 39V22H181V45"/><path d="M71 82V105M84 80V105M64 89H94M64 99H94"/>',
+    worker: '<path fill="#a07c4d" d="M122 45L126 24H151L156 45Z"/><path fill="#dfc194" d="M123 47Q121 70 140 70Q158 66 155 47Z"/><path fill="#657858" d="M105 103L110 80Q139 63 168 81L177 103Z"/><path fill="#cbb17a" d="M124 74L123 103H157L156 74L148 76V87H132V76Z"/><path d="M113 46H166M132 57H133M147 57H148M114 91L96 78M168 93L183 80M95 106V41M88 31V45H103V31M95 29V45"/>',
+    tools: '<path fill="#b98c56" d="M89 99L156 28L163 34L97 106Z"/><path fill="#87917c" d="M146 27L166 15L190 39L175 51Z"/><path fill="#bd985f" d="M116 29L182 100L175 106L109 36Z"/><path fill="#7b8573" d="M104 23L122 41L109 55L91 36L92 22L101 31L110 32Z"/><path fill="#d0b782" d="M119 91H149L155 106H112Z"/><path d="M122 91V83H147V91M119 98H147"/>'
+  };
+  return `<svg class="fc-art-svg" viewBox="0 0 280 120" aria-hidden="true" focusable="false"><circle cx="206" cy="28" r="15" fill="#dfc489" opacity=".65"/><path d="M0 91Q49 56 100 85T210 80T280 84V120H0Z" fill="#a8b18c" opacity=".3"/><path d="M0 107Q62 85 119 104T280 93V120H0Z" fill="#97a17b" opacity=".25"/><g fill="none" stroke="#66583e" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${motifs[theme]}<path d="M36 105L39 93M38 99L31 95M241 108L243 96M243 101L249 97" opacity=".4"/></g></svg>`;
+}
+function cardFace(c, kind, {link=false, english=false}={}) {
+  const type = {occupation:'职业',minor:'次要发展',major:'主要发展'}[kind];
+  const title = link ? `<button class="card-title-button" data-card-detail="${c.id}">${escapeHTML(c.name)}</button>` : escapeHTML(c.name);
+  const cost = kind==='occupation' ? '按学习行动支付' : cardCost(c);
+  const requirement = c.requirement || '无';
+  return `<span class="fc-top"><span class="fc-type">${type}</span><span class="fc-id">${escapeHTML(c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span><span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span><span class="fc-rules"><span class="fc-label">卡牌效果</span><span class="fc-effect">${escapeHTML(c.effect)}</span></span><span class="fc-bottom"><span class="fc-requirement">${requirement==='无'?'无前置条件':`前置 · ${escapeHTML(requirement)}`}</span>${c.passing?'<span class="fc-passing">传递牌 ↗</span>':''}</span>`;
+}
+
 function handPanel() {
   const p = game.players[meIndex()];
   const row = (id, type) => {
     const c = findHandCard(id);
     if (!c) return '';
-    return `<div class="hand-card ${type === 'occupations' ? 'occupation-card' : 'minor-card'}"><div class="card-illustration" aria-hidden="true">${type === 'occupations' ? '👩‍🌾' : '🛠️'}</div><b>${c.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c.name}</b><span>${escapeHTML(c.effect)}</span><small>${type === 'occupations' ? '职业' : `次要发展 · ${cardCost(c)} · ${c.points} 分`}${c.original ? `<br>前置：${escapeHTML(c.requirement)}<br>效果自动触发` : ''}</small></div>`;
+    const kind=type==='occupations'?'occupation':'minor';
+    return `<article class="hand-card farm-card fc-${kind}">${cardFace(c,kind,{link:!!c.original})}</article>`;
   };
   const played = p.played.occupations.concat(p.played.improvements).map(id => { const c = findHandCard(id); return c?.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c?.name; }).join('、');
   return `<section class="panel cards-panel"><div class="panel-head"><div><p class="eyebrow">CARDS</p><h2>你的手牌</h2></div><span class="head-note">${originalMode() ? '原版自动牌组 · 开局 7 职业 + 7 次要发展' : '在学习职业或小型设施行动打出'}</span></div><div class="hand-grid">${p.hand.occupations.map(id => row(id, 'occupations')).join('')}${p.hand.improvements.map(id => row(id, 'improvements')).join('')}</div><div class="played-cards">已打出：${played || '无'}</div>${activeMinorPanel(p)}${automaticAbilityPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
@@ -891,7 +922,7 @@ function activeMinorPanel(p) {
   }).join('')}</div>`;
 }
 function majorPanel() {
-  const cards = MAJORS.map(card => `<div class="hand-card ${game.majorSupply.includes(card.id) ? '' : 'major-taken'}"><b>${card.name}</b><span>${card.effect}</span><small>${cardCost(card)} · ${card.points} 分${game.majorSupply.includes(card.id) ? '' : ' · 已建造'}</small></div>`).join('');
+  const cards = MAJORS.map(card => `<article class="hand-card farm-card fc-major ${game.majorSupply.includes(card.id) ? '' : 'major-taken'}">${cardFace(card,'major')}${game.majorSupply.includes(card.id)?'':'<span class="fc-owned">已建造</span>'}</article>`).join('');
   return `<section class="panel cards-panel major-panel"><div class="panel-head"><div><p class="eyebrow">MAJOR IMPROVEMENTS</p><h2>主要发展</h2></div><span class="head-note">公共牌，每张只能建造一次</span></div><div class="hand-grid">${cards}</div></section>`;
 }
 function alienPanel() {
@@ -962,7 +993,7 @@ function originalDeckPicker() {
 function cardDetailDialog() {
   const c = findHandCard(ui.detailCard);
   if (!c) return '';
-  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><p class="eyebrow">${c.id} · ${c.kind === 'occupation' ? '职业' : '次要发展'} · ${c.id[0]} 牌组</p><h2>${escapeHTML(c.name)}</h2><p class="card-english">${escapeHTML(c.nameEn || '')}</p><dl><dt>费用</dt><dd>${c.kind === 'occupation' ? '按学习职业行动支付费用' : escapeHTML(c.costLabel)}</dd><dt>前置条件</dt><dd>${escapeHTML(c.requirement)}</dd><dt>卡面固定分</dt><dd>${c.points} 分</dd><dt>效果摘要</dt><dd>${escapeHTML(c.effect)}</dd>${c.passing ? '<dt>传递牌</dt><dd>使用后传入下一位玩家手牌，不留在自己面前。</dd>' : ''}</dl><p class="deck-help">中文为规则摘要与自译名称。资源、触发效果、费用与分数自动处理；可选效果由持牌玩家选择。前置条件与费用会自动检查。</p><a href="${escapeHTML(c.url)}" target="_blank" rel="noopener noreferrer">查阅来源 ↗</a><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
+  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><article class="detail-face farm-card fc-${c.kind}">${cardFace(c,c.kind,{english:true})}</article>${c.passing?'<p class="card-detail-note">传递牌：使用后传入下一位玩家手牌，不留在自己面前。</p>':''}<p class="card-detail-note">${c.id[0]} 牌组 · 固定 ${c.points||0} 分。中文为规则摘要与自译名称，插图为主题装饰。</p><a href="${escapeHTML(c.url)}" target="_blank" rel="noopener noreferrer">查阅来源 ↗</a><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
 }
 
 function automaticEnabled() { return !!autoRules?.active; }
@@ -1021,7 +1052,7 @@ function catalogDialog() {
   const pages = Math.max(1, Math.ceil(filtered.length / 36));
   state.page = Math.min(state.page, pages - 1);
   const visible = filtered.slice(state.page * 36, (state.page + 1) * 36);
-  const items = visible.map(c => `<button class="catalog-card ${c.kind}" data-card-detail="${c.id}"><b>${c.id} · ${c.kind === 'occupation' ? '职业' : '次要发展'}${c.passing ? ' · 传递' : ''}</b><span>${escapeHTML(c.name)}</span><em>${escapeHTML(c.nameEn)}</em><p>${escapeHTML(c.effect)}</p><small>${c.kind === 'minor' ? `${escapeHTML(c.costLabel)} · ${c.points} 分` : '职业牌'}<br>前置：${escapeHTML(c.requirement)}</small></button>`).join('');
+  const items = visible.map(c => `<button class="catalog-card farm-card fc-${c.kind}" data-card-detail="${c.id}" aria-label="查看${escapeHTML(c.name)}详情">${cardFace(c,c.kind)}</button>`).join('');
   return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 + 168 张次要发展。中文规则摘要、费用、条件、固定分均可离线查看。真人房间可选完整牌组；卡牌效果自动触发。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
@@ -1072,7 +1103,7 @@ function draftPanel() {
   if(!['occupations','improvements'].includes(ui.draftKind))ui.draftKind='occupations';
   const kind=ui.draftKind,label=kind==='occupations'?'职业':'次要发展',full=me.hand[kind].length>=7;
   const progress=game.players.map((p,i)=>`<div class="draft-seat ${i===d.turn?'is-current':''}"><strong>${i+1}. ${escapeHTML(p.name)}${i===meIndex()?' · 你':''}</strong><span>职业 ${p.hand.occupations.length}/7 · 次发 ${p.hand.improvements.length}/7</span>${i===d.turn?'<b>正在选牌</b>':''}</div>`).join('');
-  const pool=d.pools[kind].map(id=>{const c=findHandCard(id);return `<article class="draft-card ${kind}"><div class="draft-card-top"><span>${id}</span><span>${c.points?`${c.points} 分`:label}</span></div><button class="card-title-button" data-card-detail="${id}">${escapeHTML(c.name)}</button><p>${escapeHTML(c.effect)}</p><small>${kind==='improvements'?`费用：${escapeHTML(c.costLabel)}<br>`:''}打出前置：${escapeHTML(c.requirement)}</small><button class="primary-btn" data-draft-pick="${id}" ${!mine||full?'disabled':''}>${full?'该类已满 7 张':mine?'选入手牌':'等待轮到你'}</button></article>`;}).join('');
+  const pool=d.pools[kind].map(id=>{const c=findHandCard(id),type=kind==='occupations'?'occupation':'minor';return `<article class="draft-card farm-card fc-${type}">${cardFace(c,type,{link:true})}<button class="primary-btn fc-pick" data-draft-pick="${id}" ${!mine||full?'disabled':''}>${full?'该类已满 7 张':mine?'选入手牌':'等待轮到你'}</button></article>`;}).join('');
   const hands=game.players.map((p,i)=>`<details ${i===meIndex()?'open':''}><summary>${escapeHTML(p.name)} · 已选 ${p.hand.occupations.length+p.hand.improvements.length}/14</summary>${['occupations','improvements'].map(k=>`<div><b>${k==='occupations'?'职业':'次要发展'} ${p.hand[k].length}/7</b><p>${p.hand[k].map(id=>`<button class="card-title-button" data-card-detail="${id}">${escapeHTML(findHandCard(id).name)}</button>`).join('、')||'尚未选择'}</p></div>`).join('')}</details>`).join('');
   return `<main class="shell draft-shell"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>开局 · 公共选牌</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active?'房间':'多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-new-confirm="1" ${room.active?'disabled':''}>新游戏</button></div></header>${room.active?onlineBar():''}<section class="draft-intro"><h2>${mine?'轮到你，选择 1 张牌':`等待${escapeHTML(owner.name)}选择 1 张牌`}</h2><p>职业、次要发展各公开 ${game.players.length} × 7 = ${game.players.length*7} 张。按 1 → ${game.players.length} → 1 的顺序轮流选择，每次任选一类拿 1 张，每人每类上限 7 张。</p><p>选牌免费，不执行卡牌效果；所有人选满后开始第一轮。</p><progress max="${d.total}" value="${d.picks}" aria-label="公共选牌进度"></progress><span>已选 ${d.picks} / ${d.total} 张</span>${d.lastPick?`<p class="draft-last" role="status">${escapeHTML(game.players[d.lastPick.seat].name)}刚选了「${escapeHTML(findHandCard(d.lastPick.id).name)}」</p>`:''}</section><section class="draft-seats" aria-label="选牌顺序">${progress}</section><div class="draft-layout"><section class="draft-pool"><nav class="draft-tabs" aria-label="公共卡池类别">${[['occupations','职业'],['improvements','次要发展']].map(([k,n])=>`<button class="ghost-btn ${k===kind?'active':''}" data-draft-kind="${k}" aria-pressed="${k===kind}">${n}池 · 剩 ${d.pools[k].length} 张<span>你已选 ${me.hand[k].length}/7</span></button>`).join('')}</nav><div class="draft-grid">${pool||'<p class="draft-empty">这一类的牌已全部选完。</p>'}</div></section><aside class="draft-hands"><h2>已选手牌</h2>${hands}</aside></div></main>`;
 }
