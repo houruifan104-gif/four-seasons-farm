@@ -3,7 +3,7 @@
   "model": "Version is not exposed by the built-in tool.",
   "style": "Approved European pastoral hand-painted watercolor and gouache. Each occupation must differ in action, silhouette, tools, setting, face and clothing colors.",
   "total": 168,
-  "completed": 76,
+  "completed": 88,
   "assets": [
     {
       "id": "A085",
@@ -460,21 +460,81 @@
       "name": "鲁特琴手",
       "file": "A160.jpg",
       "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A seated woman musician with a chestnut braid, moss-green dress and ochre shawl plays a large pear-shaped lute with a ribbed rounded back and short bent pegbox. Fingers clearly pluck strings and hold frets. Instrument dominates lower center, quiet pleased face, plain warm cream wall and wooden stool, no audience or stage scenery."
+    },
+    {
+      "id": "A161",
+      "name": "小块地看守",
+      "file": "A161.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: An attentive middle-aged woman with a green kerchief and rust apron tends a very small square vegetable patch, kneeling and inspecting a single cabbage with one hand while holding a short hoe. Clear square low timber edging, two neat vegetable rows, tight garden view. Pale plaster wall behind, no larger farm panorama."
+    },
+    {
+      "id": "A162",
+      "name": "森林记账员",
+      "file": "A162.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A lean grey-haired forestry clerk in a navy vest marks notches on a plain wooden tally stick with a small knife while standing beside a neatly stacked pile of three logs and a clay basket. His face and tally hands dominate. One dark tree trunk at the edge, plain soft green backdrop, no paper writing or numbers."
+    },
+    {
+      "id": "A163",
+      "name": "建筑专家",
+      "file": "A163.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A confident woman master builder with a black braid, ochre jacket and leather tool belt demonstrates a wooden carpenter's square against a small house corner showing stone foundation, clay plaster and timber beam. Close three-quarter view, thoughtful expression. One reed bundle nearby, simple pale workshop wall."
+    },
+    {
+      "id": "A164",
+      "name": "木工",
+      "file": "A164.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A bearded man with rolled pale-blue sleeves and a deep green apron saws a thick timber beam on a low trestle; a single cream sheep stands calmly near his knee looking up. Saw and timber fill foreground, woodworker leans into the action. Plain warm barn wall, very few wood shavings, no extra tools."
+    },
+    {
+      "id": "A165",
+      "name": "野猪饲养员",
+      "file": "A165.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: An elderly woman with silver hair under a plum scarf, cream blouse and brown apron crouches beside a dark sow and two small striped boar piglets. She holds a shallow wooden feed bowl with both hands. Warm intimate animal-care portrait, low pen rail and simple straw ground, no distant farm."
+    },
+    {
+      "id": "A166",
+      "name": "晒草人",
+      "file": "A166.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A tall sun-tanned young man with straw hat, rust shirt and rolled trousers lifts a loose forkful of fresh hay onto a low wooden drying rack. Side view with the fork held high, broad golden hay shapes dominate. One small neat green meadow strip and pale sky, no distant buildings."
+    },
+    {
+      "id": "A167",
+      "name": "育种采购员",
+      "file": "A167.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A practical livestock buyer woman with short auburn hair, blue coat and mustard scarf carefully examines a young black-and-white calf near a newly built stable doorway. One hand gently under calf's chin, the other holds a simple rope halter. Large clear calf and human faces, plain timber doorway, no market crowd."
+    },
+    {
+      "id": "A168",
+      "name": "畜牧教师",
+      "file": "A168.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A kindly older male farm teacher with round spectacles and olive waistcoat demonstrates how to feed a cream lamb to a young apprentice in blue. He holds a small hay bundle and gestures to the lamb's muzzle. Triangle composition of teacher, student and lamb, plain low barn rail and warm cream background."
+    },
+    {
+      "id": "B085",
+      "name": "农场帮工",
+      "file": "B085.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A cheerful young woman farm hand in a rust headscarf and blue work apron carries a heavy wooden roof beam on one shoulder toward a tiny timber field shelter. Two short straight furrows meet beside the shelter. Close view, strong diagonal beam and active stride, soft pale field backdrop, no landscape panorama."
+    },
+    {
+      "id": "B086",
+      "name": "松露猎人",
+      "file": "B086.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A weathered woman with a green cloak, brown boots and a small wicker basket kneels under one oak tree while a dark-brown boar sniffs a truffle emerging from soil beside the roots. Her free hand points gently at the truffle. Large boar muzzle and truffle in foreground, simple earthy woodland floor, no dense forest."
+    },
+    {
+      "id": "B087",
+      "name": "小屋农夫",
+      "file": "B087.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A stout silver-bearded cottage farmer wearing a mustard vest and rolled white sleeves smooths fresh clay plaster onto a cottage door jamb with a broad trowel. His other hand holds a small wooden plaster board. Close doorway view, one small clay bucket below, calm warm plaster background, no house panorama."
+    },
+    {
+      "id": "B088",
+      "name": "定居者",
+      "file": "B088.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama, or background props beyond those described. Art fills the entire canvas. Scene: A proud middle-aged woman settler with chestnut hair, cream blouse and burgundy shawl stands at the fresh stone doorway of her modest home holding a large old iron key. One hand rests on a new fence post beside the threshold. Quiet confident portrait, simple cream stone wall, minimal plants, no distant scenery."
     }
   ],
   "pending": [
-    "A161",
-    "A162",
-    "A163",
-    "A164",
-    "A165",
-    "A166",
-    "A167",
-    "A168",
-    "B085",
-    "B086",
-    "B087",
-    "B088",
     "B089",
     "B090",
     "B091",
