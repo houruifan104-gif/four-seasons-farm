@@ -86,23 +86,83 @@
       "name": "木匠锤",
       "file": "A014.jpg",
       "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A traditional carpenter's claw hammer with worn honey-colored wooden handle rests diagonally across two perfectly joined timber beams. A few square iron nails and curled wood shavings nearby. Close strong still-life, large unmistakable hammer, cream wall backdrop, iron gray and golden wood, no other tools."
+    },
+    {
+      "id": "A015",
+      "name": "木匠斧",
+      "file": "A015.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A broad-bladed carpenter's hewing axe with a short curved ash handle lies diagonally across a squared timber beam, freshly shaved flat surface and three large curled chips visible. Close still-life, clearly distinct from a claw hammer, muted steel and honey wood, plain cream backdrop."
+    },
+    {
+      "id": "A016",
+      "name": "夯土",
+      "file": "A016.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A compact earthen fence wall being built from reddish rammed clay within removable wooden formwork. A stout wooden tamping pole stands beside it, a clean exposed compressed earth cross-section clearly visible. Low architectural close-up, terracotta and pale timber, simple grass ground."
+    },
+    {
+      "id": "A017",
+      "name": "复垦犁",
+      "file": "A017.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A heavy old land-reclamation plow with one broad dark iron share and stout timber beam rests against freshly opened rough soil beside an uprooted small root clump. Low side view, robust single-share shape dominates, a plain pasture fence faint behind, iron gray and root brown."
+    },
+    {
+      "id": "A018",
+      "name": "轮犁",
+      "file": "A018.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A traditional wheeled plow with one large wooden spoked support wheel, long timber handles and a curved iron share stands diagonally on a neat field edge. The round wheel is the dominant unmistakable silhouette. High side view, pale green field background, muted blue iron and honey wood."
+    },
+    {
+      "id": "A019",
+      "name": "手犁",
+      "file": "A019.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A lightweight narrow hand-operated push plow with two tall smooth wooden handles and one small triangular iron cultivating blade, no wheels and no animal harness. It stands upright against freshly cultivated garden soil. Close rear three-quarter view, handles make a tall V silhouette, simple pale green backdrop."
+    },
+    {
+      "id": "A020",
+      "name": "双转犁",
+      "file": "A020.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A reversible double plow with two clearly visible curved iron moldboards facing opposite directions attached to one central timber beam. Equipment shown alone in a clean side three-quarter view on pale packed earth. Paired dark metal curves dominate, small cloth and a few soil clods, restrained iron blue and warm wood."
+    },
+    {
+      "id": "A021",
+      "name": "宜居之家",
+      "file": "A021.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A welcoming roomy farmhouse interior with a sturdy dining table, three chairs and a small child-size chair, open doorway reveals a tidy extra bedroom. A bowl of apples on the table, warm hearth glow, spacious and uncluttered. Architecture and family-scale furnishings dominate, cream plaster and honey timber, no people."
+    },
+    {
+      "id": "A022",
+      "name": "电报",
+      "file": "A022.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A small antique brass Morse telegraph key mounted on a polished wooden base with a ceramic insulator and a rolled blank paper strip beside it. Close three-quarter still-life on a clean rustic desk, key lever and brass contacts unmistakable, warm copper and deep brown, no text or symbols."
+    },
+    {
+      "id": "A023",
+      "name": "石料公司",
+      "file": "A023.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A neat rural stone merchant's yard with three stacks of squared pale limestone blocks and one simple low timber cart carrying a single large block. Close elevated composition emphasizes stone supply and transport, a modest quarry rock face softly behind, limestone cream and muted blue-gray, no people or signs."
+    },
+    {
+      "id": "A024",
+      "name": "打谷板",
+      "file": "A024.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A broad traditional wooden threshing board studded underneath with small dark flint cutting stones leans at an angle against a short golden wheat sheaf. Show studded underside clearly, board dominates foreground on a clean threshing floor, warm straw and dark wood, no livestock."
+    },
+    {
+      "id": "A025",
+      "name": "摇篮",
+      "file": "A025.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A small beautiful handwoven wicker bassinet with curved wooden rocking runners, a cream linen blanket and one soft folded quilt inside. Empty cradle centered in warm farmhouse window light, rounded basket silhouette, pale sage wall, honey wicker and ivory, no toys or extra furniture."
+    },
+    {
+      "id": "A026",
+      "name": "睡眠角",
+      "file": "A026.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a European farming board-game card, consistent warm pastoral storybook watercolor and gouache with restrained ink contours, earthy colors and soft daylight. Clearly painterly, not photographic or 3D. One unmistakable subject and action dominates, strong silhouette readable at thumbnail size. Background simple and subordinate, no distant village or church panorama, avoid clutter and excessive foliage. Subtle brushwork without grain or distressed noise. Art extends to all edges. No words, labels, numbers, logos, frame or card UI. Scene: A cozy compact sleeping alcove built into a farmhouse corner: a narrow timber bed with a blue quilt tucked under a low shelf, a cream curtain partly drawn around it, one tiny stool beside. Frontal three-quarter view, enclosed nook clearly dominant, warm lamplight and dusty blue, no people."
     }
   ],
   "total": 168,
-  "completed": 14,
+  "completed": 26,
   "pending": [
-    "A015",
-    "A016",
-    "A017",
-    "A018",
-    "A019",
-    "A020",
-    "A021",
-    "A022",
-    "A023",
-    "A024",
-    "A025",
-    "A026",
     "A027",
     "A028",
     "A029",
