@@ -875,8 +875,8 @@ const MAJOR_ARTWORK = Object.freeze({
   wellMajor:'well',clayOven:'clay-oven',stoneOven:'stone-oven',
   joinery:'joinery',pottery:'pottery',basketmaker:'basketmaker'
 });
-const OCCUPATION_ARTWORK = new Set(["A085","A086","A087","A088","A089","A090","A091","A092","A093","A094","A095","A096","A097","A098","A099","A100","A101","A102","A103","A104","A105","A106","A107","A108","A109","A110","A111","A112","A113","A114","A115","A116","A117","A118","A119","A120","A121","A122","A123","A124","A125","A126","A127","A128","A129","A130","A131","A132","A133","A134","A135","A136"]);
-const MINOR_ARTWORK = new Set(["A001","A002","A003","A004","A005","A006","A007","A008","A009","A010","A011","A012","A013","A014","A015","A016","A017","A018","A019","A020","A021","A022","A023","A024","A025","A026"]);
+const OCCUPATION_ARTWORK = new Set(["A085","A086","A087","A088","A089","A090","A091","A092","A093","A094","A095","A096","A097","A098","A099","A100","A101","A102","A103","A104","A105","A106","A107","A108","A109","A110","A111","A112","A113","A114","A115","A116","A117","A118","A119","A120","A121","A122","A123","A124","A125","A126","A127","A128","A129","A130","A131","A132","A133","A134","A135","A136","A137","A138","A139","A140","A141","A142","A143","A144","A145","A146","A147","A148"]);
+const MINOR_ARTWORK = new Set(["A001","A002","A003","A004","A005","A006","A007","A008","A009","A010","A011","A012","A013","A014","A015","A016","A017","A018","A019","A020","A021","A022","A023","A024","A025","A026","A027","A028","A029","A030","A031","A032","A033","A034","A035","A036","A037","A038"]);
 function cardArtwork(card, kind) {
   if(kind==='minor'&&MINOR_ARTWORK.has(card.id))return `<img class="fc-art-image" src="./assets/minor-cards/${card.id}.jpg" width="960" height="640" alt="" loading="lazy" decoding="async">`;
   if(kind==='occupation'&&OCCUPATION_ARTWORK.has(card.id))return `<img class="fc-art-image" src="./assets/occupations/${card.id}.jpg" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
