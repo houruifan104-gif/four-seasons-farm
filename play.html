@@ -2218,7 +2218,7 @@ const MAJOR_ARTWORK = Object.freeze({
   wellMajor:'well',clayOven:'clay-oven',stoneOven:'stone-oven',
   joinery:'joinery',pottery:'pottery',basketmaker:'basketmaker'
 });
-const OCCUPATION_ARTWORK = new Set(['A086','A088','A095','A102','A105','A108','A114','A116','A122','A124','A125','A135']);
+const OCCUPATION_ARTWORK = new Set(['A085','A086','A087','A088','A089','A090','A091','A092','A093','A094','A095','A096','A097','A098','A099','A100','A101','A102','A103','A104','A105','A108','A114','A116','A122','A124','A125','A135']);
 function cardArtwork(card, kind) {
   if(kind==='occupation'&&OCCUPATION_ARTWORK.has(card.id))return `<img class="fc-art-image" src="./assets/occupations/${card.id}.jpg" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
   if(kind==='major'&&MAJOR_ARTWORK[card.id])return `<img class="fc-art-image" src="./assets/major-cards/${MAJOR_ARTWORK[card.id]}.jpg?v=pastoral-1" width="1536" height="1024" alt="" loading="lazy" decoding="async">`;
