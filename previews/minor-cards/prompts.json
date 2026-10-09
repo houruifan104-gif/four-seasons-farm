@@ -1,0 +1,24 @@
+{
+  "tool": "Built-in image_gen",
+  "model": "Version not exposed by the tool.",
+  "purpose": "Two minor improvement card previews; rules use existing project data.",
+  "assets": [
+    {
+      "id": "A001",
+      "name": "遮棚",
+      "file": "A001.jpg",
+      "source": "/Users/acha/.codex/generated_images/01a0e856-e923-7073-823b-f1f771760ee7/exec-e19c7b6e-4142-4c61-b6b2-5bc0eeae47da.png"
+    },
+    {
+      "id": "A002",
+      "name": "迁移耕作",
+      "file": "A002.jpg",
+      "source": "/Users/acha/.codex/generated_images/01a0e856-e923-7073-823b-f1f771760ee7/exec-a4a09ec8-07a6-4e89-8469-5845e58b656c.png"
+    }
+  ],
+  "comparison": {
+    "file": "preview.png",
+    "source": "/Users/acha/.codex/generated_images/01a0e856-e923-7073-823b-f1f771760ee7/exec-64b676b7-2fd3-46f2-8c56-b205104a0218.png",
+    "prompt": "Create one clean presentation comparing TWO COMPLETE Chinese minor improvement board-game cards side by side, fully visible, equal upright portrait proportions, no overlap, on flat pale warm beige. Use the supplied two images as exact illustration inserts: image 1 shelter on the LEFT, image 2 newly tilled field on the RIGHT. Preserve the hand-painted rural style and compositions. Card design: narrow cream rim, thin moss-green inset border, softly rounded corners, warm ivory paper, modest forest-green metadata, elegant large Chinese serif title, large landscape illustration window, a clear separate cost row, and generous light ivory rules area beneath. Type must be digitally sharp and readable, no distressed text, no simulated photograph, no perspective. Match the restrained cream paper style of a polished electronic farming card game. Exact left card text: top left '次要发展', top right 'A001', title '遮棚', cost label '费用', cost value '无材料费用', main rule '可立即在仅占一格的牧场里免费建一座马厩。', footer rule '打出后，将此牌传给左手边的玩家，加入其手牌。'. Exact right card text: top left '次要发展', top right 'A002', title '迁移耕作', cost label '费用', cost value '2 食物', main rule '立即开垦一块田地。', footer rule '打出后，将此牌传给左手边的玩家，加入其手牌。'. Large comfortable rules type with natural wrapping and ample line height; same type sizes both cards. Separate footer passing rule with a fine subtle line. Do not add any other text, points, player count, conditions, icons, English, logos or invented rules. No extra art elements outside the two cards."
+  }
+}

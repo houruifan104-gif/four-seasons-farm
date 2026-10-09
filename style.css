@@ -328,3 +328,6 @@ body.cover-active{background:#edf0f3!important;overflow:hidden}body.cover-active
   .farm-card.farm-card .fc-effect{font-size:14px;line-height:1.85}
   .detail-face.farm-card .fc-effect{font-size:17px;line-height:1.9}
 }
+
+/* Minor improvement paintings use the same readable landscape window. */
+.farm-card.farm-card.fc-minor .fc-art:has(.fc-art-image){height:auto;aspect-ratio:3/2;border-radius:6px}

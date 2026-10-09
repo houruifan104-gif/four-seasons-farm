@@ -3,7 +3,7 @@
   "model": "Version is not exposed by the built-in tool.",
   "style": "Approved European pastoral hand-painted watercolor and gouache. Each occupation must differ in action, silhouette, tools, setting, face and clothing colors.",
   "total": 168,
-  "completed": 28,
+  "completed": 40,
   "assets": [
     {
       "id": "A085",
@@ -132,10 +132,52 @@
       "prompt": "Use case: illustration-story. Original artwork for an occupation card in a rustic farming board game. Landscape 1536 by 1024. Warm European pastoral storybook style, watercolor and gouache, fine ink contours, subtle tactile paper, earthy colors and soft natural light, consistent with a hand-painted farming card deck. Not 3D, not photorealistic. The person and their specific action must be instantly recognizable at thumbnail size. Give this card a distinctive silhouette, face, clothes, tool, location and color emphasis; avoid a generic person posing in front of a farmhouse. Main action in the middle 70% of the frame, scenery to the edges. No text, letters, numbers, watermarks, card borders or UI. No copying existing commercial art. Scene: A lean young man with short black hair, rolled white sleeves, terracotta neckerchief and indigo trousers pushes a heavy single-wheel wooden wheelbarrow carrying clay clods along freshly plowed dark soil. Dynamic forward-leaning full-body posture, wheel and soil prominent, long plowed furrows and a low distant farm wall, copper clay and indigo color emphasis."
     },
     {
+      "id": "A106",
+      "name": "撒肥工",
+      "file": "A106.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A middle-aged farmwoman in indigo sleeves and an ochre kerchief scatters a modest forkful of dark compost from a low wicker cart onto a vegetable bed. Fork and wide spreading gesture dominate, side view, soil brown and muted blue."
+    },
+    {
+      "id": "A107",
+      "name": "捕手",
+      "file": "A107.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: An alert wiry man in a russet cap and moss-green vest deftly catches a small bundle of timber tossed toward his hands beside a construction supply stack. Dynamic braced stance, bundle suspended just above his palms, uncluttered yard, timber gold and forest green."
+    },
+    {
       "id": "A108",
       "name": "采蘑菇人",
       "file": "A108.jpg",
       "prompt": "Use case: illustration-story. Original artwork for an occupation card in a rustic farming board game. Landscape 1536 by 1024. Warm European pastoral storybook style, watercolor and gouache, fine ink contours, subtle tactile paper, earthy colors and soft natural light, consistent with a hand-painted farming card deck. Not 3D, not photorealistic. The person and their specific action must be instantly recognizable at thumbnail size. Give this card a distinctive silhouette, face, clothes, tool, location and color emphasis; avoid a generic person posing in front of a farmhouse. Main action in the middle 70% of the frame, scenery to the edges. No text, letters, numbers, watermarks, card borders or UI. No copying existing commercial art. Scene: A middle-aged woman with a russet headscarf, dark green cloak and sturdy boots crouches beneath an old beech tree, carefully placing a recognizable edible bolete mushroom into a wicker basket. Side profile, curved crouching silhouette, dappled woodland light, moss, fallen leaves and a few large mushrooms. Deep forest greens and rust colors, mushroom picking dominates."
+    },
+    {
+      "id": "A109",
+      "name": "小商人",
+      "file": "A109.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A petite elderly woman in a faded rose shawl opens a compact wooden trading box on a stool, offering a loaf and a few roots to a customer's hand at the edge. Seated close view, modest portable stall, rose and cream."
+    },
+    {
+      "id": "A110",
+      "name": "抹灰工",
+      "file": "A110.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A tall dark-haired craftswoman in a teal work tunic smooths wet clay plaster across a farmhouse wall using a broad wooden float. Strong profile, sweeping arm and smooth plaster dominate, one bucket at feet, clay terracotta and teal."
+    },
+    {
+      "id": "A111",
+      "name": "砌墙工",
+      "file": "A111.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A stocky bearded mason in pale blue sleeves and a red waist sash carefully aligns the top course of a low stone wall with a taut string. Kneeling side view, rough stones and precise hands, pale limestone and blue, quiet construction site."
+    },
+    {
+      "id": "A112",
+      "name": "镰刀工",
+      "file": "A112.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A lean silver-haired man in cream linen and a green waistcoat sweeps a long curved scythe through golden wheat. Full-body dynamic diagonal, clearly readable curved blade, cut sheaf in foreground, golden wheat and fresh blue sky."
+    },
+    {
+      "id": "A113",
+      "name": "异端教师",
+      "file": "A113.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A confident red-haired woman in a plum cloak teaches an unconventional planting method at a simple outdoor table, pointing to a cutaway soil box with grain stalks and a root vegetable growing together. One attentive learner at side, teacher and demonstration dominate. Plum and sage, no written diagrams."
     },
     {
       "id": "A114",
@@ -144,10 +186,40 @@
       "prompt": "Use case: illustration-story. Create original landscape artwork for an occupation card in a farming board game, 1536 by 1024 pixels. Same warm European pastoral storybook aesthetic as a beautifully illustrated rustic farming board game: watercolor and gouache, fine pen contours, softly textured paper, earthy ochre and terracotta, moss green, muted blue-gray, natural warm daylight. Hand-painted, not 3D, not photographic. A single clearly readable human professional doing their job is the main focal point; authentic tools and farm scenery support the occupation. Medium distance, subject and action in central 70% of frame; artwork extends to all edges. No words, numbers, logos, frame or card UI. Do not copy existing commercial card art. Scene: An adult female seasonal farm worker in a cream linen blouse, moss-green skirt and simple ochre apron, gathering a small golden wheat sheaf beside a vegetable plot. Warm focused expression, a straw sunhat. She holds the wheat sheaf prominently in one arm; a small wicker basket of freshly harvested root vegetables stands at her feet. A few golden wheat rows on one side and modest green vegetable rows on the other, softly suggested distant farmhouse. The farm worker and the two harvest crops are clearly dominant."
     },
     {
+      "id": "A115",
+      "name": "林务长",
+      "file": "A115.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: An imposing older forester with a gray beard, dark green coat and walking staff examines a young sapling at the edge of a managed woodland. One gloved hand indicates new growth, three-quarter upright figure, orderly small timber stack distant, deep green and muted gold."
+    },
+    {
       "id": "A116",
       "name": "伐木工",
       "file": "A116.jpg",
       "prompt": "Use case: illustration-story. Create original landscape artwork for an occupation card in a farming board game, 1536 by 1024 pixels. Same warm European pastoral storybook aesthetic as a beautifully illustrated rustic farming board game: watercolor and gouache, fine pen contours, softly textured paper, earthy ochre and terracotta, moss green, muted blue-gray, natural warm daylight. Hand-painted, not 3D, not photographic. A single clearly readable human professional doing their job is the main focal point; authentic tools and farm scenery support the occupation. Medium distance, subject and action in central 70% of frame; artwork extends to all edges. No words, numbers, logos, frame or card UI. Do not copy existing commercial card art. Scene: A sturdy adult woodcutter in a rolled-sleeve cream linen shirt, russet waistcoat and worn brown trousers, chopping a short log on a broad tree stump with a clearly visible traditional axe. Calm focused expression. The axe blade meets the wood on the stump, with a few curled wood chips. A tidy stack of firewood nearby, edge of a green woodland, distant warm farmhouse softly suggested. The woodcutter, axe and stump are clearly dominant."
+    },
+    {
+      "id": "A117",
+      "name": "搬木工",
+      "file": "A117.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A muscular woman with auburn braid, blue waist sash and cream work shirt carries two squared timber beams horizontally across her shoulder. Full-body side view crossing an open workshop yard, bold beam silhouette, no axe or branches, cool blue and honey timber."
+    },
+    {
+      "id": "A118",
+      "name": "树园工",
+      "file": "A118.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A young gardener with dark curls, ochre apron and pale green sleeves prunes a low apple-tree branch with simple hand shears. Close side view, tree canopy occupies one side only, clean orchard spacing, few red apples, soft green and russet."
+    },
+    {
+      "id": "A119",
+      "name": "拾柴人",
+      "file": "A119.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: An elderly man in a patched brown cloak and muted blue cap bends low to pick up one dry twig, a modest bundle of thin fallen firewood held in his other arm. Ground-level view of leaf-strewn field edge, no axe or standing logs, blue and autumn brown."
+    },
+    {
+      "id": "A120",
+      "name": "黏土屋建筑工",
+      "file": "A120.jpg",
+      "prompt": "Original landscape 1536x1024 illustration for a rustic European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained pen outlines, soft daylight and earthy colors. Painterly, not photographic or 3D. Clean distinct main subject fills the central frame, recognizable at thumbnail size. Simple quiet background, subtle brush texture, no noisy grain, no clutter. No text, lettering, numbers, logos, frame or UI. Scene: A broad craftswoman wearing a rust headscarf and cream rolled sleeves presses a fresh adobe brick into the wall of a modest clay hut. Half-built clay doorway and brick in her hands dominate, adobe forms neatly stacked, warm terracotta and pale cream."
     },
     {
       "id": "A122",
@@ -175,18 +247,6 @@
     }
   ],
   "pending": [
-    "A106",
-    "A107",
-    "A109",
-    "A110",
-    "A111",
-    "A112",
-    "A113",
-    "A115",
-    "A117",
-    "A118",
-    "A119",
-    "A120",
     "A121",
     "A123",
     "A126",
