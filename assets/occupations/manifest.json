@@ -3,7 +3,7 @@
   "model": "Version is not exposed by the built-in tool.",
   "style": "Approved European pastoral hand-painted watercolor and gouache. Each occupation must differ in action, silhouette, tools, setting, face and clothing colors.",
   "total": 168,
-  "completed": 160,
+  "completed": 168,
   "assets": [
     {
       "id": "A085",
@@ -965,16 +965,55 @@
       "name": "酒吧老板",
       "file": "B160.jpg",
       "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A jovial heavyset pub owner with a curled auburn moustache, cream shirt and forest-green apron sets a large frothy earthenware mug on a polished oak counter. His other hand rests on the counter, welcoming expression. A single small wooden barrel behind him, warm amber wall, close waist-up tavern portrait, no customers or signs."
+    },
+    {
+      "id": "B161",
+      "name": "弱者",
+      "file": "B161.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A slender young adult man with tousled chestnut hair, a loose cream shirt and faded green vest sits beside a small vegetable bed, holding one freshly picked orange carrot with leafy greens across his palms. His expression is gentle and quietly satisfied, relaxed narrow shoulders. Close waist-up portrait, simple pale olive background, no heavy tools or caricature."
+    },
+    {
+      "id": "B162",
+      "name": "清林工",
+      "file": "B162.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A strong woman with a dark braided bun, red checked neckerchief and blue work jacket drags a short bundle of freshly cut branches by a thick rope held firmly in both hands. Two cut stumps frame the close foreground, purposeful forward lean, clean pale sage backdrop. Exactly two arms and two hands, no extra people or scattered tools."
+    },
+    {
+      "id": "B163",
+      "name": "教区牧师",
+      "file": "B163.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: An elderly parish pastor with kind eyes, thinning silver hair and a simple long charcoal robe holds a small plain basket containing a loaf of bread, offering it slightly forward. A discreet wooden cross hangs at his chest. Waist-up frontal portrait, cropped cream plaster doorway behind him, no church panorama or books."
+    },
+    {
+      "id": "B164",
+      "name": "羊语者",
+      "file": "B164.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A young woman with long auburn hair, soft sage shawl and cream blouse leans close to one white sheep, cupping one hand near its ear as though whispering. Her other hand gently rests on the sheep's neck. Both faces dominate the close composition, peaceful affectionate expression, plain muted honey-green background."
+    },
+    {
+      "id": "B165",
+      "name": "野味供应者",
+      "file": "B165.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A rugged middle-aged man with a short brown beard, ochre cap, deep green vest and leather apron carries a shallow wooden tray of golden grain at waist height, while one small dark wild boar approaches beside him. Welcoming practical expression, medium close scene, simple earthen yard and pale background, no hunting weapons or carcasses."
+    },
+    {
+      "id": "B166",
+      "name": "喂牛人",
+      "file": "B166.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A dark-skinned older woman with gray braids, indigo headwrap and rust-colored apron holds a wooden feed bowl toward the nose of a large gentle brown cow entering from frame right. The woman and cow faces are clearly visible close together, golden grain in bowl, warm cream stable wall, no other animals or background objects."
+    },
+    {
+      "id": "B167",
+      "name": "马厩士官",
+      "file": "B167.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A stern but kindly middle-aged man with a neat gray moustache, dark navy stable uniform and plain brass buttons stands in a broad stable doorway, holding a simple wooden feed scoop upright. The heads of a sheep, a small pig and a brown cow are grouped at waist level beside him. Clear distinct animal silhouettes, close composition, cropped timber stable background, no weapons."
+    },
+    {
+      "id": "B168",
+      "name": "牧场主",
+      "file": "B168.jpg",
+      "prompt": "Landscape 1536x1024 original illustration for a European farming board-game card. Warm pastoral storybook watercolor and gouache, restrained ink contours, earthy colors, soft natural light, broad painterly brush shapes, clean low-noise finish. One clear subject dominates and stays readable at thumbnail scale. Keep secondary details few. No grain, distressing, text, numbers, logos, card frame or UI. Do not add a distant church, village, panorama or background props beyond those described. Art fills the canvas. Scene: A confident elderly woman with a wide straw hat, cream shirt and burgundy waistcoat leans one forearm on a low pasture gate, the other hand holding a single simple iron gate key. A small timber animal shelter with a pitched green roof sits close behind her, with one cream sheep at its doorway. Close medium portrait, soft grassy base and plain pale sky."
     }
   ],
-  "pending": [
-    "B161",
-    "B162",
-    "B163",
-    "B164",
-    "B165",
-    "B166",
-    "B167",
-    "B168"
-  ]
+  "pending": []
 }
