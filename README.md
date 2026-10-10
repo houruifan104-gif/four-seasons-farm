@@ -66,7 +66,7 @@
 
 ### 原版牌库与手牌
 
-- 卡面插画按批次接入，当前职业卡 **112 / 168 张**、次要发展卡 **86 / 168 张**。图片与提示词保存在 `assets/occupations/manifest.json` 和 `assets/minor-cards/manifest.json`，`pending` 记录未制作卡号；每张采用独立田园手绘插画。
+- 卡面插画按批次接入，当前职业卡 **124 / 168 张**、次要发展卡 **98 / 168 张**。图片与提示词保存在 `assets/occupations/manifest.json` 和 `assets/minor-cards/manifest.json`，`pending` 记录未制作卡号；每张采用独立田园手绘插画。
 - 规则文字保持独立 HTML；较长规则按原有句号、分号分段，完整保留标点与内容。卡片自动增高，列表正文 14px，放大详情 17px，手机端同样保留该字号。
 
 - 职业卡人数标记按[官方牌组结构说明（第 4 页）](https://www.lookout-spiele.de/upload/de_agricolare_consuldirigens.html_Agricola_CD_Regeln_DE_V4.pdf)录入：A/B 085–126 为 1+，127–147 为 3+，148–168 为 4+。牌面显示最低人数，洗牌与联机选牌均检查人数；次要发展不受此限制。
