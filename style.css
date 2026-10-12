@@ -331,3 +331,142 @@ body.cover-active{background:#edf0f3!important;overflow:hidden}body.cover-active
 
 /* Minor improvement paintings use the same readable landscape window. */
 .farm-card.farm-card.fc-minor .fc-art:has(.fc-art-image){height:auto;aspect-ratio:3/2;border-radius:6px}
+
+/* One tabletop: action boards above, card racks below. */
+.board-overview{max-width:1920px}
+.board-overview .panel{border-radius:6px}
+.board-overview .panel-head h2 small{font:600 12px/1.2 system-ui;color:#86714f;margin-left:6px}
+.board-overview .table-hand .cards-panel{background:#786044;border:3px solid #5a462e}
+.board-overview .table-hand .played-rack{background:#697849;border-color:#465733}
+.board-overview .table-hand .hand-grid{align-items:start;scrollbar-width:thin;scrollbar-color:#bca477 transparent}
+.board-overview .rack-empty{margin:4px;padding:12px;color:#fff2d0;font-size:13px}
+.board-overview .hand-card.farm-card{box-shadow:0 3px 0 #4e3c2860,0 5px 10px #35271830}
+.board-overview .table-hand .active-minors{margin:0 16px 16px}
+.major-supply-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px;padding:10px}
+.major-supply-card{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:5px;border:2px solid #f7eccf;background:#f3e5bc;color:#493823;border-radius:4px;text-align:left;min-width:0;cursor:pointer;box-shadow:0 3px 0 #31462466}
+.major-supply-card .fc-art-image{height:64px;object-fit:cover;border-radius:2px}
+.supply-name{font:700 13px/1.5 'Songti SC',serif}
+.supply-cost{font:11px/1.4 system-ui;color:#6d563a}
+.supply-owner{position:absolute;top:10px;left:5px;right:5px;background:#473d2ae8;color:#fff4d8;font-size:11px;text-align:center;padding:4px 0}
+.major-supply-card:hover{border-color:#fff;transform:translateY(-2px)}
+.board-overview button:focus-visible{outline:3px solid #b56d24;outline-offset:3px}
+@media(min-width:701px){
+  .board-overview{padding:12px 16px 24px}
+  .board-overview .masthead{border-width:1px;padding:8px 12px;box-shadow:0 3px 9px #3c291c38;margin-bottom:8px;background:#f1e7cb}
+  .board-overview .brand h1{font-size:22px}.board-overview .brand p{font-size:9px}
+  .board-overview .brand-mark{width:32px;height:32px;font-size:21px}
+  .board-overview .ghost-btn{border-width:1px;box-shadow:none;padding:8px 12px;font-size:12px}
+  .board-overview .topline{border-width:1px;margin-bottom:10px;padding:9px 12px;box-shadow:0 2px 5px #3c291c30;background:#eee1bd}
+  .board-overview .tabletop-layout{display:grid;grid-template-columns:214px minmax(0,1fr) 160px;grid-template-areas:'farm actions side' 'major major major' 'hand hand hand';gap:12px;align-items:start}
+  .board-overview .tabletop-layout .panel{box-shadow:0 3px 0 #42351e55,0 7px 15px #39281930}
+  .board-overview .tabletop-layout .panel-head{padding:8px 10px;border-bottom-width:1px}
+  .board-overview .tabletop-layout .panel h2{font-size:17px}
+  .board-overview .tabletop-layout .eyebrow{font-size:8px;letter-spacing:.14em;margin-bottom:3px}
+  .board-overview .tabletop-layout .head-note{font-size:10px}
+  .board-overview .table-farm .farm-panel{border-width:3px}
+  .board-overview .farm-wrap{padding:8px}
+  .board-overview .farm-banner{display:block;padding:6px;margin-bottom:8px}
+  .board-overview .farm-player{font-size:13px}
+  .board-overview .view-switch{max-width:none;margin-top:7px;gap:3px;justify-content:flex-start}
+  .board-overview .view-switch button{padding:5px 7px;font-size:10px}
+  .board-overview .farm-field{padding:4px;gap:3px;border-width:2px}
+  .board-overview .farm-cell{aspect-ratio:1;min-height:0;padding:2px;border-width:1px}
+  .board-overview .cell-icon{font-size:19px}.board-overview .cell-label{font-size:8px}.board-overview .cell-qty{font-size:10px}
+  .board-overview .farm-footer{display:flex;flex-wrap:wrap;gap:4px;font-size:10px;padding-top:8px}
+  .board-overview .farm-tip{padding:8px;font-size:11px;line-height:1.6;margin-top:8px;border-width:1px}
+  .board-overview .mini-stats{grid-template-columns:repeat(2,1fr);gap:5px;margin-top:8px}
+  .board-overview .mini-stat{padding:7px 3px;font-size:10px}.board-overview .mini-stat b{font-size:17px;margin-bottom:3px}
+  .board-overview .table-side{display:flex;gap:10px}
+  .board-overview .resource-tray{padding:7px;border-width:3px;border-radius:6px}
+  .board-overview .tray-heading{display:block;font-size:13px;margin-bottom:8px}.board-overview .tray-heading small{display:block;margin-top:3px;font-size:10px}
+  .board-overview .table-side .summary-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+  .board-overview .resource{display:flex;gap:5px;align-items:center;padding:5px 3px;border-width:1px}
+  .board-overview .resource .res-top{font-size:17px}.board-overview .resource .res-bottom{margin:0;display:flex;flex-direction:column;gap:0}
+  .board-overview .resource .res-bottom span{font-size:9px}.board-overview .resource .res-bottom strong{font-size:15px;font-variant-numeric:tabular-nums}
+  .board-overview .table-side .info-box{padding:9px;border-width:2px}.board-overview .table-side .info-box h3{font-size:13px}
+  .board-overview .table-side .score-row{padding:5px 0;font-size:10px}
+  .board-overview .tabletop-log .log-list{max-height:130px;overflow:auto}
+  .board-overview .table-actions .actions-panel{border:0;background:transparent;box-shadow:none}
+  .board-overview .actions-panel>.panel-head{border:1px solid #a89461;border-radius:5px;margin-bottom:8px;background:#ecdfb9}
+  .board-overview .action-nav{display:none}
+  .board-overview .action-boards{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:9px;align-items:start}
+  .board-overview .action-board{min-width:0;border:3px solid #526841;border-radius:6px;background:#829461;box-shadow:0 3px 0 #35462b80,inset 0 0 0 1px #c2cb9650;overflow:hidden}
+  .board-overview .round-board{background:#8c9664;border-color:#636d42}
+  .board-overview .extension-board{background:#a59265;border-color:#7d6943}
+  .board-overview .table-actions .action-section{display:block;border:0;margin:0;padding:0;background:transparent}
+  .board-overview .table-actions .action-section+.action-section{border-top:1px solid #f4e5ae50}
+  .board-overview .table-actions .section-title{display:block;padding:9px 8px 3px}
+  .board-overview .table-actions .section-title h3{font-size:15px;color:#ffefd1;text-shadow:0 1px #465234;margin:0 0 3px}
+  .board-overview .table-actions .section-title span{display:block;font-size:10px;line-height:1.4;color:#fff0ce}
+  .board-overview .table-actions .action-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:6px}
+  .board-overview .table-actions .extension-board .action-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .board-overview .table-actions .season-section .action-list{grid-template-columns:1fr}
+  .board-overview .table-actions .action-card{position:relative;display:grid;grid-template-columns:20px minmax(0,1fr);grid-template-rows:auto 1fr;align-content:start;align-items:start;column-gap:4px;row-gap:4px;min-height:66px;padding:7px 5px;border:1px solid #fdf3d8;border-radius:3px;box-shadow:0 2px 0 #44512d80;background:#f4e5bd;text-align:left}
+  .board-overview .table-actions .action-icon{font-size:17px;margin:0;line-height:20px}
+  .board-overview .table-actions .action-title{font-size:12px;line-height:20px;padding-right:0;font-weight:700}
+  .board-overview .table-actions .action-detail{grid-column:1/-1;font-size:10px;line-height:1.4;color:#695636}
+  .board-overview .table-actions .action-card:has(.action-badge) .action-title{padding-right:20px}
+  .board-overview .table-actions .action-badge{top:5px;right:4px;min-width:21px;height:21px;font-size:12px;border-width:1px}
+  .board-overview .table-actions .unlock-tag{position:static;grid-column:1/-1;grid-row:3;justify-self:start;background:#e0d3af;border:0;padding:1px 4px;font-size:9px;border-radius:2px}
+  .board-overview .table-actions .action-card.locked{opacity:.65;background:#e1d8ba;border-style:dashed;box-shadow:none}
+  .board-overview .table-actions .action-card.used{background:#d6c8a0;border-color:#b0a37e;padding-bottom:19px}
+  .board-overview .table-actions .worker-token{width:15px;height:19px;right:4px;bottom:4px}
+  .board-overview .table-actions .action-card:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 0 #44512d80;border-color:#fff}
+  .board-overview .table-actions .empty-actions{grid-column:1/-1;font-size:10px;margin:4px}
+  .board-overview .table-major .major-panel{border-width:3px}
+  .board-overview .table-major .panel-head{display:flex;align-items:center}
+  .board-overview .table-major .eyebrow{display:none}
+  .board-overview .table-hand{gap:12px}
+  .board-overview .table-hand .hand-grid{padding:12px;gap:12px}
+  .board-overview .table-hand .hand-card.farm-card{flex-basis:210px;padding:12px}
+}
+@media(min-width:701px) and (max-width:1150px){
+  .board-overview .tabletop-layout{grid-template-columns:minmax(0,1fr) 190px;grid-template-areas:'actions actions' 'farm side' 'major major' 'hand hand'}
+  .board-overview .table-farm .farm-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .board-overview .farm-field{grid-column:1;grid-row:2/5}.board-overview .farm-banner{grid-column:1/-1;margin:0;display:flex}
+  .board-overview .table-side .tabletop-log{display:none}
+  .board-overview .major-supply-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .board-overview .action-boards,.board-overview .action-board{display:contents}
+  [data-mobile-category="round"] .round-section{display:block}
+  [data-mobile-category="round"] [data-jump="round"]{background:#4d6838;color:#fff6d8;border-color:#3d572b}
+  .board-overview .table-hand .hand-grid{display:flex;overflow-x:auto;gap:12px;padding:12px;scroll-snap-type:x proximity}
+  .board-overview .table-hand .hand-card.farm-card{flex:0 0 min(76vw,260px);padding:13px}
+  .board-overview .major-supply-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .board-overview .major-supply-card{min-height:44px;padding:8px}.board-overview .major-supply-card .fc-art-image{height:90px}
+  .board-overview .supply-name{font-size:15px}.board-overview .supply-cost{font-size:12px}
+}
+@media(min-width:701px){
+  .board-overview .action-boards{grid-template-columns:1fr 1fr 1.4fr}
+  .board-overview .action-boards:not(:has(.extension-board)){grid-template-columns:1fr 1fr}
+  .board-overview .table-actions .extension-board .action-list{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .board-overview .table-actions .extension-board .action-title{font-size:11px;line-height:17px}
+  .board-overview .table-actions .extension-board .action-card{grid-template-columns:17px minmax(0,1fr);padding:6px 4px;column-gap:2px}
+  .board-overview .table-actions .extension-board .action-icon{font-size:15px;line-height:17px}
+  .board-overview .auxiliary-boards{display:flex;gap:9px;align-items:stretch;margin-top:9px}
+  .board-overview .table-actions .auxiliary-boards>.action-section{flex:1;min-width:0;border:3px solid #7c6944;background:#a49268;border-radius:6px;box-shadow:0 3px 0 #4c3f2c66}
+  .board-overview .table-actions .auxiliary-boards>.special-section{flex:4}
+  .board-overview .table-actions .auxiliary-boards .special-list,.board-overview .table-actions .auxiliary-boards .special-section .action-list{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .board-overview .table-actions .auxiliary-boards .section-title{padding-top:6px}
+  .board-overview .table-actions .auxiliary-boards .section-title h3{font-size:13px}
+  .board-overview .table-actions .auxiliary-boards .action-card{min-height:57px}
+  .board-overview .table-actions .auxiliary-boards .season-section .action-list,.board-overview .table-actions .auxiliary-boards .alien-section .action-list{grid-template-columns:1fr}
+}
+@media(max-width:700px){.board-overview .auxiliary-boards{display:contents}}
+@media(min-width:701px){
+  .board-overview .action-boards{grid-template-columns:.85fr 1.25fr 1.4fr}
+  .board-overview .table-actions .round-board .action-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .board-overview .table-actions .auxiliary-boards .action-card{min-height:57px;height:auto}
+}
+@media(min-width:1151px) and (max-height:850px){
+  .board-overview{padding-top:8px}
+  .board-overview .masthead{padding:5px 10px}.board-overview .brand p{display:none}
+  .board-overview .topline{padding:6px 10px;margin-bottom:8px}
+  .board-overview .tabletop-layout .eyebrow{display:none}
+  .board-overview .table-actions .section-title{padding-top:6px}
+  .board-overview .table-actions .action-card{min-height:54px;padding:5px 4px;row-gap:2px}
+  .board-overview .table-actions .action-title{font-size:11px;line-height:17px}
+  .board-overview .table-actions .action-icon{font-size:15px;line-height:17px}
+  .board-overview .table-actions .auxiliary-boards .special-section .action-list{grid-template-columns:repeat(7,minmax(0,1fr))}
+}

@@ -941,14 +941,15 @@ function cardFace(c, kind, {link=false, english=false}={}) {
 
 function handPanel() {
   const p = game.players[meIndex()];
-  const row = (id, type) => {
-    const c = findHandCard(id);
-    if (!c) return '';
-    const kind=type==='occupations'?'occupation':'minor';
-    return `<article class="hand-card farm-card fc-${kind}">${cardFace(c,kind,{link:!!c.original})}</article>`;
+  const row = (id, kind) => {
+    const c = kind === 'major' ? MAJORS.find(c=>c.id===id) : findHandCard(id);
+    return c ? `<article class="hand-card farm-card fc-${kind}" data-table-card="${id}">${cardFace(c,kind,{link:true})}</article>` : '';
   };
-  const played = p.played.occupations.concat(p.played.improvements).map(id => { const c = findHandCard(id); return c?.original ? `<button class="card-title-button" data-card-detail="${id}">${id} · ${escapeHTML(c.name)}</button>` : c?.name; }).join('、');
-  return `<section class="panel cards-panel"><div class="panel-head"><div><p class="eyebrow">CARDS</p><h2>你的手牌</h2></div><span class="head-note">${originalMode() ? '原版自动牌组 · 开局 7 职业 + 7 次要发展' : '在学习职业或小型设施行动打出'}</span></div><div class="hand-grid">${p.hand.occupations.map(id => row(id, 'occupations')).join('')}${p.hand.improvements.map(id => row(id, 'improvements')).join('')}</div><div class="played-cards">已打出：${played || '无'}</div>${activeMinorPanel(p)}${automaticAbilityPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
+  const hand = p.hand.occupations.map(id=>row(id,'occupation')).join('') + p.hand.improvements.map(id=>row(id,'minor')).join('');
+  const played = p.played.occupations.map(id=>row(id,'occupation')).join('') + p.played.improvements.map(id=>row(id,'minor')).join('') + p.majors.map(id=>row(id,'major')).join('');
+  const handCount = p.hand.occupations.length + p.hand.improvements.length;
+  const playedCount = p.played.occupations.length + p.played.improvements.length + p.majors.length;
+  return `<section class="panel cards-panel hand-rack"><div class="panel-head"><div><p class="eyebrow">IN YOUR HAND</p><h2>你的手牌 <small>${handCount}</small></h2></div><span class="head-note">职业 ${p.hand.occupations.length} · 次要发展 ${p.hand.improvements.length} · 点击牌名查看</span></div><div class="hand-grid">${hand || '<p class="rack-empty">手牌已全部打出。</p>'}</div></section><section class="panel cards-panel played-rack"><div class="panel-head"><div><p class="eyebrow">ON YOUR TABLE</p><h2>已打出的牌 <small>${playedCount}</small></h2></div><span class="head-note">职业 · 次要发展 · 主要发展</span></div><div class="hand-grid">${played || '<p class="rack-empty">打出的职业与发展卡会摆在这里。</p>'}</div>${automaticAbilityPanel(p)}${activeMinorPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
 }
 function activeMinorPanel(p) {
   if(!automaticEnabled())return '';
@@ -966,8 +967,12 @@ function activeMinorPanel(p) {
   }).join('')}</div>`;
 }
 function majorPanel() {
-  const cards = MAJORS.map(card => `<article class="hand-card farm-card fc-major ${game.majorSupply.includes(card.id) ? '' : 'major-taken'}">${cardFace(card,'major',{link:true})}${game.majorSupply.includes(card.id)?'':'<span class="fc-owned">已建造</span>'}</article>`).join('');
-  return `<section class="panel cards-panel major-panel"><div class="panel-head"><div><p class="eyebrow">MAJOR IMPROVEMENTS</p><h2>主要发展</h2></div><span class="head-note">公共牌，每张只能建造一次</span></div><div class="hand-grid">${cards}</div></section>`;
+  const cards = MAJORS.map(card => {
+    const owner=game.players.find(p=>p.majors.includes(card.id));
+    const available=game.majorSupply.includes(card.id);
+    return `<button class="major-supply-card ${available?'':'major-taken'}" data-card-detail="${card.id}" aria-label="${escapeHTML(card.name)}，${escapeHTML(cardCost(card))}，${available?'可建造':`已建造${owner?' · '+escapeHTML(owner.name):''}`}" title="${escapeHTML(majorEffectText(card))}">${cardArtwork(card,'major')}<span class="supply-name">${escapeHTML(card.name)}</span><span class="supply-cost">${escapeHTML(cardCost(card))}</span>${available?'':`<span class="supply-owner">${owner?escapeHTML(owner.name):'已建造'}</span>`}</button>`;
+  }).join('');
+  return `<section class="panel cards-panel major-panel"><div class="panel-head"><div><p class="eyebrow">SHARED SUPPLY</p><h2>主要发展</h2></div><span class="head-note">公共供应 · 点击查看完整效果</span></div><div class="major-supply-grid">${cards}</div></section>`;
 }
 function alienPanel() {
   const me = game.players[meIndex()];
@@ -1180,21 +1185,23 @@ function render() {
   const track = Array.from({ length: 14 }, (_, i) => `<i class="${i + 1 < game.round ? 'past' : i + 1 === game.round ? 'now' : ''}" title="第 ${i + 1} 轮"></i>`).join('');
   const resources = game.settings.moor ? RESOURCES : RESOURCES.slice(0, 10);
   const actions = availableActions();
-  const currentActions = actions.filter(a => a.unlock <= game.round);
-  const laterActions = actions.filter(a => a.unlock > game.round);
-  const basicActions = currentActions.filter(a => !EXTRA_ACTIONS.some(x=>x.id===a.id)&&!ALIEN_ACTIONS.some(x=>x.id===a.id)&&!SEASON_ACTIONS.some(x=>x.id===a.id)&&!a.rulePublic&&a.owner===undefined);
-  const expansionActions = currentActions.filter(a => EXTRA_ACTIONS.some(x=>x.id===a.id)||a.rulePublic||a.owner!==undefined);
-  const alienActions = currentActions.filter(a => ALIEN_ACTIONS.some(x=>x.id===a.id));
+  const isExpansion = a => EXTRA_ACTIONS.some(x=>x.id===a.id)||a.rulePublic||a.owner!==undefined;
+  const coreActions = actions.filter(a=>!isExpansion(a)&&!ALIEN_ACTIONS.some(x=>x.id===a.id)&&!SEASON_ACTIONS.some(x=>x.id===a.id));
+  const basicActions = coreActions.filter(a=>a.unlock<=1);
+  const roundActions = coreActions.filter(a=>a.unlock>1).sort((a,b)=>a.unlock-b.unlock);
+  const expansionActions = actions.filter(isExpansion);
+  const alienActions = actions.filter(a=>ALIEN_ACTIONS.some(x=>x.id===a.id));
   const seasonAction = game.settings.seasons ? SEASON_ACTIONS[(game.round - 1) % 4] : null;
-  const seasonSection = seasonAction ? `<div class="action-section season-section"><div class="section-title"><h3>${SEASONS[(game.round - 1) % 4].icon} ${seasonName()}季行动</h3><span>${SEASONS[(game.round - 1) % 4].note}</span></div><div class="action-list">${actionCard(seasonAction)}</div></div>` : '';
-  const alienSection = game.settings.aliens ? `<div class="action-section alien-section"><div class="section-title"><h3>🛸 外星行动</h3><span>采石场翻牌后开放</span></div><div class="action-list">${alienActions.map(actionCard).join('') || '<p class="empty-actions">尚无已翻开的外星行动卡</p>'}</div></div>` : '';
-  const specialSection = game.settings.moor ? `<div class="action-section special-section"><div class="section-title"><h3>沼泽特殊行动</h3><span>不占用家人 · 每项最多使用 2 次</span></div><div class="action-list special-list">${SPECIALS.filter(a => !a.cards || game.settings.cards).map(specialCard).join('')}</div></div>` : '';
-  const expansionSection = expansionActions.length ? `<div class="action-section expansion-section"><div class="section-title"><h3>扩展行动</h3><span>${game.players.length} 人局 · 职业与设施</span></div><div class="action-list">${expansionActions.map(actionCard).join('')}</div></div>` : '';
-  const laterSection = laterActions.length ? `<details class="later-actions"><summary>之后解锁的行动 <span>${laterActions.length} 项</span></summary><div class="action-list">${laterActions.map(actionCard).join('')}</div></details>` : '';
-  const actionNav = game.settings.moor || game.settings.aliens || expansionActions.length || seasonAction ? `<nav class="action-nav" aria-label="行动分类">${seasonAction ? '<button data-jump="season">四季</button>' : ''}${game.settings.aliens ? '<button data-jump="alien">外星</button>' : ''}${game.settings.moor ? '<button data-jump="special">沼泽特殊</button>' : ''}<button data-jump="basic">基础行动</button>${expansionActions.length ? '<button data-jump="expansion">扩展行动</button>' : ''}</nav>` : '';
-  const actionsPanel = `<section class="panel actions-panel"><div class="panel-head"><div><p class="eyebrow">WORKER PLACEMENT</p><h2>今日可做的事</h2></div><span class="head-note">每人每轮行动 1 次</span></div>${actionNav}${seasonSection}${alienSection}${specialSection}<div class="action-section basic-section"><div class="section-title"><h3>基础行动</h3><span>使用家人派工</span></div><div class="action-list">${basicActions.map(actionCard).join('')}</div></div>${expansionSection}${laterSection}</section>`;
-  const categories = ['basic', ...(seasonAction ? ['season'] : []), ...(game.settings.aliens ? ['alien'] : []), ...(game.settings.moor ? ['special'] : []), ...(expansionActions.length ? ['expansion'] : [])];
-  if (!categories.includes(ui.actionCategory)) ui.actionCategory = 'basic';
+  const section = (key,title,note,cards) => `<section class="action-section ${key}-section"><div class="section-title"><h3>${title}</h3><span>${note}</span></div><div class="action-list">${cards}</div></section>`;
+  const seasonSection = seasonAction ? section('season',`${SEASONS[(game.round-1)%4].icon} ${seasonName()}季`,SEASONS[(game.round-1)%4].note,actionCard(seasonAction)) : '';
+  const alienSection = game.settings.aliens && alienActions.length ? section('alien','外星行动','采石场翻牌后开放',alienActions.map(actionCard).join('')||'<p class="empty-actions">尚未翻开行动卡</p>') : '';
+  const specialSection = game.settings.moor ? section('special','沼泽特殊行动','不占家人 · 每项最多 2 次',SPECIALS.filter(a=>!a.cards||game.settings.cards).map(specialCard).join('')) : '';
+  const expansionSection = expansionActions.length ? section('expansion','扩展行动',`${game.players.length} 人局 · 职业与设施`,expansionActions.map(actionCard).join('')) : '';
+  const categories = ['basic',...(roundActions.length?['round']:[]),...(expansionActions.length?['expansion']:[]),...(game.settings.moor?['special']:[]),...(seasonAction?['season']:[]),...(alienActions.length?['alien']:[])];
+  if(!categories.includes(ui.actionCategory))ui.actionCategory='basic';
+  const labels={basic:'基础',round:'轮次',expansion:'扩展',special:'沼泽',season:'四季',alien:'外星'};
+  const actionNav=`<nav class="action-nav" aria-label="行动分类">${categories.map(k=>`<button data-jump="${k}">${labels[k]}</button>`).join('')}</nav>`;
+  const actionsPanel = `<section class="panel actions-panel"><div class="panel-head"><div><p class="eyebrow">THE ACTION BOARD</p><h2>公共行动版图</h2></div><span class="head-note">${actions.filter(a=>a.unlock<=game.round).length} 项已开放 · 棋子标记占用</span></div>${actionNav}<div class="action-boards"><div class="action-board core-board">${section('basic','基础行动','每个家人占用一个行动格',basicActions.map(actionCard).join(''))}</div>${roundActions.length?`<div class="action-board round-board">${section('round','轮次行动','按轮次逐步开放',roundActions.map(actionCard).join(''))}</div>`:''}${expansionSection?`<div class="action-board extension-board">${expansionSection}</div>`:''}</div>${specialSection||seasonSection||alienSection?`<div class="auxiliary-boards">${specialSection}${seasonSection}${alienSection}</div>`:''}</section>`;
   const pickingCell = !!ui.mode && !ui.mode.choice;
   if (ui.mobileTab === 'cards' && !game.settings.cards && !game.settings.aliens) ui.mobileTab = 'actions';
   const mobileTab = pickingCell ? 'farm' : ui.mobileTab;
@@ -1205,7 +1212,7 @@ function render() {
   const resourceTray = `<section class="resource-tray"><div class="tray-heading"><span>资源收纳盒</span><small>剩余派工 ${Math.max(0, game.workerQuota[meIndex()] - game.usedCount[meIndex()])} / ${game.workerQuota[meIndex()]}</small></div><div class="summary-strip ${game.settings.moor ? 'expanded' : ''}">${resources.map(r => resCard(r, me)).join('')}</div>${game.settings.moor ? `<div class="expansion-line"><button data-convert="woodFuel" ${me.wood && game.phase === 'play' && canControl() ? '' : 'disabled'}>1 木材 → 1 燃料</button></div>` : ''}</section>`;
   const scorePanel = `<section class="panel info-box tabletop-score"><h3>计分与收获</h3>${scores}<div class="score-row"><span>下次收获</span><b>${nextHarvest ? `第 ${nextHarvest} 轮` : '已结束'}</b></div><div class="score-row"><span>当前先手</span><b>${game.players[game.startPlayer].name}</b></div></section>`;
   const logPanel = `<section class="panel info-box tabletop-log"><h3>农场日志</h3><div class="log-list">${game.logs.slice(0, 6).map(item => `<div class="log-line"><time>第 ${item.round} 轮</time><span>${escapeHTML(item.message)}</span></div>`).join('')}</div></section>`;
-  app.innerHTML = `<div class="shell tabletop-shell" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
+  app.innerHTML = `<div class="shell tabletop-shell board-overview" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
 }
 function toast(message) {
   ui.toast = message; clearTimeout(ui.toastTimer); render();
@@ -1268,7 +1275,7 @@ app.addEventListener('click', event => {
   if (d.mobileTab && ['actions', 'farm', 'cards', 'overview'].includes(d.mobileTab)) { ui.mobileTab = d.mobileTab; render(); window.scrollTo({ top: 0, behavior: 'instant' }); }
   else if (d.action) beginAction(availableActions().find(a => a.id === d.action));
   else if (d.special) beginAction({ ...SPECIALS.find(a => a.id === d.special), special: true });
-  else if (['season', 'alien', 'special', 'basic', 'expansion'].includes(d.jump)) {
+  else if (['season', 'alien', 'special', 'basic', 'round', 'expansion'].includes(d.jump)) {
     if (window.matchMedia('(max-width: 700px)').matches) { ui.actionCategory = d.jump; render(); }
     document.querySelector(`.${d.jump}-section`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
