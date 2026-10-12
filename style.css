@@ -470,3 +470,73 @@ body.cover-active{background:#edf0f3!important;overflow:hidden}body.cover-active
   .board-overview .table-actions .action-icon{font-size:15px;line-height:17px}
   .board-overview .table-actions .auxiliary-boards .special-section .action-list{grid-template-columns:repeat(7,minmax(0,1fr))}
 }
+
+/* Personal farm board: illustrated terrain and wooden pieces. */
+.board-overview .estate-panel{border:2px solid #8c8259;background:#e8e2c9;overflow:hidden}
+.board-overview .estate-panel>.panel-head{background:#eee7d0;padding:14px 18px;border-bottom:1px solid #c6bd9b}
+.board-overview .estate-panel>.panel-head h2{font-size:21px}
+.board-overview .estate-panel .farm-wrap{display:block;padding:0 18px 18px}
+.board-overview .estate-panel .farm-banner{display:block;background:none;border:0;border-radius:0;padding:10px 0;margin:0;box-shadow:none}
+.board-overview .estate-panel .view-switch{margin:0;max-width:none;justify-content:flex-start;gap:5px;flex-wrap:wrap}
+.board-overview .estate-panel .view-switch button{border:1px solid transparent;background:transparent;border-radius:4px;font-size:12px;padding:7px 12px;color:#6d6d52;min-height:32px}
+.board-overview .estate-panel .view-switch button.active{background:#5a704b;color:#fff5da;border-color:#4b603f;box-shadow:0 2px 0 #3c503333}
+.estate-layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:20px;align-items:start}
+.estate-map{min-width:0}
+.board-overview .estate-panel .farm-field{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:10px;border:1px solid #9f9d76;border-radius:5px;background:#c6c9a0;box-shadow:inset 0 0 0 4px #e4dec1,0 3px 0 #999774;scroll-margin-top:20px;margin:0}
+.board-overview .estate-panel .farm-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1.18;min-height:0;padding:0 0 6px;border:1px solid #a4b080;border-radius:3px;background:#b7c69b;box-shadow:inset 0 1px #e1e7c16b,0 1px 2px #5e684024;opacity:1;overflow:hidden;cursor:default;color:#49533c;transition:box-shadow .16s,transform .16s}
+.board-overview .estate-panel .farm-cell.empty{background:radial-gradient(ellipse at 45% 35%,#cbd6af,#b6c699)}
+.board-overview .estate-panel .farm-cell.house{background:#d5c5a0;border-color:#b4a17b}
+.board-overview .estate-panel .farm-cell.field{background:#c4b18a;border-color:#a4946b}
+.board-overview .estate-panel .farm-cell.forest{background:#a6bb8c;border-color:#91a576}
+.board-overview .estate-panel .farm-cell.moor{background:#bbb99a;border-color:#a7a383}
+.board-overview .estate-panel .farm-cell.pasture{background:#c3cf9e;border-color:#adba8b}
+.board-overview .estate-panel .farm-cell.circle{background:#d2cf9e;border-color:#bcb879}
+.farm-tile-art{display:block;width:83%;height:calc(100% - 18px);flex:1;min-height:0;filter:drop-shadow(0 2px 1px #605a2520);pointer-events:none}
+.board-overview .estate-panel .cell-label{position:relative;font:600 11px/1.3 'PingFang SC',sans-serif;letter-spacing:.04em;color:#4c543d;text-shadow:none;flex-shrink:0}
+.board-overview .estate-panel .empty .cell-label{font-weight:400;color:#7a8864}
+.plot-number{position:absolute;left:5px;top:5px;font:10px/1 ui-monospace,monospace;color:#687752;opacity:.7}
+.board-overview .estate-panel .cell-qty{position:absolute;right:5px;top:5px;bottom:auto;min-width:23px;height:23px;border-radius:50%;display:grid;place-items:center;font:700 13px/1 Georgia,serif;background:#fff0c5;color:#78552b;border:1px solid #a98d54;box-shadow:0 2px 2px #70573122}
+.stable-mark{position:absolute;right:5px;bottom:5px;background:#795c3b;color:#fff0c5;border-radius:3px;font-size:10px;padding:2px 4px}
+.board-overview .estate-panel .farm-cell.selectable{cursor:pointer;background:#e1dda9;outline:3px solid #bc873b;outline-offset:-3px;animation:none;box-shadow:inset 0 0 0 5px #fff5c899}
+.board-overview .estate-panel .farm-cell.selectable:hover{transform:translateY(-2px);background:#eee7b6;box-shadow:0 4px 6px #5e543333,inset 0 0 0 5px #fff5c899}
+.board-overview .estate-panel .farm-cell.selectable:focus-visible{outline:3px solid #795019;outline-offset:-3px}
+.board-overview .estate-panel .farm-footer{font-size:12px;color:#727456;padding:12px 0 0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-weight:400}
+.board-overview .estate-panel .farm-footer strong{color:#45573b}
+.estate-ledger{padding:12px 0 0;min-width:0}
+.estate-ledger-title{font:600 16px/1.4 'Songti SC',serif;color:#565841;border-bottom:1px solid #c7c2a4;padding-bottom:9px}
+.board-overview .estate-panel .mini-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0}
+.board-overview .estate-panel .mini-stat{border:0;border-radius:0;background:transparent;text-align:left;padding:14px 5px 10px 0;color:#858369;font-size:11px}
+.board-overview .estate-panel .mini-stat b{font-size:23px;font-family:Georgia,'Songti SC',serif;font-weight:500;color:#4c6141;margin:0 0 4px;line-height:1.2}
+.estate-herd{border-top:1px solid #c7c2a4;margin-top:9px;padding-top:13px}.estate-herd h3{font-size:12px;font-weight:600;margin:0 0 9px;color:#676b50}
+.estate-herd>div{display:flex;gap:5px;flex-wrap:wrap}.estate-herd span{display:flex;gap:12px;align-items:center;border:1px solid #c3bfa0;background:#f0ecd7;border-radius:3px;padding:6px 8px;font-size:11px;color:#777156}.estate-herd b{font:600 16px/1 Georgia,serif;color:#495a3c}.estate-herd p{font-size:10px;color:#858268;line-height:1.5;margin:9px 0}
+.board-overview .estate-panel .farm-tip{background:#dad9b9;border:0;border-left:3px solid #8b976c;border-radius:0;padding:11px 12px;margin:16px 0 0;color:#5b624a;font-size:12px;line-height:1.7}
+.board-overview .estate-panel .farm-tip.pick{border-color:#b58030;background:#f1e4b8;color:#755b2f}
+.estate-sick{font-size:12px;color:#926149}
+@media(min-width:701px){
+  .board-overview .tabletop-layout{grid-template-columns:minmax(0,1fr) 160px;grid-template-areas:'actions side' 'farm side' 'major major' 'hand hand'}
+}
+@media(min-width:701px) and (max-width:1150px){
+  .board-overview .tabletop-layout{grid-template-columns:minmax(0,1fr) 160px;grid-template-areas:'actions actions' 'farm side' 'major major' 'hand hand'}
+  .estate-layout{grid-template-columns:minmax(0,1fr) 170px;gap:14px}
+}
+@media(max-width:900px){
+  .estate-layout{grid-template-columns:1fr;gap:12px}
+  .estate-ledger{padding-top:0}.estate-ledger-title{display:none}
+  .board-overview .estate-panel .mini-stats{grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid #c7c2a4}
+  .board-overview .estate-panel .mini-stat b{font-size:20px}
+  .estate-herd{margin:4px 0;padding-top:10px}.estate-herd h3{display:inline-block;margin-right:12px}.estate-herd>div{display:inline-flex}.estate-herd p{margin:6px 0 0}
+}
+@media(max-width:700px){
+  .board-overview .estate-panel>.panel-head{padding:12px}.board-overview .estate-panel>.panel-head h2{font-size:19px}
+  .board-overview .estate-panel .farm-wrap{padding:0 10px 12px}
+  .board-overview .estate-panel .view-switch button{font-size:11px;padding:7px 9px;min-height:40px}
+  .board-overview .estate-panel .farm-field{padding:6px;gap:3px;scroll-margin-top:116px}
+  .board-overview .estate-panel .farm-cell{aspect-ratio:.86;min-height:48px;padding-bottom:5px}
+  .board-overview .estate-panel .cell-label{font-size:10px}.plot-number{font-size:8px;top:4px;left:4px}
+  .board-overview .estate-panel .cell-qty{font-size:11px;min-width:18px;height:18px;right:3px;top:3px}
+  .board-overview .estate-panel .farm-footer{font-size:10px;padding-top:9px}
+  .board-overview .estate-panel .farm-tip{margin-top:10px;font-size:12px}
+  .farm-tile-art{width:96%}.stable-mark{font-size:8px;right:2px;bottom:3px;padding:1px 3px}
+}
+.board-overview .estate-panel .estate-pick-hint{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:8px 12px}
+.board-overview .estate-panel .estate-pick-hint .cancel-pick{flex-shrink:0;min-height:36px;font-size:12px}

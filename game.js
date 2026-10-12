@@ -847,23 +847,43 @@ function specialCard(special) {
   const cost = used.length ? ' · 再用付 2 食物' : ' · 不占用家人';
   return `<button class="action-card special-card ${used.length >= 2 ? 'used' : ''}" data-special="${special.id}" ${disabled ? 'disabled' : ''}><span class="action-icon">${special.icon}</span><span class="action-title">${special.name}</span><span class="action-detail">${special.detail}${cost}</span></button>`;
 }
-function cellContent(cell) {
-  if (cell.type === 'house') return `<span class="cell-icon">🏠</span><span class="cell-label">住房</span>`;
-  if (cell.type === 'field') return `<span class="cell-icon">${cell.crop === 'veg' ? '🥕' : cell.crop === 'grain' ? '🌾' : '☷'}</span><span class="cell-label">${cell.crop === 'veg' ? '蔬菜' : cell.crop === 'grain' ? '谷物' : '空田'}</span>${cell.qty ? `<span class="cell-qty">${cell.qty}</span>` : ''}`;
-  if (cell.type === 'pasture') return `<span class="cell-icon">${{ sheep: '🐑', boar: '🐗', cattle: '🐄', horse: '🐎' }[cell.animal]}</span><span class="cell-label">${ANIMALS[cell.animal]}牧场</span>`;
-  if (cell.type === 'forest') return `<span class="cell-icon">🌲</span><span class="cell-label">森林</span>`;
-  if (cell.type === 'moor') return `<span class="cell-icon">🟫</span><span class="cell-label">泥沼</span>`;
-  if (cell.type === 'circle') return `<span class="cell-icon">🛸</span><span class="cell-label">怪圈</span>`;
-  return `<span class="cell-icon">·</span><span class="cell-label">空地</span>`;
+function farmTileArtwork(cell, material='wood') {
+  const grass='<path d="M12 78l3-7 3 7m65-46 3-6 3 6M71 85l3-6 3 6M21 26l2-5 3 5" fill="none" stroke="#83945d" stroke-width="1.6" stroke-linecap="round"/>';
+  const tree=(x,y,k=1)=>`<g transform="translate(${x} ${y}) scale(${k})"><ellipse cy="23" rx="15" ry="5" fill="#263e2424"/><path d="M-2 5h5v20h-5z" fill="#7c5736"/><path d="M0-28L-16 1h8l-13 17h42L8 1h8z" fill="#446547" stroke="#344e36" stroke-width="1.2"/><path d="M0-25L-10-1h9l-11 15H0z" fill="#67815a"/></g>`;
+  const house=(small=false)=>`<g${small?' transform="translate(53 37) scale(.43)"':''}><ellipse cx="50" cy="80" rx="33" ry="7" fill="#473f2924"/><path d="M22 44l28-22 29 22v32H22z" fill="${material==='stone'?'#c2c2b0':material==='clay'?'#ca9170':'#d9b681'}" stroke="#725737" stroke-width="1.7"/><path d="M50 22l29 22v32H50z" fill="${material==='stone'?'#9fa79c':material==='clay'?'#b77b5c':'#bb935f'}"/><path d="M15 45l34-28 37 27-8 5-29-23-28 24z" fill="#985b42" stroke="#734831" stroke-width="1.7"/><path d="M23 40l26-21 29 23M31 36l17-14" fill="none" stroke="#c1885c" stroke-width="2"/><path d="M62 25V13h8v19" fill="#ac8560" stroke="#725737" stroke-width="1.5"/><path d="M35 76V55h12v21" fill="#705537"/><path d="M58 50h12v12H58z" fill="#f6dfa3" stroke="#725737" stroke-width="2"/><path d="M64 50v12M58 56h12" stroke="#9b7549"/><path d="M26 76h49" stroke="#f4dfaa" stroke-width="2"/></g>`;
+  const animal=cell.animal==='sheep'?'<path d="M32 51l-1 15m21-15 1 15" stroke="#615943" stroke-width="4"/><path d="M27 43c-5-12 8-17 13-11 7-9 21-1 17 6 12 3 8 18-4 17H33c-11 0-16-8-6-12" fill="#f7efd8" stroke="#8f9471" stroke-width="1.5"/><ellipse cx="61" cy="41" rx="8" ry="10" fill="#655c4a"/>':cell.animal==='cattle'?'<path d="M28 53v15m30-15v15" stroke="#665541" stroke-width="5"/><path d="M23 36h37v23H23z" fill="#ede4c7" stroke="#6f6249" stroke-width="1.5"/><path d="M24 37h12v13H24zm21 10h13v12H45" fill="#836244"/><path d="M58 33h17v24H58z" fill="#e6d5b0" stroke="#6f6249"/><path d="M59 35l-5-7m19 7 5-7" stroke="#b6a77e" stroke-width="3"/>':cell.animal==='horse'?'<path d="M29 53v16m26-16 2 16M23 40l-8 16" stroke="#70513b" stroke-width="4"/><path d="M25 35h29l7-14 12 9-7 15v12H25z" fill="#a17851" stroke="#73563b" stroke-width="1.5"/><path d="M55 35l5-13" stroke="#594334" stroke-width="4"/>':'<path d="M30 53v14m26-14v14" stroke="#73563e" stroke-width="4"/><ellipse cx="43" cy="43" rx="23" ry="16" fill="#b08a66" stroke="#785c42" stroke-width="1.5"/><path d="M55 35l7-13 5 13" fill="#987151"/><ellipse cx="65" cy="45" rx="12" ry="9" fill="#cba285"/><circle cx="66" cy="39" r="1.5" fill="#443b2d"/>';
+  let art=grass;
+  if(cell.type==='house')art+=house();
+  if(cell.type==='forest')art=tree(30,43,.8)+tree(67,46,.95)+tree(46,61,1);
+  if(cell.type==='field'){
+    art='<path d="M15 28h70v50H15z" fill="#98744e" stroke="#7c6142" stroke-width="1.5"/>'+[35,46,57,68].map(y=>`<path d="M19 ${y}h62" stroke="#c3a177" stroke-width="4"/><path d="M19 ${y+3}h62" stroke="#775d42" stroke-width="2"/>`).join('');
+    if(cell.crop==='grain')art += [28,49,70].map((x,i)=>`<g transform="translate(${x} ${i%2?8:0})"><path d="M0 58V28" stroke="#d8b459" stroke-width="2"/><path d="M0 48C-12 43-10 38 0 43c10-5 12-10 0-6-12-5-10-10 0-5 10-5 10-11 0-6" fill="#edcf78" stroke="#9b813f" stroke-width="1"/></g>`).join('');
+    if(cell.crop==='veg')art += [29,51,73].map((x,i)=>`<g transform="translate(${x} ${i%2?60:43})"><ellipse rx="10" ry="8" fill="#638454" stroke="#456c42"/><path d="M0 6C-13-7 0-12 0 0c3-15 14-7 0 6" fill="#a1b47a" stroke="#537347" stroke-width="1"/></g>`).join('');
+  }
+  if(cell.type==='pasture')art+=animal+'<g fill="none" stroke="#9f794d" stroke-width="3" stroke-linejoin="round"><path d="M12 31v42m76-42v42M12 37h15m47 0h14M12 67h76M20 60v17m20-17v17m20-17v17m20-17v17"/><path d="M14 64h72" stroke="#e6cf97" stroke-width="2"/></g>';
+  if(cell.type==='moor')art='<ellipse cx="50" cy="61" rx="36" ry="19" fill="#8a7b5b"/><ellipse cx="50" cy="58" rx="31" ry="13" fill="#839693"/><path d="M30 59h23m-12 7h26" stroke="#b3c2ad" stroke-width="2"/><path d="M22 60V29m6 31V38m46 22V33m6 30V27" stroke="#7b754b" stroke-width="2"/><path d="M22 30v-8m6 17v-7m46 2v-8m6 2v-8" stroke="#756044" stroke-width="4" stroke-linecap="round"/>';
+  if(cell.type==='circle')art=grass+'<g fill="none" stroke="#bda763" stroke-width="4"><ellipse cx="50" cy="53" rx="34" ry="21"/><ellipse cx="50" cy="53" rx="22" ry="13"/><circle cx="50" cy="53" r="4"/></g>';
+  if(cell.stable)art+=house(true);
+  return `<svg class="farm-tile-art" viewBox="0 0 100 100" aria-hidden="true">${art}</svg>`;
+}
+function farmCellLabel(cell) {
+  return {house:'住房',forest:'森林',moor:'泥沼',circle:'怪圈',empty:'空地'}[cell.type] || (cell.type==='field' ? cell.crop==='grain'?'谷物田':cell.crop==='veg'?'蔬菜田':'空田' : `${ANIMALS[cell.animal]||''}牧场`);
+}
+function cellContent(cell, material='wood') {
+  return `${farmTileArtwork(cell,material)}<span class="cell-label">${farmCellLabel(cell)}</span>${cell.type==='field'&&cell.qty?`<span class="cell-qty" title="田里剩余 ${cell.qty} 份作物">${cell.qty}</span>`:''}${cell.stable?'<span class="stable-mark">厩</span>':''}`;
 }
 function farmPanel() {
   const p = game.players[ui.view];
   const selectable = ui.view === meIndex() && !ui.mode?.choice ? selectedCells(p, ui.mode) : [];
   const action = ui.mode ? (ui.mode.special ? SPECIALS : availableActions()).find(a => a.id === ui.mode.id) : null;
-  const prompt = action ? `请选择一块可用地块完成「${action.name}」。` : '点击行动卡派工；每个普通行动格每轮只能被占用一次。';
-  const cells = p.farm.map((cell, i) => `<button class="farm-cell ${cell.type} ${selectable.includes(i) ? 'selectable' : ''}" data-cell="${i}" ${selectable.includes(i) ? '' : 'disabled'} aria-label="第 ${i + 1} 格，${cell.type === 'empty' ? '空地' : cell.type === 'forest' ? '森林' : cell.type === 'moor' ? '泥沼' : cell.type === 'circle' ? '怪圈' : cell.type === 'house' ? '住房' : cell.type === 'field' ? cell.crop === 'grain' ? '谷物田' : cell.crop === 'veg' ? '蔬菜田' : '空田' : ANIMALS[cell.animal] + '牧场'}">${cellContent(cell)}</button>`).join('');
-  const views = game.players.map((person, i) => `<button data-view="${i}" class="${ui.view === i ? 'active' : ''}">${i === meIndex() ? '我的' : escapeHTML(person.name)}</button>`).join('');
-  return `<section class="panel farm-panel"><div class="panel-head"><div><p class="eyebrow">HOMESTEAD</p><h2>农场地块</h2></div><span class="head-note">5 × 3 · 共 15 格</span></div><div class="farm-wrap"><div class="farm-banner"><div class="farm-player ${ui.view !== meIndex() ? 'ai' : ''}"><i class="dot"></i>${p.name}</div><div class="view-switch" aria-label="切换农场">${views}</div></div><div class="farm-field">${cells}</div><div class="farm-footer"><span>空地 <strong>${farmCount(p, 'empty')}</strong> · 田地 <strong>${farmCount(p, 'field')}</strong> · 牧场 <strong>${farmCount(p, 'pasture')}</strong></span><span>住房 <strong>${farmCount(p, 'house')}</strong> / 家人 <strong>${p.family}</strong></span></div><div class="farm-tip ${ui.mode ? 'pick' : ''}">${prompt}${ui.mode ? ' <button class="cancel-pick" data-cancel="1">取消</button>' : ''}</div><div class="mini-stats"><div class="mini-stat"><b>${game.workerQuota[ui.view] - game.usedCount[ui.view]}</b>本轮剩余派工</div><div class="mini-stat"><b>${p.sick ? `${p.sick} 人` : p.hearth ? '已建成' : '未建造'}</b>${p.sick ? '卧床病人' : '灶台'}</div><div class="mini-stat"><b>${p.begging}</b>乞讨标记</div><div class="mini-stat"><b>${score(p).total}</b>当前分数</div></div></div></section>`;
+  const prompt = action ? `选择亮起的地块，完成「${action.name}」。` : '先选择上方行动，再到农场放置田地、房屋或牧场。';
+  const cells = p.farm.map((cell,i)=>{
+    const label=`第 ${i+1} 格，${farmCellLabel(cell)}${cell.qty?`，剩余 ${cell.qty} 份作物`:''}${cell.stable?'，有马厩':''}`;
+    return `<button class="farm-cell ${cell.type} ${selectable.includes(i)?'selectable':''}" data-cell="${i}" ${selectable.includes(i)?'':'disabled'} aria-label="${label}" title="${label}"><span class="plot-number">${String(i+1).padStart(2,'0')}</span>${cellContent(cell,p.houseMaterial)}</button>`;
+  }).join('');
+  const views = game.players.map((person,i)=>`<button data-view="${i}" class="${ui.view===i?'active':''}" aria-pressed="${ui.view===i}">${i===meIndex()?'我的农场':escapeHTML(person.name)}</button>`).join('');
+  const livestock=Object.entries(ANIMALS).filter(([key])=>key!=='horse'||game.settings.moor).map(([key,name])=>`<span>${name}<b>${p[key]||0}</b></span>`).join('');
+  return `<section class="panel farm-panel estate-panel"><div class="panel-head"><div><p class="eyebrow">YOUR HOMESTEAD</p><h2>${escapeHTML(p.name)}</h2></div><span class="head-note">个人农场 · 15 块土地</span></div><div class="farm-wrap"><div class="farm-banner"><div class="view-switch" aria-label="切换农场">${views}</div></div>${action?`<div class="farm-tip pick estate-pick-hint" role="status">${prompt} <button class="cancel-pick" data-cancel="1">取消选地</button></div>`:''}<div class="estate-layout"><div class="estate-map"><div class="farm-field" aria-label="农场版图，5 列 3 行">${cells}</div><div class="farm-footer"><span>空地 <strong>${farmCount(p,'empty')}</strong> · 田地 <strong>${farmCount(p,'field')}</strong> · 牧场 <strong>${farmCount(p,'pasture')}</strong></span><span>住房 <strong>${farmCount(p,'house')}</strong> / 家人 <strong>${p.family}</strong></span></div></div><aside class="estate-ledger"><div class="estate-ledger-title">农场概况</div><div class="mini-stats"><div class="mini-stat"><b>${Math.max(0,game.workerQuota[ui.view]-game.usedCount[ui.view])}</b>剩余派工</div><div class="mini-stat"><b>${{wood:'木屋',clay:'土屋',stone:'石屋'}[p.houseMaterial]||'木屋'}</b>住房材质</div><div class="mini-stat"><b>${p.begging}</b>乞讨标记</div><div class="mini-stat"><b>${score(p).total}</b>当前分数</div></div><div class="estate-herd"><h3>牲畜存栏</h3><div>${livestock}</div><p>格内动物图案表示牧场种类</p></div>${p.sick?`<p class="estate-sick">卧床家人 ${p.sick} 人</p>`:''}${action?'':`<div class="farm-tip">${prompt}</div>`}</aside></div></div></section>`;
 }
 function cardCost(card) {
   if (card.original) return card.costLabel;
@@ -1227,7 +1247,7 @@ function scrollToSectionOnMobile(selector) {
     const target = document.querySelector(selector);
     if (!target) return;
     const rect = target.getBoundingClientRect();
-    if (window.matchMedia('(max-width: 900px)').matches || (selector === '.farm-field' && (rect.top < 0 || rect.bottom > window.innerHeight))) {
+    if (window.matchMedia('(max-width: 900px)').matches || (rect.top < 0 || rect.bottom > window.innerHeight)) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
