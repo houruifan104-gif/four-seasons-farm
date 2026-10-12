@@ -59,7 +59,7 @@ const EXTRA_ACTIONS = [
   { id: 'resourceTrade', name: '资源交易', icon: '⚖', detail: '得 1 食物、任选 2 建材', unlock: 1, kind: 'choice', minPlayers: 6 },
   { id: 'corral', name: '畜栏', icon: '🐑', detail: '得缺少的第一种牲畜', unlock: 1, kind: 'simple', minPlayers: 6 },
   { id: 'farmSupplies', name: '农具补给', icon: '🧰', detail: '花 1 食物开田或买谷种', unlock: 1, kind: 'choice', minPlayers: 6 },
-  { id: 'sideJob', name: '副业', icon: '🔨', detail: '花 1 木材建 1 座牲畜棚', unlock: 1, kind: 'choice', minPlayers: 6 },
+  { id: 'sideJob', name: '副业', icon: '🔨', detail: '花 1 木材建 1 座牲畜棚', unlock: 1, kind: 'simple', minPlayers: 6 },
   { id: 'minor6', name: '额外小设施', icon: '🛠', detail: '建造 1 张小设施', unlock: 1, kind: 'choice', minPlayers: 6, cards: true },
   { id: 'infirmary', name: '医务所', icon: '✚', detail: '病人必须来此，得 1 食物', unlock: 1, kind: 'simple', moor: true, repeatable: true },
   { id: 'upgradeClay', name: '黏土房', icon: '🏚', detail: '整栋房屋改用黏土', unlock: 6, kind: 'simple', moor: true },
@@ -125,7 +125,7 @@ const ALIEN_ACTIONS = [
   { id: 'alienFertilizer', card: 'X01', name: '地外肥料', icon: '🛸', detail: '所有已播田地增加 1 份作物', unlock: 1, kind: 'simple' },
   { id: 'alienRocket', card: 'X02', name: '自制太空船', icon: '🚀', detail: '花 2 木材、2 黏土、1 芦苇、1 石料，得 4 分', unlock: 1, kind: 'simple' },
   { id: 'alienTransform', card: 'X03', name: '变形装置', icon: '🧪', detail: '将一种建材全部换成另一种建材', unlock: 1, kind: 'choice' },
-  { id: 'alienStable', card: 'X04', name: '建牲畜棚', icon: '🐾', detail: '花 1 木材建棚；首位另付 2 芦苇得 2 分', unlock: 1, kind: 'choice' }
+  { id: 'alienStable', card: 'X04', name: '建牲畜棚', icon: '🐾', detail: '花 1 木材建棚；首位另付 2 芦苇得 2 分', unlock: 1, kind: 'simple' }
 ];
 const ALIEN_RULES = {
   X01: '公共行动：每块已播田增加 1 份作物。', X02: '公共行动：付 2 木材、2 黏土、1 芦苇、1 石料，得 4 分。', X03: '公共行动：把一种建材全部换成另一种。',
@@ -412,7 +412,7 @@ function canSpecial(player, special, who) {
     default: return true;
   }
 }
-function animalCapacity(player, type) { const base = 1 + (player.stables?.[type] || 0) + (hasCard(player, 'herder') ? 1 : 0) + player.farm.filter(c => c.type === 'pasture' && c.animal === type).length * (game.alienGlobal.smallAnimals ? 6 : 3); return automaticEnabled() ? autoRules.capacity(player,type,base) : base; }
+function animalCapacity(player, type) { return autoRules.capacity(player,type); }
 function addAnimals(player, type, amount) {
   const canKeep = Math.max(0, animalCapacity(player, type) - player[type]);
   const kept = Math.min(canKeep, amount);
@@ -553,8 +553,8 @@ function applyAction(who, action, option = {}, ruleContext = null) {
       player[option.crop]--;
       player.farm[option.cell] = { type: 'field', crop: option.crop, qty: (option.crop === 'grain' ? 3 : 2) + Number(automaticEnabled() && hasCard(player,'B115')) };
       detail = `播下${option.crop === 'grain' ? '谷物' : '蔬菜'}`; break;
-    case 'pasture': player.wood -= Math.max(0, 2 - Number(seasonName() === '春' || hasCard(player, 'fenceKit')) - Number(hasAlien(player, 'X11'))); player.farm[option.cell] = { type: 'pasture', animal: option.animal }; detail = `建成${ANIMALS[option.animal]}牧场${seasonName() === '春' ? '，春季围栏优惠' : ''}`; break;
-    case 'room': pay(player, roomCost(player)); player.farm[option.cell] = { type: 'house' }; if (seasonName() === '夏' && Object.values(player.stables).reduce((a, b) => a + b, 0) < 4) { const type = Object.keys(ANIMALS).filter(t => t !== 'horse' || game.settings.moor).sort((a, b) => player[b] - player[a])[0]; player.stables[type]++; } detail = `新增 1 间住房${seasonName() === '夏' ? '及免费牲畜棚' : ''}`; break;
+    case 'pasture': player.wood -= Math.max(0, 2 - Number(seasonName() === '春' || hasCard(player, 'fenceKit')) - Number(hasAlien(player, 'X11'))); player.farm[option.cell] = { ...player.farm[option.cell], type: 'pasture', animal: null }; detail = `建成牧场${seasonName() === '春' ? '，春季围栏优惠' : ''}`; break;
+    case 'room': pay(player, roomCost(player)); player.farm[option.cell] = { type: 'house' }; if (seasonName() === '夏' && Object.values(player.stables).reduce((a, b) => a + b, 0) < 4) { player.stables.generic=(player.stables.generic||0)+1; } detail = `新增 1 间住房${seasonName() === '夏' ? '及免费牲畜棚' : ''}`; break;
     case 'lessons': detail = `学会职业「${playCard(player, 'occupations', option.card, action.id)}」`; break;
     case 'major': detail = `建造主要发展「${playMajorCard(player, option.major)}」`; break;
     case 'minor': case 'minor6': detail = `建造小设施「${playCard(player, 'improvements', option.card, action.id)}」`; break;
@@ -575,8 +575,8 @@ function applyAction(who, action, option = {}, ruleContext = null) {
     case 'alienFertilizer': { let n = 0; game.players.forEach(p => p.farm.forEach(c => { if (c.type === 'field' && c.crop) { c.qty++; n++; } })); detail = `全场 ${n} 块播种田各增加 1 份作物`; break; }
     case 'alienRocket': pay(player, { wood: 2, clay: 2, reed: 1, stone: 1 }); player.alienPoints += 4; detail = '建成飞船，获得 4 分'; break;
     case 'alienTransform': { const [from, to] = option.trade.split('-'); const n = player[from]; player[from] = 0; player[to] += n; detail = `${n} ${RESOURCES.find(r => r[0] === from)[1]}变为${RESOURCES.find(r => r[0] === to)[1]}`; break; }
-    case 'alienStable': player.wood--; player.stables[option.animal]++; detail = `为${ANIMALS[option.animal]}建 1 座牲畜棚`; break;
-    case 'sideJob': player.wood--; player.stables[option.animal]++; detail = `为${ANIMALS[option.animal]}建 1 座牲畜棚`; break;
+    case 'alienStable': player.wood--; player.stables.generic=(player.stables.generic||0)+1; detail = '建成 1 座牲畜棚，可养任意一种牲畜'; break;
+    case 'sideJob': player.wood--; player.stables.generic=(player.stables.generic||0)+1; detail = '建成 1 座牲畜棚，可养任意一种牲畜'; break;
     case 'infirmary': player.food++; if (player.sick > 0) player.sick--; detail = '恢复 1 名病人，获得 1 食物'; break;
     case 'upgradeClay': pay(player, { clay: farmCount(player, 'house') * 2, reed: 1 }); player.houseMaterial = 'clay'; detail = '房屋升级为黏土'; break;
     case 'upgradeStone': pay(player, { stone: farmCount(player, 'house') * 2, reed: 1 }); player.houseMaterial = 'stone'; detail = '房屋升级为石料'; break;
@@ -699,13 +699,7 @@ function performAI() {
     option.cell = emptyFields(p)[0];
     option.crop = p.veg > 0 ? 'veg' : 'grain';
   }
-  if (action.id === 'pasture') {
-    const order = game.settings.moor ? ['sheep', 'boar', 'cattle', 'horse'] : ['sheep', 'boar', 'cattle'];
-    option.animal = order.sort((a, b) => p[b] - p[a])[0];
-    if (p[option.animal] === 0) option.animal = game.round >= 10 ? 'cattle' : game.round >= 8 ? 'boar' : 'sheep';
-  }
   if (action.id === 'animalMarket') option.animal = p.food && game.round >= 10 ? 'cattle' : 'sheep';
-  if (action.id === 'sideJob') option.animal = p.horse ? 'horse' : p.cattle ? 'cattle' : p.boar ? 'boar' : 'sheep';
   if (action.id === 'resourceTrade') option.trade = 'wood-reed';
   if (action.id === 'seasonSpring') { option.crop = emptyFields(p).length ? p.veg > 0 ? 'veg' : p.grain > 0 ? 'grain' : null : null; option.cell = option.crop ? emptyFields(p)[0] : undefined; }
   if (action.id === 'seasonSummer') { option.supply = emptyCells(p).length ? p.grain > 0 ? 'both' : 'plow' : 'sell'; option.cell = emptyCells(p)[0]; }
@@ -714,7 +708,6 @@ function performAI() {
   if (['minor', 'minor6', 'black'].includes(action.id)) option.card = playableCards(p, 'improvements')[0]?.choiceId || playableCards(p, 'improvements')[0]?.id;
   if (action.id === 'illicit') option.major = ['horseCook', 'kiln', 'lodge'].find(id => canAct(p, EXTRA_ACTIONS.find(a => a.id === id)));
   if (action.id === 'alienTransform') { const from = ['wood', 'clay', 'reed', 'stone'].sort((a, b) => p[b] - p[a])[0]; option.trade = `${from}-${from === 'stone' ? 'wood' : 'stone'}`; }
-  if (action.id === 'alienStable') option.animal = p.cattle ? 'cattle' : p.boar ? 'boar' : 'sheep';
   if(automaticEnabled())autoRules.begin(who,action,option);else applyAction(who, action, option);
 }
 function scheduleAI() {
@@ -852,12 +845,12 @@ function farmTileArtwork(cell, material='wood') {
   let image='meadow';
   if(cell.type==='house')image='house-'+(['wood','clay','stone'].includes(material)?material:'wood');
   else if(cell.type==='field')image=cell.crop==='grain'?'field-grain':cell.crop==='veg'?'field-veg':'field';
-  else if(cell.type==='pasture')image='pasture-'+(['sheep','boar','cattle','horse'].includes(cell.animal)?cell.animal:'sheep');
+  else if(cell.type==='pasture'&&cell.animal)image='pasture-'+cell.animal;
   else if(['forest','moor','circle'].includes(cell.type))image=cell.type;
   return `<img class="farm-terrain-image" src="./assets/farm-board/${image}.jpg" width="640" height="640" alt="" draggable="false" decoding="async">${cell.stable?'<img class="farm-stable-image" src="./assets/farm-board/stable.png" width="384" height="384" alt="" draggable="false" decoding="async">':''}`;
 }
 function farmCellLabel(cell) {
-  return {house:'住房',forest:'森林',moor:'泥沼',circle:'怪圈',empty:'空地'}[cell.type] || (cell.type==='field' ? cell.crop==='grain'?'谷物田':cell.crop==='veg'?'蔬菜田':'空田' : `${ANIMALS[cell.animal]||''}牧场`);
+  return {house:'住房',forest:'森林',moor:'泥沼',circle:'怪圈',empty:'空地'}[cell.type] || (cell.type==='field' ? cell.crop==='grain'?'谷物田':cell.crop==='veg'?'蔬菜田':'空田' : cell.animal?`${ANIMALS[cell.animal]} · ${cell.herdCount} / ${cell.capacity}`:`空牧场 · 0 / ${cell.capacity}`);
 }
 function cellContent(cell, material='wood') {
   return `${farmTileArtwork(cell,material)}<span class="cell-label">${farmCellLabel(cell)}</span>${cell.type==='field'&&cell.qty?`<span class="cell-qty" title="田里剩余 ${cell.qty} 份作物">${cell.qty}</span>`:''}${cell.stable?'<span class="stable-mark">厩</span>':''}`;
@@ -867,13 +860,16 @@ function farmPanel() {
   const selectable = ui.view === meIndex() && !ui.mode?.choice ? selectedCells(p, ui.mode) : [];
   const action = ui.mode ? (ui.mode.special ? SPECIALS : availableActions()).find(a => a.id === ui.mode.id) : null;
   const prompt = action ? `选择亮起的地块，完成「${action.name}」。` : '先选择上方行动，再到农场放置田地、房屋或牧场。';
-  const cells = p.farm.map((cell,i)=>{
+  const housing=autoRules.animalHousing(p);
+  const cells = p.farm.map((original,i)=>{
+    const group=housing.assignments.find(g=>g.cells.includes(i));
+    const cell=group?{...original,animal:group.animal,herdCount:group.count,capacity:group.capacity}:original;
     const label=`第 ${i+1} 格，${farmCellLabel(cell)}${cell.qty?`，剩余 ${cell.qty} 份作物`:''}${cell.stable?'，有马厩':''}`;
-    return `<button class="farm-cell ${cell.type} ${selectable.includes(i)?'selectable':''}" data-cell="${i}" ${selectable.includes(i)?'':'disabled'} aria-label="${label}" title="${label}"><span class="plot-number">${String(i+1).padStart(2,'0')}</span>${cellContent(cell,p.houseMaterial)}</button>`;
+    return `<button class="farm-cell ${cell.type} ${cell.type==='pasture'&&!cell.animal?'empty-pasture':''} ${selectable.includes(i)?'selectable':''}" data-cell="${i}" ${selectable.includes(i)?'':'disabled'} aria-label="${label}" title="${label}"><span class="plot-number">${String(i+1).padStart(2,'0')}</span>${cellContent(cell,p.houseMaterial)}</button>`;
   }).join('');
   const views = game.players.map((person,i)=>`<button data-view="${i}" class="${ui.view===i?'active':''}" aria-pressed="${ui.view===i}">${i===meIndex()?'我的农场':escapeHTML(person.name)}</button>`).join('');
   const livestock=Object.entries(ANIMALS).filter(([key])=>key!=='horse'||game.settings.moor).map(([key,name])=>`<span>${name}<b>${p[key]||0}</b></span>`).join('');
-  return `<section class="panel farm-panel estate-panel"><div class="panel-head"><div><p class="eyebrow">YOUR HOMESTEAD</p><h2>${escapeHTML(p.name)}</h2></div><span class="head-note">个人农场 · 15 块土地</span></div><div class="farm-wrap"><div class="farm-banner"><div class="view-switch" aria-label="切换农场">${views}</div></div>${action?`<div class="farm-tip pick estate-pick-hint" role="status">${prompt} <button class="cancel-pick" data-cancel="1">取消选地</button></div>`:''}<div class="estate-layout"><div class="estate-map"><div class="farm-field" aria-label="农场版图，5 列 3 行">${cells}</div><div class="farm-footer"><span>空地 <strong>${farmCount(p,'empty')}</strong> · 田地 <strong>${farmCount(p,'field')}</strong> · 牧场 <strong>${farmCount(p,'pasture')}</strong></span><span>住房 <strong>${farmCount(p,'house')}</strong> / 家人 <strong>${p.family}</strong></span></div></div><aside class="estate-ledger"><div class="estate-ledger-title">农场概况</div><div class="mini-stats"><div class="mini-stat"><b>${Math.max(0,game.workerQuota[ui.view]-game.usedCount[ui.view])}</b>剩余派工</div><div class="mini-stat"><b>${{wood:'木屋',clay:'土屋',stone:'石屋'}[p.houseMaterial]||'木屋'}</b>住房材质</div><div class="mini-stat"><b>${p.begging}</b>乞讨标记</div><div class="mini-stat"><b>${score(p).total}</b>当前分数</div></div><div class="estate-herd"><h3>牲畜存栏</h3><div>${livestock}</div><p>格内动物图案表示牧场种类</p></div>${p.sick?`<p class="estate-sick">卧床家人 ${p.sick} 人</p>`:''}${action?'':`<div class="farm-tip">${prompt}</div>`}</aside></div></div></section>`;
+  return `<section class="panel farm-panel estate-panel"><div class="panel-head"><div><p class="eyebrow">YOUR HOMESTEAD</p><h2>${escapeHTML(p.name)}</h2></div><span class="head-note">个人农场 · 15 块土地</span></div><div class="farm-wrap"><div class="farm-banner"><div class="view-switch" aria-label="切换农场">${views}</div></div>${action?`<div class="farm-tip pick estate-pick-hint" role="status">${prompt} <button class="cancel-pick" data-cancel="1">取消选地</button></div>`:''}<div class="estate-layout"><div class="estate-map"><div class="farm-field" aria-label="农场版图，5 列 3 行">${cells}</div><div class="farm-footer"><span>空地 <strong>${farmCount(p,'empty')}</strong> · 田地 <strong>${farmCount(p,'field')}</strong> · 牧场 <strong>${farmCount(p,'pasture')}</strong></span><span>住房 <strong>${farmCount(p,'house')}</strong> / 家人 <strong>${p.family}</strong></span></div></div><aside class="estate-ledger"><div class="estate-ledger-title">农场概况</div><div class="mini-stats"><div class="mini-stat"><b>${Math.max(0,game.workerQuota[ui.view]-game.usedCount[ui.view])}</b>剩余派工</div><div class="mini-stat"><b>${{wood:'木屋',clay:'土屋',stone:'石屋'}[p.houseMaterial]||'木屋'}</b>住房材质</div><div class="mini-stat"><b>${p.begging}</b>乞讨标记</div><div class="mini-stat"><b>${score(p).total}</b>当前分数</div></div><div class="estate-herd"><h3>牲畜存栏</h3><div>${livestock}</div><p>自动安排牲畜，可自由换养；同一牧场只养一种。数字为整座牧场的存栏 / 容量。</p></div>${p.sick?`<p class="estate-sick">卧床家人 ${p.sick} 人</p>`:''}${action?'':`<div class="farm-tip">${prompt}</div>`}</aside></div></div></section>`;
 }
 function cardCost(card) {
   if (card.original) return card.costLabel;
@@ -1132,15 +1128,14 @@ function catalogDialog() {
   return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 · 168 张次要发展。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>${originalMode()?'住房共享 1 个宠物位置；牧场每格容量为 2，同一牧场内每座马厩使容量翻倍。':'每种牲畜可留养 1 只，对应牧场每格再容纳 3 只。'}两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '原版开局先从公共卡池轮流选牌：每次选 1 张，每人选满 7 张职业和 7 张次要发展后进入第一轮。打牌费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>牧场不固定品种，可随时调整牲畜；同一牧场同时只养一种，每格容量 2。同一牧场内每座马厩使整座牧场容量翻倍；未围起来的马厩各养 1 只；所有住房合计养 1 只宠物。系统自动安排可用空间。两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '原版开局先从公共卡池轮流选牌：每次选 1 张，每人选满 7 张职业和 7 张次要发展后进入第一轮。打牌费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
 }
 function choiceOptions(p, id) {
   let options = [], title = '选择';
   if (id === 'sow') { title = '选择种子'; options = [['grain', '🌾 谷物', p.grain > 0, '可收获 3 次'], ['veg', '🥕 蔬菜', p.veg > 0, '可收获 2 次']]; }
-  else if (id === 'pasture' || id === 'animalMarket') {
-    title = id === 'pasture' ? '选择牧场牲畜' : '选择牲畜';
-    options = [['sheep', '🐑 羊', true, id === 'animalMarket' ? '另得 1 食物' : ''], ['boar', '🐗 猪', true, ''], ['cattle', '🐄 牛', id !== 'animalMarket' || p.food > 0, id === 'animalMarket' ? '需付 1 食物' : '']];
-    if (game.settings.moor && id === 'pasture') options.push(['horse', '🐎 马', true, '']);
+  else if (id === 'animalMarket') {
+    title = '选择牲畜';
+    options = [['sheep', '🐑 羊', true, '另得 1 食物'], ['boar', '🐗 猪', true, ''], ['cattle', '🐄 牛', p.food > 0, '需付 1 食物']];
   } else if (id === 'lessons') { title = '选择职业'; options = playableCards(p, 'occupations').map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel ? c.paymentLabel+' · ' : ''}${c.effect}`]); }
   else if (id === 'major') { title = '建造主要发展'; options = playableMajors(p).map(c => [c.id, c.name, true, `${cardCost({ cost: majorCost(c) })} · ${c.effect}`]); }
   else if (id === 'minor' || id === 'minor6' || id === 'black') { title = '选择小设施'; options = (id === 'black' ? blackMarketCards(p) : playableCards(p, 'improvements')).map(c => [c.choiceId || c.id, c.name, true, `${c.paymentLabel || cardCost(c)} · ${c.effect}`]); }
@@ -1149,9 +1144,8 @@ function choiceOptions(p, id) {
   else if (id === 'seasonSpring') { title = '春日耕育'; options = [['breed', '只繁殖', true, '立刻进行一次牲畜繁殖'], ['grain', '繁殖并播谷', p.grain > 0 && emptyFields(p).length > 0, '再选择 1 块空田'], ['veg', '繁殖并播菜', p.veg > 0 && emptyFields(p).length > 0, '再选择 1 块空田']]; }
   else if (id === 'seasonSummer') { title = '夏日劳作'; options = [['plow', '只开田', emptyCells(p).length > 0, '选择 1 块空地'], ['sell', '只卖谷种', p.grain > 0, '1 谷种换 4 食物'], ['bake', '只烤面包', p.grain > 0 && breadFoodValue(p) > 0, '需烘焙设施'], ['both', '开田并卖谷种', p.grain > 0 && emptyCells(p).length > 0, '选择 1 块空地'], ['plowBake', '开田并烤面包', p.grain > 0 && breadFoodValue(p) > 0 && emptyCells(p).length > 0, '选择 1 块空地']]; }
   else if (id === 'alienTransform') { title = '变形装置：交换建材'; options = ['wood', 'clay', 'reed', 'stone'].flatMap(from => ['wood', 'clay', 'reed', 'stone'].filter(to => to !== from).map(to => [`${from}-${to}`, `${RESOURCES.find(r => r[0] === from)[1]} → ${RESOURCES.find(r => r[0] === to)[1]}`, p[from] > 0, `全部 ${p[from]} 个` ])); }
-  else if (id === 'alienStable') { title = '选择牲畜棚'; options = Object.entries(ANIMALS).filter(([type]) => game.settings.moor || type !== 'horse').map(([type, name]) => [type, name, true, '花 1 木材，该牲畜容量 +1']); }
   else if (id === 'resourceTrade') { title = '选择两种建材'; options = [['wood-reed', '木材 + 芦苇', true, '另得 1 食物'], ['wood-stone', '木材 + 石料', true, '另得 1 食物'], ['clay-reed', '黏土 + 芦苇', true, '另得 1 食物'], ['clay-stone', '黏土 + 石料', true, '另得 1 食物']]; }
-  else if (id === 'sideJob') { title = '选择牲畜棚'; options = Object.entries(ANIMALS).filter(([type]) => game.settings.moor || type !== 'horse').map(([type, name]) => [type, name, true, '付 1 木材，该牲畜容量 +1']); }
+
   return { options, title };
 }
 function choiceDialog() {
@@ -1247,7 +1241,7 @@ function beginAction(action) {
   if (action.special ? !canSpecial(game.players[meIndex()], action, meIndex()) : action.unlock > game.round || !originalCanOccupy(game.players[meIndex()],action) || !canAct(game.players[meIndex()], action)) return;
   if (action.kind === 'target' || action.kind === 'choice') {
     ui.view = meIndex();
-    ui.mode = { id: action.id, special: !!action.special, choice: action.kind === 'choice' || ['sow', 'pasture'].includes(action.id) };
+    ui.mode = { id: action.id, special: !!action.special, choice: action.kind === 'choice' || action.id === 'sow' };
     render();
     if (!ui.mode.choice) scrollToSectionOnMobile('.farm-field');
   } else commitPlayerAction(action);
@@ -1262,8 +1256,8 @@ function clickCell(index) {
 function submitChoice(value) {
   if (!ui.mode?.choice) return;
   const id = ui.mode.id;
-  if (['sow', 'pasture'].includes(id)) {
-    if (id === 'sow') ui.mode.crop = value; else ui.mode.animal = value;
+  if (id === 'sow') {
+    ui.mode.crop = value;
     ui.mode.choice = false; render(); scrollToSectionOnMobile('.farm-field'); return;
   }
   if (id === 'farmSupplies' && value === 'plow') { ui.mode.choice = false; ui.mode.supply = 'plow'; render(); scrollToSectionOnMobile('.farm-field'); return; }
@@ -1351,7 +1345,7 @@ function executeOnlineCommand(seat, command) {
     if (value !== undefined) { if (!['string', 'number'].includes(typeof value) || String(value).length > 60) return '无效的选择。'; option[key] = value; }
   }
   const id = action.id;
-  const field = ({ sow: 'crop', pasture: 'animal', animalMarket: 'animal', lessons: 'card', major: 'major', minor: 'card', minor6: 'card', black: 'card', illicit: 'major', farmSupplies: 'supply', seasonSummer: 'supply', alienTransform: 'trade', resourceTrade: 'trade', alienStable: 'animal', sideJob: 'animal' })[id];
+  const field = ({ sow: 'crop', animalMarket: 'animal', lessons: 'card', major: 'major', minor: 'card', minor6: 'card', black: 'card', illicit: 'major', farmSupplies: 'supply', seasonSummer: 'supply', alienTransform: 'trade', resourceTrade: 'trade' })[id];
   const options = action.ruleOp ? [] : choiceOptions(player, id).options;
   const value = id === 'seasonSpring' ? option.crop || 'breed' : option[field];
   if (options.length && !options.some(([v, , enabled]) => enabled && v === value)) return '所选卡牌、资源或牲畜当前不可用。';

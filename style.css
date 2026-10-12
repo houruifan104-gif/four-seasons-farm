@@ -565,3 +565,10 @@ body.cover-active{background:#edf0f3!important;overflow:hidden}body.cover-active
   .board-overview .estate-panel .cell-qty{top:2px;right:2px;min-width:17px;height:17px;font-size:10px}
   .board-overview .estate-panel .farm-cell.selectable:after{border-width:2px;box-shadow:inset 0 0 0 1px #93692f}
 }
+
+/* Unoccupied pastures show their enclosure without an animal illustration. */
+.estate-panel .farm-cell.empty-pasture .farm-terrain-image {
+  padding: 9%;
+  outline: 3px dashed #98764a;
+  outline-offset: -15px;
+}

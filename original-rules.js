@@ -19,7 +19,7 @@
     rooms(p) { return p.farm.filter(c=>c.type==='house').length; }
     fields(p) { return p.farm.filter((c,i)=>c.type==='field'||this.has(p,'B072')&&c.type==='pasture'&&this.pastures(p).some(a=>a[0]===i&&a.length<=2)).concat(p.cardFields || []); }
     pastures(p) { const groups=new Map(); p.farm.forEach((c,i)=>{if(c.type==='pasture'){const id=c.pastureId??`single-${i}`; if(!groups.has(id))groups.set(id,[]);groups.get(id).push(i);}});return [...groups.values()]; }
-    stables(p) { return Object.values(p.stables).reduce((a,b)=>a+b,0); }
+    stables(p) { return Math.max(Object.values(p.stables||{}).reduce((a,b)=>a+b,0),p.farm.filter(c=>c.stable).length); }
     empty(p) { const all=p.farm.map((c,i)=>c.type==='empty'?i:-1).filter(i=>i>=0);if(!this.has(p,'B038'))return all;const nonAdjacent=all.filter(i=>!p.farm.some((c,j)=>c.type==='house'&&this.adjacent(i,j)));return nonAdjacent.length?nonAdjacent:all; }
     crops(p,kind) { return this.fields(p).filter(c=>c.crop===kind&&c.qty>0); }
     fenceCount(p) { return Number.isInteger(p.fences)?p.fences:this.pastures(p).reduce((n,c)=>n+this.boundary(c).length,0); }
@@ -69,7 +69,7 @@
       if(t.type==='sow') {
         this.fields(p).forEach((c,i)=>{if(!c.crop)for(const crop of ['grain','veg'])if(p[crop]>0&&(!c.only||c.only===crop))add(`${i}:${crop}`,`第 ${i+1} 块田种${LABELS[crop]}`,{field:i,crop,cost:{[crop]:1}});});
       }
-      if(t.type==='stable')if(this.stables(p)+(p.removedStables||0)<4){for(let i=0;i<15;i++){const c=p.farm[i];if(!c.stable&&['empty','pasture'].includes(c.type)&&(!t.singlePasture||c.type==='pasture'&&this.pastures(p).some(a=>a.length===1&&a[0]===i)))for(const animal of ANIMALS.filter(k=>k!=='horse'||this.g.settings.moor))add(`${i}:${animal}`,`第 ${i+1} 格建${LABELS[animal]}棚`,{cell:i,animal,cost:t.cost||{wood:2}});}}
+      if(t.type==='stable')if(this.stables(p)+(p.removedStables||0)<4){for(let i=0;i<15;i++){const c=p.farm[i];if(!c.stable&&['empty','pasture'].includes(c.type)&&(!t.singlePasture||c.type==='pasture'&&this.pastures(p).some(a=>a.length===1&&a[0]===i)))add(String(i),`第 ${i+1} 格建马厩`,{cell:i,cost:t.cost||{wood:2}});}}
       if(t.type==='stable'&&this.has(p,'B085')&&!this.state(p,'B085').built&&this.stables(p)+(p.removedStables||0)<4){for(let i=0;i<10;i++)if(i%5<4&&[i,i+1,i+5,i+6].every(j=>p.farm[j].type==='field')){add('central','在四块田中央建特殊马厩，增加 1 人住房',{cost:t.cost||{wood:2},central:true});break;}}
       if(t.type==='room'){
         const groups=this.empty(p).filter(i=>p.farm.some((c,j)=>c.type==='house'&&this.adjacent(i,j))).map(i=>[i]);
@@ -82,7 +82,7 @@
         const selected=t.selected||[];
         if(!t.chooseAnimal&&!t.size){
           for(const i of this.empty(p))if(!selected.includes(i)&&(!selected.length||selected.some(j=>this.adjacent(i,j))))add(`select:${i}`,`圈入第 ${i+1} 格${selected.length?`（已选 ${selected.map(i=>i+1).join('、')}）`:''}`,{selectCell:i});
-          if(selected.length){add('finish',`确认 ${selected.length} 格牧场，选择牲畜与费用`,{finishSelection:true});add('undo','撤回最后一格',{undoSelection:true});}
+          if(selected.length){add('finish',`确认 ${selected.length} 格牧场，查看费用`,{finishSelection:true});add('undo','撤回最后一格',{undoSelection:true});}
         } else {
           const empty=this.empty(p),groups=t.chooseAnimal?[selected]:empty.map(i=>[i]);
           if(t.size===2){groups.length=0;for(const a of empty)for(const b of empty)if(a<b&&this.adjacent(a,b))groups.push([a,b]);}
@@ -92,9 +92,9 @@
             const modes=this.has(p,'B030')&&outer?[0,outer]:[0];
             for(const palisades of modes){if(this.fenceCount(p)+edges.length-palisades>15)continue;
               const amount=Math.max(0,edges.length-palisades-discount-(t.discount||0))+palisades*2;
-              for(const animal of ANIMALS.filter(k=>k!=='horse'||this.g.settings.moor)){
+              {
                 const variants=t.free?[{}]:t.cost?[t.cost]:[{wood:amount},...(this.has(p,'A016')&&!palisades?[{clay:amount}]:[])];
-                for(let v=0;v<variants.length;v++)add(`${cells.join(',')}:${animal}:${v}:${palisades}`,`${cells.length} 格${LABELS[animal]}牧场 · ${this.label(variants[v])||'免费'}${palisades?` · ${palisades} 段木栅栏`:''}`,{cells,animal,edges,palisades,cost:variants[v]});
+                for(let v=0;v<variants.length;v++)add(`${cells.join(',')}:${v}:${palisades}`,`${cells.length} 格牧场 · ${this.label(variants[v])||'免费'}${palisades?` · ${palisades} 段木栅栏`:''}`,{cells,edges,palisades,cost:variants[v]});
               }
             }
           }
@@ -177,7 +177,7 @@
         if(next.count>0)this.ask(p,id,'sow',next,true);else this.endSow(p,next);
       }
       if(t.type==='stable'&&o.central){this.state(p,'B085').built=true;p.removedStables=(p.removedStables||0)+1;this.log(p,id,'田地中央的马厩提供 1 人住房');}
-      if(t.type==='stable'&&!o.central){p.farm[o.cell].stable=true;p.farm[o.cell].stableAnimal=o.animal;p.stables[o.animal]++;this.event('stable',t.seat,{cell:o.cell});this.log(p,id,`第 ${o.cell+1} 格建成马厩`);}
+      if(t.type==='stable'&&!o.central){p.farm[o.cell].stable=true;delete p.farm[o.cell].stableAnimal;p.stables.generic=(p.stables.generic||0)+1;this.event('stable',t.seat,{cell:o.cell});this.log(p,id,`第 ${o.cell+1} 格建成马厩`);}
       if(t.type==='room'){const before=JSON.parse(JSON.stringify(p.farm));(o.cells||[o.cell]).forEach(i=>p.farm[i]={type:'house'});this.notifyBuild(p,'room',before,{material:p.houseMaterial,count:(o.cells||[o.cell]).length});this.log(p,id,`扩建第 ${o.cell+1} 格`);}
       if(t.type==='renovate'){const from=p.houseMaterial;p.houseMaterial=o.material;this.event('renovate',t.seat,{from,to:o.material});this.log(p,id,'完成房屋翻修');}
       if(t.type==='grow'){p.family++;this.stats(p).newborn++;this.event('grow',t.seat,{count:1});this.log(p,id,'家庭增加 1 人');}
@@ -185,7 +185,7 @@
         const selected=o.backSelection?[]:o.undoSelection?(t.selected||[]).slice(0,-1):o.selectCell!==undefined?(t.selected||[]).concat(o.selectCell):(t.selected||[]);
         this.ask(p,id,'pasture',{...t,selected,chooseAnimal:!!o.finishSelection},true);
       }
-      if(t.type==='pasture'&&o.cells){if(t.removeStables)p.removedStables=(p.removedStables||0)+t.removeStables;const previousFences=this.fenceCount(p);const before=JSON.parse(JSON.stringify(p.farm));const pastureId=`${this.g.round}-${t.seat}-${o.cells[0]}`;o.cells.forEach(i=>p.farm[i]={...p.farm[i],type:'pasture',animal:o.animal,pastureId});p.fenceEdges=[...new Set((p.fenceEdges||[]).concat(o.edges))];p.fences=previousFences+o.edges.length-(o.palisades||0);if(o.palisades)this.bonus(p,'B030',o.palisades);this.notifyBuild(p,'pasture',before,{cells:o.cells,fences:o.edges.length});this.log(p,id,'建成牧场');}
+      if(t.type==='pasture'&&o.cells){if(t.removeStables)p.removedStables=(p.removedStables||0)+t.removeStables;const previousFences=this.fenceCount(p);const before=JSON.parse(JSON.stringify(p.farm));const pastureId=`${this.g.round}-${t.seat}-${o.cells[0]}`;o.cells.forEach(i=>p.farm[i]={...p.farm[i],type:'pasture',animal:null,pastureId});p.fenceEdges=[...new Set((p.fenceEdges||[]).concat(o.edges))];p.fences=previousFences+o.edges.length-(o.palisades||0);if(o.palisades)this.bonus(p,'B030',o.palisades);this.notifyBuild(p,'pasture',before,{cells:o.cells,fences:o.edges.length});this.log(p,id,'建成牧场');}
       if(o.cardId&&t.type!=='selectThree')this.install(p,o.cardId,{kind:o.kind,cost:o.cost,source:id,action:t.type==='develop'?'major':t.type});
       if(o.major){p.majors.push(o.major);p.majorBuiltRound[o.major]=this.g.round;this.g.majorSupply=this.g.majorSupply.filter(c=>c!==o.major);this.event('improvement',t.seat,{id:o.major,major:true,returnedFireplace:o.returnMajor?.startsWith('fireplace')});if(['clayOven','stoneOven'].includes(o.major))this.ask(p,o.major,'bake');}
       if(t.type==='bake'&&o.oven&&!t.noBakeEvent){this.event('bake',t.seat,{qty:o.qty,oven:o.oven});}
@@ -243,32 +243,56 @@
     majorCost(p,c) { return this.discounts(p,c.cost,{major:true}); }
     housing(p) { let n=this.rooms(p)+Number(this.has(p,'A010'))+Number(this.has(p,'B010'))+Number(this.has(p,'A127')&&this.g.round<=9);if(this.has(p,'A085')&&p.houseMaterial!=='wood'&&p.farm.some((c,i)=>c.type==='house'&&p.farm.some((v,j)=>v.type==='field'&&this.adjacent(i,j))&&p.farm.some((v,j)=>v.type==='pasture'&&this.adjacent(i,j))))n++;if(this.state(p,'B085').built)n++;return n; }
     habitats(p) {
-      const fixed=Object.fromEntries(ANIMALS.map(k=>[k,0]));let located=0;
-      for(const cells of this.pastures(p)){const kind=p.farm[cells[0]].animal,stables=cells.filter(i=>p.farm[i].stable).length;located+=stables;
+      const fixed=Object.fromEntries(ANIMALS.map(k=>[k,Number(this.has(p,'herder'))]));
+      const groups=[];let located=0;
+      for(const cells of this.pastures(p)){
+        const stables=cells.filter(i=>p.farm[i].stable).length;located+=stables;
         let capacity=cells.length*2*Math.pow(2,stables)*(this.g.alienGlobal.smallAnimals?2:1);
         if(this.has(p,'A012'))capacity+=2;if(this.has(p,'B115')&&!stables)capacity++;
         if(this.has(p,'B072')&&p.farm[cells[0]].crop)capacity-=cells.length;
-        fixed[kind]+=Math.max(0,capacity);
+        groups.push({cells,capacity:Math.max(0,capacity)});
       }
+      if(this.has(p,'B012'))groups.push({cells:[],capacity:3});
       if(this.has(p,'A011'))fixed.boar+=this.fields(p).filter(c=>!c.crop).length;
       const harvests=HARVESTS.filter(r=>r<this.g.round||(r===this.g.round&&this.g.phase!=='play')).length;
       if(this.has(p,'A148'))fixed.sheep+=harvests;if(this.has(p,'B086'))fixed.boar+=harvests;
       if(this.has(p,'B148'))fixed.sheep+=p.played.occupations.length;
       const yard=this.has(p,'B011')?this.pastures(p).length:0;
       const generic=(this.has(p,'A086')?this.rooms(p):1)+Math.max(0,this.stables(p)-located)+yard;
-      return {fixed,generic,yard};
+      return {fixed,groups,generic,yard};
     }
-    capacity(p,kind,base) {
-      const {fixed,generic}=this.habitats(p);let maximum=fixed[kind]||0;
-      for(const barn of this.has(p,'B012')?ANIMALS:[null]){
-        const others=ANIMALS.filter(k=>k!==kind).reduce((sum,k)=>sum+Math.max(0,p[k]-fixed[k]-(barn===k?3:0)),0);
-        if(others<=generic)maximum=Math.max(maximum,fixed[kind]+(barn===kind?3:0)+generic-others);
-      }return maximum;
+    // Each pasture takes one species at a time. Search all arrangements before
+    // using shared single-animal spaces; old animal/stableAnimal fields are hints only.
+    animalHousing(p,counts=p,habitats=this.habitats(p)) {
+      const {fixed,generic}=habitats,groups=habitats.groups.slice().sort((a,b)=>b.capacity-a.capacity);
+      const remaining=ANIMALS.map(k=>Math.max(0,(counts[k]||0)-fixed[k])),memo=new Map();
+      const visit=(index,need)=>{
+        if(index===groups.length)return {needed:need.reduce((a,b)=>a+b,0),assignments:[]};
+        const key=index+':'+need.join(',');if(memo.has(key))return memo.get(key);
+        const group=groups[index];let best;
+        const kinds=ANIMALS.map((_,i)=>i).filter(i=>need[i]>0);
+        if(!kinds.length)kinds.push(-1);
+        for(const i of kinds){
+          const next=need.slice(),count=i<0?0:Math.min(next[i],group.capacity);
+          if(i>=0)next[i]-=count;
+          const result=visit(index+1,next);
+          if(!best||result.needed<best.needed)best={needed:result.needed,assignments:[{...group,animal:i<0?null:ANIMALS[i],count},...result.assignments]};
+          if(best.needed===0)break;
+        }
+        memo.set(key,best);return best;
+      };
+      const result=visit(0,remaining);
+      return {...result,fits:result.needed<=generic,generic,unhoused:Math.max(0,result.needed-generic)};
+    }
+    capacity(p,kind) {
+      const habitats=this.habitats(p);
+      let low=0,high=(habitats.fixed[kind]||0)+habitats.generic+habitats.groups.reduce((n,g)=>n+g.capacity,0);
+      while(low<high){const mid=Math.ceil((low+high)/2);if(this.animalHousing(p,{...p,[kind]:mid},habitats).fits)low=mid;else high=mid-1;}
+      return low;
     }
     breedingYardFood(p) {
-      const {fixed,generic,yard}=this.habitats(p);let needed=ANIMALS.reduce((n,k)=>n+Math.max(0,p[k]-fixed[k]),0);
-      if(this.has(p,'B012'))needed-=Math.max(...ANIMALS.map(k=>Math.min(3,Math.max(0,p[k]-fixed[k]))));
-      return Math.max(0,yard-Math.max(0,needed-(generic-yard)));
+      const habitats=this.habitats(p),{needed}=this.animalHousing(p,p,habitats);
+      return Math.max(0,habitats.yard-Math.max(0,needed-(habitats.generic-habitats.yard)));
     }
     bakeRates(p) { const rates=[];if(p.hearth)rates.push(['stove',2,99]);for(const id of p.majors){const c=this.api.majors.find(c=>c.id===id);if(c?.bake)rates.push([id,c.bake,id==='clayOven'?1:id==='stoneOven'?2:99]);}if(this.has(p,'A060'))rates.push(['A060',2,99]);return rates; }
     cooking(p,kind,base) { return this.has(p,'A060')?Math.max(base,({veg:4,sheep:3,cattle:5})[kind]||0):base; }
@@ -287,7 +311,7 @@
       if(held('B100')){const order=this.state(p,'B100').playOrder||0;n+=(p.cardHistory||[]).slice(order).filter(id=>this.api.card(id)?.effect.includes('累积格')).length;}
       if(held('B153')){const points=p.majors.map(id=>this.api.majors.find(c=>c.id===id).points);const sum=points.reduce((a,b)=>a+b,0)+(points.length?Math.min(...points):0);n+=[5,7,9,11].filter(t=>sum>=t).length;}
       for(const q of this.g.players){if(this.has(q,'A135')){const m=Math.min(p.sheep,p.boar,p.cattle);n+=m>=4?5:m>=3?3:m>=2?1:0;}if(this.has(q,'A136')){const m=Math.min(...MATERIALS.map(k=>p[k]));n+=m>=3?5:m>=2?3:m>=1?1:0;}if(this.has(q,'B136')&&this.rooms(p)===Math.max(...this.g.players.map(p=>this.rooms(p))))n+=3;}
-      if(held('A134')||held('B098'))for(const cells of pastures){const kind=p.farm[cells[0]].animal,capacity=cells.length*3+(p.stables[kind]||0);const herd=p[kind];if(held('A134')&&herd>=capacity)n++;if(held('B098')&&herd>0&&capacity-herd>=3)n++;}
+      if(held('A134')||held('B098'))for(const {cells,capacity,count:herd} of this.animalHousing(p).assignments.filter(a=>a.cells.length)){if(held('A134')&&herd>=capacity)n++;if(held('B098')&&herd>0&&capacity-herd>=3)n++;}
       return n;
     }
     // Card-specific handlers follow below.
@@ -381,7 +405,7 @@
         case 'B149':if(this.stables(p)+(p.removedStables||0)<=1)ask('pasture',{size:2,cost:{wood:2},removeStables:3});break;
         case 'B151':gain({stone:1});break;
         case 'B164':this.schedule(p,id,[2,5,8,10],{sheep:1});break;
-        case 'B167':if(ANIMALS.slice(0,3).every(k=>p[k]+1<=this.api.capacity(p,k)))offer([{cost:{food:2},gain:{sheep:1,boar:1,cattle:1}}]);break;
+        case 'B167':if(this.animalHousing(p,{...p,sheep:p.sheep+1,boar:p.boar+1,cattle:p.cattle+1}).fits)offer([{cost:{food:2},gain:{sheep:1,boar:1,cattle:1}}]);break;
       }
     }
     fire(type,seat,e={}) {
@@ -552,7 +576,7 @@
         if(id==='B055')s.food=(s.food||0)+3;
         if(id==='B076')s.schedule=[];
         if(id==='B134'&&e.to==='stone'&&r<=13){const n=Math.min(3,14-r);gain({food:n});this.bonus(p,id,n);}
-        if(id==='B168'){gain({food:2});for(const cells of this.pastures(p))if(cells.some(i=>p.farm[i].stable)){const k=p.farm[cells[0]].animal;if(p[k])gain({[k]:1});}}
+        if(id==='B168'){gain({food:2});for(const {cells,animal:k,count} of this.animalHousing(p).assignments)if(count&&cells.some(i=>p.farm[i].stable))gain({[k]:1});}
       }
       if(type==='grow'&&own&&id==='A092')offer([{label:'付 1 食物，让新生儿当轮行动',cost:{food:1},quota:1,noNewborn:true}]);
       if(type==='occupation'&&own){if(id==='B025')ask('bake');if(id==='B049'&&p.played.occupations.length===p.played.improvements.length+p.majors.length)gain({food:2});}
