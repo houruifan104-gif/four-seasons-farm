@@ -540,3 +540,28 @@ body.cover-active{background:#edf0f3!important;overflow:hidden}body.cover-active
 }
 .board-overview .estate-panel .estate-pick-hint{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:8px 12px}
 .board-overview .estate-panel .estate-pick-hint .cancel-pick{flex-shrink:0;min-height:36px;font-size:12px}
+
+/* Image-generated terrain is assembled edge to edge into a single farm. */
+.board-overview .estate-panel .farm-field{gap:0;padding:12px;background:#a5ad68 url('./assets/farm-board/meadow.jpg') center/320px;border:5px solid #b19c6b;outline:1px solid #80714a;outline-offset:-1px;border-radius:5px;box-shadow:inset 0 0 0 2px #e5d2a0,0 4px 0 #7b704a,0 8px 18px #5b4a2b26;isolation:isolate}
+.board-overview .estate-panel .farm-cell{aspect-ratio:1;display:block;padding:0;border:0;border-radius:0;background:transparent!important;box-shadow:none;overflow:hidden}
+.farm-terrain-image{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none}
+.farm-stable-image{position:absolute;width:40%;height:40%;object-fit:contain;right:5%;bottom:12%;pointer-events:none;filter:drop-shadow(0 2px 2px #40322266)}
+.board-overview .estate-panel .farm-cell:after{content:'';position:absolute;inset:0;border:1px dashed #53663725;pointer-events:none;z-index:1}
+.board-overview .estate-panel .cell-label{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);padding:3px 9px;background:#fbefcadd;border:1px solid #8b764842;border-radius:3px;color:#4d4b2e;font-size:11px;white-space:nowrap;box-shadow:0 1px 3px #34452922;z-index:2}
+.board-overview .estate-panel .empty .cell-label{background:#e5ecc37a;border-color:transparent;box-shadow:none;color:#52623d}
+.board-overview .estate-panel .plot-number{z-index:2;top:6px;left:6px;font-size:9px;color:#425331;background:#edf1cb9e;border-radius:2px;padding:2px 3px;opacity:1}
+.board-overview .estate-panel .cell-qty{z-index:3;top:6px;right:6px;box-shadow:0 2px 4px #39462240}
+.board-overview .estate-panel .stable-mark{z-index:3;right:5px;bottom:5px}
+.board-overview .estate-panel .farm-cell.selectable{outline:none;box-shadow:none}
+.board-overview .estate-panel .farm-cell.selectable:after{border:3px solid #ffd873;box-shadow:inset 0 0 0 2px #93692f,inset 0 0 24px #f9da6b55;z-index:4}
+.board-overview .estate-panel .farm-cell.selectable:hover{transform:none;box-shadow:none}
+.board-overview .estate-panel .farm-cell.selectable:hover:after{background:#fff7c21a;border-color:#fff3b6}
+.board-overview .estate-panel .farm-cell.selectable:focus-visible{outline:3px solid #fff4c1;outline-offset:-5px;z-index:5}
+@media(max-width:700px){
+  .board-overview .estate-panel .farm-field{padding:5px;gap:0;border-width:3px}
+  .board-overview .estate-panel .farm-cell{aspect-ratio:1;min-height:0}
+  .board-overview .estate-panel .cell-label{font-size:9px;bottom:2px;padding:2px 3px}
+  .board-overview .estate-panel .plot-number{font-size:7px;padding:1px 2px;top:2px;left:2px}
+  .board-overview .estate-panel .cell-qty{top:2px;right:2px;min-width:17px;height:17px;font-size:10px}
+  .board-overview .estate-panel .farm-cell.selectable:after{border-width:2px;box-shadow:inset 0 0 0 1px #93692f}
+}

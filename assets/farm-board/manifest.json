@@ -1,0 +1,97 @@
+{
+  "tool": "Built-in image_gen",
+  "model": "Version not exposed by tool",
+  "style": "Traditional hand-painted farming board; shared meadow reference and independent terrain pieces",
+  "assets": [
+    {
+      "id": "meadow",
+      "file": "meadow.jpg",
+      "prompt": "Square 1024x1024 seamless quiet grassland terrain texture for a hand-painted European farming tabletop board game. Direct overhead orthographic view, full-bleed flat ground with no perspective horizon. Muted sage and olive meadow with warm yellow-green sunlit patches, softly brushed watercolor and gouache, subtle clean paper feeling, small sparse tufts only at the margins. Broad quiet painted shapes, NOT noisy, NOT photorealistic, NOT flat vector. No buildings, animals, flowers, tools, paths, grids, borders, text, lettering, symbols, numbers or shadows from unseen objects. All four edges have the same muted light olive grass color so many copies can be assembled into one continuous farm board. Warm, traditional printed board-game illustration.",
+      "transparent": false
+    },
+    {
+      "id": "house-wood",
+      "file": "house-wood.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: One small rustic timber farmhouse room, honey oak plank walls, steep warm reddish-brown tile roof, tiny pale window, simple wooden door, short stone threshold. Building dominant; no garden, fences or additional props.",
+      "transparent": false
+    },
+    {
+      "id": "house-clay",
+      "file": "house-clay.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: One small rustic farmhouse room, warm terracotta clay plaster walls, steep reddish-brown tile roof, tiny pale window, dark simple wooden door, short stone threshold. Building dominant; no garden, fences or additional props.",
+      "transparent": false
+    },
+    {
+      "id": "house-stone",
+      "file": "house-stone.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: One small rustic farmhouse room, pale gray irregular limestone walls, steep dark slate roof, tiny pale window, dark wooden door, short stone threshold. Building dominant; no garden, fences or additional props.",
+      "transparent": false
+    },
+    {
+      "id": "forest",
+      "file": "forest.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A compact group of three mature trees, one rounded leafy oak and two conifers, different heights with visible tree trunks and softly overlapping green crowns. Keep silhouettes bold and readable, no distant forest or path.",
+      "transparent": false
+    },
+    {
+      "id": "field",
+      "file": "field.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A square patch of freshly plowed rich brown soil with five broad parallel furrows, no crops, neatly cut grass edges, no fence or tools.",
+      "transparent": false
+    },
+    {
+      "id": "field-grain",
+      "file": "field-grain.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A square patch of rich brown plowed soil growing three orderly short rows of ripe golden wheat. Clearly visible golden wheat heads and readable thick clumps, a little soil between rows, no fence, tools or harvest bundles.",
+      "transparent": false
+    },
+    {
+      "id": "field-veg",
+      "file": "field-veg.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A square patch of rich brown plowed soil with three neat rows of large round cabbages, a few orange carrot roots with leafy green tops in one row. Healthy crops, visible soil between rows, no fence, tools or baskets.",
+      "transparent": false
+    },
+    {
+      "id": "moor",
+      "file": "moor.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A small oval brown peat bog with a subdued gray-green water pool, dark soft peat banks and two restrained reed clumps. Simple readable bog silhouette, little open water, no animals or buildings.",
+      "transparent": false
+    },
+    {
+      "id": "pasture-sheep",
+      "file": "pasture-sheep.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A compact square wooden post-and-rail sheep paddock viewed from high overhead. One clearly recognizable cream-white woolly sheep inside, facing right. Fence encloses four sides, keeps plenty of visible grass, no buildings or extra animals.",
+      "transparent": false
+    },
+    {
+      "id": "pasture-boar",
+      "file": "pasture-boar.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A compact square wooden post-and-rail pig paddock viewed from high overhead. One clearly recognizable stocky dark russet wild boar inside, facing right. Fence encloses four sides, keeps plenty of visible grass, no buildings or extra animals.",
+      "transparent": false
+    },
+    {
+      "id": "pasture-cattle",
+      "file": "pasture-cattle.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A compact square wooden post-and-rail cattle paddock viewed from high overhead. One clearly recognizable brown-and-cream cow inside, facing right. Fence encloses four sides, keeps plenty of visible grass, no buildings or extra animals.",
+      "transparent": false
+    },
+    {
+      "id": "pasture-horse",
+      "file": "pasture-horse.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A compact square wooden post-and-rail horse paddock viewed from high overhead. One clearly recognizable chestnut horse with dark mane inside, facing right. Fence encloses four sides, keeps plenty of visible grass, no buildings or extra animals.",
+      "transparent": false
+    },
+    {
+      "id": "circle",
+      "file": "circle.jpg",
+      "prompt": "Create one square game-board terrain tile using the attached meadow image as the exact grass ground and palette reference. Preserve the muted olive grass at every outer edge, with a clear 8 percent grass margin, so tiles placed edge to edge form one continuous farm. Add the subject below entirely inside the central 80 percent. Original traditional European farming board-game illustration, warm hand-painted gouache and watercolor, soft ink outlines, clean broad forms with very little microtexture, viewed from high overhead with a slight three-quarter angle so the subject is recognizable. Sunlight from upper left, short soft shadow. Absolutely no lettering, numerals, UI, outer card border, logos, people, horizon or distant scenery. Subject: A clearly recognizable small crop circle made of two broad concentric flattened golden-grass rings with a small round flattened center in the meadow, viewed directly overhead. Minimal mysterious but pastoral image. No spacecraft, beams, symbols, writing, people or buildings.",
+      "transparent": false
+    },
+    {
+      "id": "stable",
+      "file": "stable.png",
+      "prompt": "Square game asset, one isolated small rustic open-front wooden animal stable, warm oak posts, low reddish-brown pitched roof, a little golden straw inside, no animals. Traditional hand-painted European farming tabletop board game, warm gouache watercolor, restrained outlines, simple distinct silhouette, high overhead three-quarter view, sunlight upper left. Centered complete building, generous transparent margins, no ground, no scenery, no backdrop, no text, logo, border or signature. Actual transparent background.",
+      "transparent": true
+    }
+  ]
+}
