@@ -1070,8 +1070,81 @@ function cardDetailDialog() {
 
 function automaticEnabled() { return !!autoRules?.active; }
 function originalCanOccupy(p, a) { return automaticEnabled() ? autoRules.canOccupy(p,a) : a.repeatable || !(a.id in game.occupied); }
+// Construction uses the same validated options as the rules engine; the board
+// only stages a placement. Costs are paid by the existing command on confirmation.
+function constructionContext() {
+  const task=automaticEnabled()?autoRules.choice():null;
+  if(task){
+    const spatial=['room','stable','pasture','plow'].includes(task.type)||['actionTarget','actionChoice'].includes(task.type)&&task.options.some(o=>Number.isInteger(o.baseCell));
+    if(!spatial||task.seat!==meIndex())return null;
+    return {task,p:game.players[task.seat],type:task.action?.id||task.type,options:task.options,key:JSON.stringify([game.round,game.ruleActionSerial,task])};
+  }
+  if(!ui.mode||ui.mode.choice||!canControl())return null;
+  const p=game.players[meIndex()],action=(ui.mode.special?SPECIALS:availableActions()).find(a=>a.id===ui.mode.id);
+  if(!action)return null;
+  const options=selectedCells(p,ui.mode).map(cell=>({value:String(cell),cell,label:`确认${action.name}`}));
+  return {p,type:action.id,action,options,key:JSON.stringify([game.round,game.usedCount,ui.mode,options])};
+}
+function constructionCells(option) { return option.cells||[option.cell??option.baseCell??option.selectCell].filter(Number.isInteger); }
+function constructionSelection(context) {
+  if(ui.build?.key!==context.key)ui.build={key:context.key,cells:context.task?.selected?.slice()||[]};
+  return ui.build.cells;
+}
+function submitRuleChoice(value) {
+  const task=autoRules.choice();
+  if(!task||task.seat!==meIndex()||room.active&&(!room.started||room.paused||room.pending))return;
+  ui.build=null;
+  if(room.active)room.submit({type:'ruleChoice',value});else autoRules.choose(meIndex(),value);
+}
+function selectConstructionCell(index) {
+  const context=constructionContext();if(!context||room.active&&(room.paused||room.pending))return;
+  const cells=constructionSelection(context),{options,task}=context;
+  if(task?.type==='pasture'&&!task.chooseAnimal&&!task.size){
+    const option=options.find(o=>o.selectCell===index);
+    if(option)submitRuleChoice(option.value);
+    return;
+  }
+  if(task?.chooseAnimal)return;
+  if(!options.some(o=>constructionCells(o).includes(index)))return;
+  const next=cells.includes(index)?cells.filter(i=>i!==index):[...cells,index];
+  ui.build.cells=options.some(o=>next.every(i=>constructionCells(o).includes(i)))?next:[index];
+  render();
+}
+function confirmConstruction(value) {
+  const context=constructionContext();if(!context)return;
+  const chosen=context.options.find(o=>o.value===value),cells=constructionSelection(context);
+  if(!chosen||!constructionCells(chosen).length||!constructionCells(chosen).every(i=>cells.includes(i))||constructionCells(chosen).length!==cells.length)return;
+  if(context.task)submitRuleChoice(value);else{ui.build=null;clickCell(chosen.cell);}
+}
+function constructionDialog(context=constructionContext()) {
+  if(!context)return '';
+  const {p,task,type,options}=context,selected=constructionSelection(context);
+  const selecting=task?.type==='pasture'&&!task.chooseAnimal&&!task.size;
+  const enabled=!(room.active&&(!room.started||room.paused||room.pending));
+  const legal=new Set(options.flatMap(constructionCells));
+  const housing=autoRules.animalHousing(p),title=({room:'扩建住房',stable:'建造马厩',pasture:'围建牧场',plow:'开垦田地',sow:'播种',fell:'伐木',peat:'切取泥炭',burn:'刀耕火种'})[type]||context.action?.name||'选择农场地块';
+  const previewType=type==='room'?'house':['plow','burn'].includes(type)?'field':type==='pasture'?'pasture':null;
+  const grid=p.farm.map((original,i)=>{
+    const group=housing.assignments.find(g=>g.cells.includes(i));
+    const actual=group?{...original,animal:group.animal,herdCount:group.count,capacity:group.capacity}:original;
+    const picked=selected.includes(i),cell=picked?{...actual,...(previewType?{type:previewType,animal:null,capacity:selected.length*2}:{}),...(type==='stable'?{stable:true}:{})}:actual;
+    const clickable=enabled&&!task?.chooseAnimal&&legal.has(i);
+    const edges=type==='pasture'&&picked?['top','right','bottom','left'].filter((edge,j)=>!selected.includes([i>=5?i-5:-1,i%5<4?i+1:-1,i<10?i+5:-1,i%5?i-1:-1][j])).map(edge=>`<i class="build-fence ${edge}"></i>`).join(''):'';
+    return `<button class="farm-cell ${cell.type} ${cell.type==='pasture'&&!cell.animal?'empty-pasture':''} ${clickable?'selectable':''} ${picked?'build-selected':''}" data-build-cell="${i}" aria-label="第 ${i+1} 格，${farmCellLabel(actual)}${picked?'，已选':''}" aria-pressed="${picked}" ${clickable?'':'disabled'}><span class="plot-number">${i+1}</span>${cellContent(cell,p.houseMaterial)}${picked?'<span class="build-mark">待建</span>':''}${edges}</button>`;
+  }).join('');
+  const matches=options.filter(o=>{const cells=constructionCells(o);return cells.length&&o.selectCell===undefined&&cells.length===selected.length&&cells.every(i=>selected.includes(i));});
+  const controls=options.filter(o=>!constructionCells(o).length);
+  const card=task&&findHandCard(task.card);
+  const resourceText=['wood','clay','reed','stone','food'].map(k=>`<span>${RESOURCES.find(r=>r[0]===k)[1]} <b>${p[k]}</b></span>`).join('');
+  const buttons=matches.map(o=>`<button class="primary-btn" data-build-confirm="${escapeHTML(o.value)}" ${enabled?'':'disabled'}>${task?'确认建造':'确认位置'}${o.cost?` · ${autoRules.label(o.cost)||'免费'}`:''}</button>`).join('');
+  const actions=task?controls.map(o=>`<button class="${o.finishSelection?'primary-btn':'ghost-btn'}" data-rule-choice="${escapeHTML(o.value)}" ${enabled?'':'disabled'}>${o.value==='skip'?'结束本项建造':escapeHTML(o.label)}</button>`).join(''):'<button class="ghost-btn" data-cancel="1">取消</button>';
+  const zoom=[1,1.25,1.5].includes(ui.buildZoom)?ui.buildZoom:1;
+  return `<div class="modal-backdrop construction-backdrop"><section class="modal construction-modal board-overview" role="dialog" aria-modal="true" aria-label="放大农场建造"><header class="construction-header"><div><p class="eyebrow">${escapeHTML(p.name)} · 农场建造</p><h2>${title}</h2></div><div class="construction-zoom" aria-label="农场缩放">${[1,1.25,1.5].map(n=>`<button class="ghost-btn" data-build-zoom="${n}" aria-pressed="${zoom===n}">${n===1?'适应':n*100+'%'}</button>`).join('')}</div></header><div class="construction-resources">${resourceText}</div><p class="construction-hint">${selecting?'点击相邻地块圈出牧场，可撤回；确认费用后才会建成。':task?.chooseAnimal?'核对圈地范围与费用，确认后建造。':'点击亮起的地块预览，再确认位置。'}${type==='room'?' 可连选相邻地块扩建多间。':''}<span>放大后可横向滑动农场。</span></p>${card?`<details class="construction-card"><summary>${escapeHTML(card.name)}</summary><p>${escapeHTML(card.effect)}</p></details>`:''}<div class="construction-scroll"><div class="estate-panel construction-estate" style="--build-zoom:${zoom}"><div class="farm-field">${grid}</div></div></div><footer class="construction-footer"><p role="status">${enabled?selected.length?`已选第 ${selected.map(i=>i+1).join('、')} 格${!selecting&&!matches.length?' · 继续选择亮起地块组成合法范围':''}`:'请选择亮起的地块':'等待连接恢复或同步完成…'}</p><div class="construction-buttons">${buttons}${actions}</div></footer></section></div>`;
+}
+
 function automaticChoiceDialog() {
   const t=autoRules.choice();if(!t)return '';
+  const construction=constructionContext();if(construction)return constructionDialog(construction);
   const card=findHandCard(t.card),owner=game.players[t.seat],mine=t.seat===meIndex();
   return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(t.type==='feeding'?'喂养家人':card?.name||t.title||'选择附加行动')}</h2>${t.type==='feeding'?`<p>本次需要 <strong>${familyFoodNeed(owner)}</strong> 食物，库存 <strong>${owner.food}</strong> 食物。${owner.food<familyFoodNeed(owner)?`还差 ${familyFoodNeed(owner)-owner.food} 食物，可选择下方兑换。`:'食物已经足够，可以完成喂养。'}</p><p>兑换由你决定，系统不会自动吃掉谷物、蔬菜或牲畜。喂养后才繁殖，每种最多增加 1 只。</p>`:''}${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}${o.major?majorRulesMarkup(MAJORS.find(c=>c.id===o.major)):''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
 }
@@ -1178,6 +1251,8 @@ function draftPanel() {
   return `<main class="shell draft-shell"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>开局 · 公共选牌</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active?'房间':'多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-new-confirm="1" ${room.active?'disabled':''}>新游戏</button></div></header>${room.active?onlineBar():''}<section class="draft-intro"><h2>${mine?'轮到你，选择 1 张牌':`等待${escapeHTML(owner.name)}选择 1 张牌`}</h2><p>职业、次要发展各公开 ${game.players.length} × 7 = ${game.players.length*7} 张。按 1 → ${game.players.length} → 1 的顺序轮流选择，每次任选一类拿 1 张，每人每类上限 7 张。</p><p>职业池已按当前 ${game.players.length} 人筛选。选牌免费，不执行卡牌效果；所有人选满后开始第一轮。</p><progress max="${d.total}" value="${d.picks}" aria-label="公共选牌进度"></progress><span>已选 ${d.picks} / ${d.total} 张</span>${d.lastPick?`<p class="draft-last" role="status">${escapeHTML(game.players[d.lastPick.seat].name)}刚选了「${escapeHTML(findHandCard(d.lastPick.id).name)}」</p>`:''}</section><section class="draft-seats" aria-label="选牌顺序">${progress}</section><div class="draft-layout"><section class="draft-pool"><nav class="draft-tabs" aria-label="公共卡池类别">${[['occupations','职业'],['improvements','次要发展']].map(([k,n])=>`<button class="ghost-btn ${k===kind?'active':''}" data-draft-kind="${k}" aria-pressed="${k===kind}">${n}池 · 剩 ${d.pools[k].length} 张<span>你已选 ${me.hand[k].length}/7</span></button>`).join('')}</nav><div class="draft-grid">${pool||'<p class="draft-empty">这一类的牌已全部选完。</p>'}</div></section><aside class="draft-hands"><h2>已选手牌</h2>${hands}</aside></div></main>`;
 }
 function render() {
+  const previousBuildScroll=document.querySelector('.construction-scroll');
+  const buildScrollPosition=previousBuildScroll?{left:previousBuildScroll.scrollLeft||0,top:previousBuildScroll.scrollTop||0}:null;
   if(game.phase==='draft'){
     const overlay=(room.active&&!room.started)||ui.dialog==='online'?onlineDialog():ui.dialog==='rules'?rulesDialog():ui.dialog==='cardDetail'?cardDetailDialog():ui.dialog==='catalog'?catalogDialog():ui.dialog==='new'?newDialog():'';
     app.innerHTML=draftPanel()+overlay+(ui.toast?`<div class="notice" role="status">${escapeHTML(ui.toast)}</div>`:'');return;
@@ -1216,7 +1291,8 @@ function render() {
   const resourceTray = `<section class="resource-tray"><div class="tray-heading"><span>资源收纳盒</span><small>剩余派工 ${Math.max(0, game.workerQuota[meIndex()] - game.usedCount[meIndex()])} / ${game.workerQuota[meIndex()]}</small></div><div class="summary-strip ${game.settings.moor ? 'expanded' : ''}">${resources.map(r => resCard(r, me)).join('')}</div>${game.settings.moor ? `<div class="expansion-line"><button data-convert="woodFuel" ${me.wood && game.phase === 'play' && canControl() ? '' : 'disabled'}>1 木材 → 1 燃料</button></div>` : ''}</section>`;
   const scorePanel = `<section class="panel info-box tabletop-score"><h3>计分与收获</h3>${scores}<div class="score-row"><span>下次收获</span><b>${nextHarvest ? `第 ${nextHarvest} 轮` : '已结束'}</b></div><div class="score-row"><span>当前先手</span><b>${game.players[game.startPlayer].name}</b></div></section>`;
   const logPanel = `<section class="panel info-box tabletop-log"><h3>农场日志</h3><div class="log-list">${game.logs.slice(0, 6).map(item => `<div class="log-line"><time>第 ${item.round} 轮</time><span>${escapeHTML(item.message)}</span></div>`).join('')}</div></section>`;
-  app.innerHTML = `<div class="shell tabletop-shell board-overview" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
+  app.innerHTML = `<div class="shell tabletop-shell board-overview" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : constructionContext() ? constructionDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
+  if(buildScrollPosition){const scroller=document.querySelector('.construction-scroll');if(scroller){scroller.scrollLeft=buildScrollPosition.left;scroller.scrollTop=buildScrollPosition.top;}}
 }
 function toast(message) {
   ui.toast = message; clearTimeout(ui.toastTimer); render();
@@ -1274,7 +1350,10 @@ app.addEventListener('click', event => {
   if(d.draftPick){if(room.active)room.submit({type:'draftPick',id:d.draftPick});else{const error=pickDraftCard(meIndex(),d.draftPick);if(error)toast(error);}return;}
   if (d.cardDetail) { ui.cardReturn = ui.dialog; ui.detailCard = d.cardDetail; ui.dialog = 'cardDetail'; render(); return; }
   if (d.cardBack) { ui.dialog = ui.cardReturn; render(); return; }
-  if(d.ruleChoice) { if(room.active)room.submit({type:'ruleChoice',value:d.ruleChoice});else autoRules.choose(meIndex(),d.ruleChoice);return; }
+  if(d.buildZoom){const zoom=Number(d.buildZoom);if([1,1.25,1.5].includes(zoom)){ui.buildZoom=zoom;render();}return;}
+  if(d.buildCell!==undefined){selectConstructionCell(Number(d.buildCell));return;}
+  if(d.buildConfirm!==undefined){confirmConstruction(d.buildConfirm);return;}
+  if(d.ruleChoice) { submitRuleChoice(d.ruleChoice);return; }
   if(d.ruleAbility) { if(room.active)room.submit({type:'ruleAbility',id:d.ruleAbility});else autoRules.activate(meIndex(),d.ruleAbility);return; }
   if (d.mobileTab && ['actions', 'farm', 'cards', 'overview'].includes(d.mobileTab)) { ui.mobileTab = d.mobileTab; render(); window.scrollTo({ top: 0, behavior: 'instant' }); }
   else if (d.action) beginAction(availableActions().find(a => a.id === d.action));

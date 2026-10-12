@@ -150,7 +150,7 @@
       while(this.queue.length&&count++<1000){const t=this.queue[0];this.inserting=true;this.cursor=0;
         if(t.type==='event'){this.queue.shift();this.fire(t.event,t.seat,t.info);}
         else if(t.type==='continue'){this.queue.shift();this.api.continue(t);}
-        else {const opts=this.options(t);if(!opts.length){this.queue.shift();if(t.type==='sow'&&t.sownFields?.length)this.endSow(this.p(t.seat),t);}else if(!t.optional&&opts.length===1){this.queue.shift();this.resolve(t,opts[0]);}else{this.inserting=false;break;}}
+        else {const opts=this.options(t);if(!opts.length){this.queue.shift();if(t.type==='sow'&&t.sownFields?.length)this.endSow(this.p(t.seat),t);}else if(!t.optional&&opts.length===1&&!['room','stable','pasture','plow','actionTarget'].includes(t.type)&&!(t.type==='actionChoice'&&Number.isInteger(opts[0].baseCell))){this.queue.shift();this.resolve(t,opts[0]);}else{this.inserting=false;break;}}
         this.inserting=false;
       }
       this.draining=false;this.api.save();this.api.render();
