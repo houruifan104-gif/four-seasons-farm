@@ -133,9 +133,18 @@ const ALIEN_RULES = {
   X07: '持有者结算时每组房屋、田地、牧场各 1 格得 1 分。', X08: '持有者接下来 3 轮各多派工 1 次。', X09: '持有者每轮结束若林地无人占用，得 1 木材。', X10: '持有者下一次取得资源堆时翻倍，然后传给下家。', X11: '持有者建房或围牧场少付 1 木材。', X12: '得到 2 个毛绒访客；每次收获需各喂 1 食物，否则每个 −1 分。',
   X13: '事件：游戏结束恰好 42 分的玩家获胜。', X14: '事件：抽牌者立即无房扩员。', X15: '事件：此后每轮结束每位玩家付 1 食物；不足则下轮少派工 1 次。', X16: '事件：抽牌者决定下一轮先手。', X17: '事件：抽牌者获得 2 分；林地、临时劳作各放 1 枚糖果，未取回各扣 1 分。', X18: '事件：抽牌者付 5 种资源，获得 1 名家人。', X19: '事件：抽牌者各得 1 羊、猪、牛，本轮少派工 1 次。', X20: '事件：全体牧场容量翻倍，牲畜烹饪收益减半。', X21: '事件：全体木屋损坏 1 间；黏土屋升级石屋。', X22: '事件：抽牌者接下来的 3 轮少派工 1 次，随后一轮多派工 1 次。', X23: '事件：抽牌者两块空地被麦田怪圈占据。', X24: '抽牌者派出一名反抗者，游戏结束得 5 分，但以后少派工 1 次。'
 };
+const ORIGINAL_ROUND_STAGES = [
+  ['sheep','major','sow','pasture'], ['stone','renovate','grow'],
+  ['boar','veg'], ['cattle','stone2'], ['growNoRoom','plowSow'], ['renovateFence']
+];
 function originalRoundDeck() {
-  return [[ 'sheep','major','sow','pasture' ],['stone','renovate','grow'],['boar','veg'],['cattle','stone2'],['growNoRoom','plowSow'],['renovateFence']].flatMap(stage=>stage.map(id=>({id,sort:Math.random()})).sort((a,b)=>a.sort-b.sort).map(x=>x.id));
+  return ORIGINAL_ROUND_STAGES.flatMap(stage=>{
+    const cards=stage.slice();
+    for(let i=cards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cards[i],cards[j]]=[cards[j],cards[i]];}
+    return cards;
+  });
 }
+function roundStage(round) { return [4,7,9,11,13,14].findIndex(end=>round<=end)+1; }
 function originalBoardActions(g, actions) {
   if(!g.settings.cards||!['A','B','AB'].includes(g.settings.cardDeck))return actions;
   const added=[
@@ -147,9 +156,12 @@ function originalBoardActions(g, actions) {
   ];
   if(!actions.some(a=>a.id==='travelers')&&g.players.length>=3)added.push({id:'travelers',name:'旅行艺人',icon:'🎭',detail:'每轮累积 1 食物',kind:'pile',key:'food',add:1,unlock:1});
   const deck=g.ruleRoundDeck||['sheep','major','sow','pasture','stone','renovate','grow','boar','veg','cattle','stone2','growNoRoom','plowSow','renovateFence'];
-  return actions.filter(a=>!['upgradeClay','upgradeStone'].includes(a.id)).concat(added).map(a=>{
+  return actions.filter(a=>!['hearth','minor','upgradeClay','upgradeStone'].includes(a.id)).concat(added).map(a=>{
     const slot=deck.indexOf(a.id)+1;
     if(['sow','room','pasture','major'].includes(a.id))a={...a,kind:'simple',ruleOp:a.id,detail:({sow:'播种多块田，并可烤面包',room:'扩建房间，并可建马厩',pasture:'选择相邻地块围建牧场',major:'建造主要或次要发展'})[a.id]};
+    if(a.id==='major')a={...a,name:'主要或次要发展'};
+    if(a.id==='first')a={...a,detail:'取得先手标记，可建造 1 张次要发展'};
+    if(a.id==='grow')a={...a,detail:'须有空房；扩员后可建造 1 张次要发展'};
     return {...a,unlock:slot||(['room','first'].includes(a.id)?1:a.unlock),roundSlot:slot||null};
   });
 }
@@ -545,7 +557,7 @@ function applyAction(who, action, option = {}, ruleContext = null) {
     case 'grain': player.grain++; detail = '获得 1 谷种'; break;
     case 'veg': player.veg++; detail = '获得 1 菜种'; break;
     case 'day': player.food += 2 + Number(hasCard(player, 'gatherer')); if (seasonName() === '夏') player.grain++; detail = `获得 ${2 + Number(hasCard(player, 'gatherer'))} 食物${seasonName() === '夏' ? '、1 谷种' : ''}`; break;
-    case 'first': player.food++; game.nextStart = who; detail = '获得 1 食物，下轮先手'; break;
+    case 'first': if(!originalMode())player.food++; game.nextStart = who; detail = originalMode()?'取得先手标记，可建造次要发展':'获得 1 食物，下轮先手'; break;
     case 'hearth': player.clay -= 2; player.hearth = true; detail = '灶台完工'; break;
     case 'grow': player.family++; detail = `家庭增至 ${player.family} 人`; break;
     case 'plow': player.food -= winterFieldCost(); player.farm[option.cell] = { type: 'field', crop: null, qty: 0 }; if (hasCard(player, 'farmer')) player.grain++; detail = `开垦第 ${option.cell + 1} 格${winterFieldCost() ? '，花 1 食物' : ''}`; break;
@@ -827,12 +839,13 @@ function resCard([key, label, icon], player) {
 }
 function actionCard(action) {
   const locked = action.unlock > game.round;
+  if(locked&&action.roundSlot)return `<button class="action-card round-card-back" data-round-slot="${action.roundSlot}" disabled aria-label="第 ${action.roundSlot} 轮，阶段 ${roundStage(action.roundSlot)}，尚未翻开"><span class="round-back-stage">阶段 ${roundStage(action.roundSlot)}</span><span class="round-back-mark" aria-hidden="true">✳</span><span class="action-title">第 ${action.roundSlot} 轮</span><span class="action-detail">尚未翻开</span></button>`;
   const occupied = !originalCanOccupy(game.players[meIndex()],action);
   const inactive = room.active && (!room.started || room.paused || room.pending) || game.phase !== 'play' || !canControl() || !!ui.mode || !!ui.dialog;
   const disabled = locked || occupied || inactive || !canAct(game.players[meIndex()], action);
   const badge = locked ? `<span class="unlock-tag">第 ${action.unlock} 轮</span>` : action.kind === 'pile' ? `<span class="action-badge">${game.piles[action.id] || 0}</span>` : '';
   const usedText = occupied ? ` · ${game.occupied[action.id] === meIndex() ? '你' : game.players[game.occupied[action.id]].name}已用` : '';
-  return `<button class="action-card ${action.kind === 'pile' ? ANIMALS[action.key] ? 'animal-card' : 'resource-card' : ''} ${locked ? 'locked' : ''} ${occupied ? 'used' : ''}" data-action="${action.id}" ${disabled ? 'disabled' : ''} aria-label="${action.name}，${action.detail}${usedText}">${badge}<span class="action-icon">${action.icon}</span><span class="action-title">${action.name}</span><span class="action-detail">${action.detail}${usedText}</span>${occupied ? `<span class="worker-token ${game.occupied[action.id] === meIndex() ? 'human' : 'computer'}" aria-hidden="true"></span>` : ''}</button>`;
+  return `<button class="action-card ${action.kind === 'pile' ? ANIMALS[action.key] ? 'animal-card' : 'resource-card' : ''} ${locked ? 'locked' : ''} ${occupied ? 'used' : ''}" data-action="${action.id}" ${disabled ? 'disabled' : ''} aria-label="${action.name}，${action.detail}${usedText}">${action.roundSlot?`<span class="round-stage-tag">阶段 ${roundStage(action.roundSlot)} · 第 ${action.roundSlot} 轮</span>`:''}${badge}<span class="action-icon">${action.icon}</span><span class="action-title">${action.name}</span><span class="action-detail">${action.detail}${usedText}</span>${occupied ? `<span class="worker-token ${game.occupied[action.id] === meIndex() ? 'human' : 'computer'}" aria-hidden="true"></span>` : ''}</button>`;
 }
 function specialCard(special) {
   const used = game.specialUsed[special.id] || [];
@@ -1201,7 +1214,7 @@ function catalogDialog() {
   return `<div class="modal-backdrop"><div class="modal catalog-modal" role="dialog" aria-modal="true" aria-label="原版牌库"><p class="eyebrow">ORIGINAL CARDS · A / B</p><h2>原版牌库</h2><p>15 周年版 A/B：168 张职业 · 168 张次要发展。</p><div class="catalog-controls"><input data-catalog-query type="search" value="${escapeHTML(state.query)}" placeholder="搜索卡号、中文、英文或效果"><select data-catalog-kind><option value="all" ${state.kind === 'all' ? 'selected' : ''}>全部类别</option><option value="occupation" ${state.kind === 'occupation' ? 'selected' : ''}>职业</option><option value="minor" ${state.kind === 'minor' ? 'selected' : ''}>次要发展</option></select><select data-catalog-deck><option value="all" ${state.deck === 'all' ? 'selected' : ''}>A + B 牌组</option><option value="A" ${state.deck === 'A' ? 'selected' : ''}>A 牌组</option><option value="B" ${state.deck === 'B' ? 'selected' : ''}>B 牌组</option></select></div><div class="catalog-count">找到 ${filtered.length} 张 · 第 ${state.page + 1} / ${pages} 页</div><div class="catalog-grid">${items || '<p>没有符合条件的卡牌。</p>'}</div><div class="modal-actions catalog-pagination"><button class="ghost-btn" data-catalog-page="prev" ${state.page <= 0 ? 'disabled' : ''}>上一页</button><button class="ghost-btn" data-catalog-page="next" ${state.page >= pages - 1 ? 'disabled' : ''}>下一页</button><button class="primary-btn" data-close="catalog">关闭</button></div></div></div>`;
 }
 function rulesDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p><h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>牧场不固定品种，可随时调整牲畜；同一牧场同时只养一种，每格容量 2。同一牧场内每座马厩使整座牧场容量翻倍；未围起来的马厩各养 1 只；所有住房合计养 1 只宠物。系统自动安排可用空间。两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '原版开局先从公共卡池轮流选牌：每次选 1 张，每人选满 7 张职业和 7 张次要发展后进入第一轮。打牌费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="玩法说明"><p class="eyebrow">HOW TO PLAY</p><h2>经营四季田园</h2><p>14 轮内，你与${room.active ? '其他玩家' : '电脑'}轮流派出家人，占用行动格来经营农场。资源格每轮累积，取走时一次获得全部。第 4、7、9、11、13、14 轮结束后收获。</p>${originalMode()?'<p>14 张轮次行动按六阶段分组（4、3、2、2、2、1 张），各组分别洗牌。每轮开始翻开一张，已翻开的行动保留至终局。阶段与四季扩展的春夏秋冬不同。</p>':''}<h3>基础经营</h3><ul><li>开田、播种、建房、牧场需点击农场格子。每位家人每轮只能行动一次；扩员增加下轮起的派工人数。</li><li>${originalMode()?'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。':'收获时先收田地产物，再喂养家人，最后繁殖。成年人需 2 食物，当轮新生儿需 1 食物。'}不足的食物变成乞讨标记。</li><li>牧场不固定品种，可随时调整牲畜；同一牧场同时只养一种，每格容量 2。同一牧场内每座马厩使整座牧场容量翻倍；未围起来的马厩各养 1 只；所有住房合计养 1 只宠物。系统自动安排可用空间。两只以上且有空间才会繁殖。</li></ul>${game.settings.moor ? `<h3>沼泽与冬季</h3><ul><li>农场起始有 5 片森林、3 片泥沼。特殊行动不占用家人；同一特殊行动被别人第二次使用时，需付 2 食物。</li><li>伐木移除森林得木材，切泥炭移除泥沼得燃料。收获时每间木屋需 1 燃料；黏土屋减 1、石屋减 2。木材可按 1:1 代替燃料。</li><li>供暖不足会有人卧床，下轮这些人只能去医务所。马可饲养和繁殖；普通灶台不能烹饪马。</li></ul>` : ''}${game.settings.cards ? `<h3>职业与设施</h3><p>“学习职业”与“小型设施”可从手牌选择并支付费用，获得持续效果与分数。${originalMode() ? '原版开局先从公共卡池轮流选牌：每次选 1 张，每人选满 7 张职业和 7 张次要发展后进入第一轮。打牌费用、资源、固定分与卡牌触发自动处理；需要决定时由持牌玩家选择。' : '当前精简牌组的效果自动生效。'}</p>` : ''}${game.settings.seasons ? `<h3>四季流转</h3><p>春、夏、秋、冬每轮轮换。每季有一个独立行动格，并在补充资源、派工或收获时改变规则。当前季节与效果显示在行动区顶部。</p>` : ''}${game.settings.aliens ? `<h3>外星人扩展</h3><p>第 5 轮起，使用采石场会翻开 1 张外星卡。行动卡增加公共行动；商人、神器、事件和职业按卡牌说明生效。此版按简化规则系统改编，所有效果可在外星卡区查看。</p>` : ''}<div class="modal-actions"><button class="primary-btn" data-close="rules">开始经营</button></div></div></div>`;
 }
 function choiceOptions(p, id) {
   let options = [], title = '选择';
@@ -1264,10 +1277,10 @@ function render() {
   const track = Array.from({ length: 14 }, (_, i) => `<i class="${i + 1 < game.round ? 'past' : i + 1 === game.round ? 'now' : ''}" title="第 ${i + 1} 轮"></i>`).join('');
   const resources = game.settings.moor ? RESOURCES : RESOURCES.slice(0, 10);
   const actions = availableActions();
-  const isExpansion = a => EXTRA_ACTIONS.some(x=>x.id===a.id)||a.rulePublic||a.owner!==undefined;
+  const isExpansion = a => !a.roundSlot&&(EXTRA_ACTIONS.some(x=>x.id===a.id&&(!originalMode()||a.id!=='lessons'))||a.rulePublic||a.owner!==undefined);
   const coreActions = actions.filter(a=>!isExpansion(a)&&!ALIEN_ACTIONS.some(x=>x.id===a.id)&&!SEASON_ACTIONS.some(x=>x.id===a.id));
-  const basicActions = coreActions.filter(a=>a.unlock<=1);
-  const roundActions = coreActions.filter(a=>a.unlock>1).sort((a,b)=>a.unlock-b.unlock);
+  const basicActions = coreActions.filter(a=>originalMode()?!a.roundSlot:a.unlock<=1);
+  const roundActions = coreActions.filter(a=>originalMode()?!!a.roundSlot:a.unlock>1).sort((a,b)=>a.unlock-b.unlock);
   const expansionActions = actions.filter(isExpansion);
   const alienActions = actions.filter(a=>ALIEN_ACTIONS.some(x=>x.id===a.id));
   const seasonAction = game.settings.seasons ? SEASON_ACTIONS[(game.round - 1) % 4] : null;
@@ -1280,7 +1293,7 @@ function render() {
   if(!categories.includes(ui.actionCategory))ui.actionCategory='basic';
   const labels={basic:'基础',round:'轮次',expansion:'扩展',special:'沼泽',season:'四季',alien:'外星'};
   const actionNav=`<nav class="action-nav" aria-label="行动分类">${categories.map(k=>`<button data-jump="${k}">${labels[k]}</button>`).join('')}</nav>`;
-  const actionsPanel = `<section class="panel actions-panel"><div class="panel-head"><div><p class="eyebrow">THE ACTION BOARD</p><h2>公共行动版图</h2></div><span class="head-note">${actions.filter(a=>a.unlock<=game.round).length} 项已开放 · 棋子标记占用</span></div>${actionNav}<div class="action-boards"><div class="action-board core-board">${section('basic','基础行动','每个家人占用一个行动格',basicActions.map(actionCard).join(''))}</div>${roundActions.length?`<div class="action-board round-board">${section('round','轮次行动','按轮次逐步开放',roundActions.map(actionCard).join(''))}</div>`:''}${expansionSection?`<div class="action-board extension-board">${expansionSection}</div>`:''}</div>${specialSection||seasonSection||alienSection?`<div class="auxiliary-boards">${specialSection}${seasonSection}${alienSection}</div>`:''}</section>`;
+  const actionsPanel = `<section class="panel actions-panel"><div class="panel-head"><div><p class="eyebrow">THE ACTION BOARD</p><h2>公共行动版图</h2></div><span class="head-note">${actions.filter(a=>a.unlock<=game.round).length} 项已开放 · 棋子标记占用</span></div>${actionNav}<div class="action-boards"><div class="action-board core-board">${section('basic','基础行动','每个家人占用一个行动格',basicActions.map(actionCard).join(''))}</div>${roundActions.length?`<div class="action-board round-board">${section('round','轮次行动',originalMode()?'六阶段 · 每轮开始翻一张':'按轮次逐步开放',roundActions.map(actionCard).join(''))}</div>`:''}${expansionSection?`<div class="action-board extension-board">${expansionSection}</div>`:''}</div>${specialSection||seasonSection||alienSection?`<div class="auxiliary-boards">${specialSection}${seasonSection}${alienSection}</div>`:''}</section>`;
   const pickingCell = !!ui.mode && !ui.mode.choice;
   if (ui.mobileTab === 'cards' && !game.settings.cards && !game.settings.aliens) ui.mobileTab = 'actions';
   const mobileTab = pickingCell ? 'farm' : ui.mobileTab;

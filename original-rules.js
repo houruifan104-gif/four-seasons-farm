@@ -756,6 +756,7 @@
       if(p.family>before.family){stats.newborn+=p.family-before.family;this.event('grow',seat,{count:p.family-before.family});}
       if(['sow','seasonSpring'].includes(a.id)&&option.crop){stats.placedGoods=true;this.event('sow',seat,{crop:option.crop,restricted:a.id!=='sow'});}
       this.event('action',seat,{action:a,pile,before,workerOrder:this.g.usedCount[seat],hasLargePile:context.hasLargePile,extra:context.extra});
+      if(a.id==='first'||a.id==='grow'&&p.family>before.family)this.ask(p,a.id==='first'?'村庄集会':'家庭扩员','minor');
       this.event('endAction',seat,{before,action:a});
       this.event('milestone',seat);
       if(context.finish!==false)this.add({type:'continue',kind:'advance',seat});

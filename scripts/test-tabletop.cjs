@@ -9,7 +9,7 @@ vm.runInContext(`{
     for (const round of [1,14]) {
       game.round=round;render();
       const html=app.innerHTML;
-      for(const action of availableActions())assert.equal(html.split('data-action="'+action.id+'"').length-1,1,action.id+' appears once, including locked actions');
+      for(const action of availableActions()){const marker=action.roundSlot&&action.unlock>round?'data-round-slot="'+action.roundSlot+'"':'data-action="'+action.id+'"';assert.equal(html.split(marker).length-1,1,action.id+' appears once as face or back');}
       for(const action of SPECIALS)assert.equal(html.split('data-special="'+action.id+'"').length-1,1);
       assert.ok(html.includes('round-board'));
       assert.ok(!html.includes('class="later-actions"'),'round spaces are visible without opening a disclosure');
