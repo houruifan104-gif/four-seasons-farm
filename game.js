@@ -180,7 +180,7 @@ function hasAlien(player, id) { return player.alienArtifacts.includes(id); }
 function roomCost(player) { if (automaticEnabled()) return autoRules.roomCost(player); return { [player.houseMaterial]: Math.max(0, 5 - Number(player.houseMaterial === 'wood' && hasCard(player, 'mason')) - Number(player.houseMaterial === 'wood' && hasAlien(player, 'X11'))), reed: hasCard(player, 'mason') ? 1 : 2 }; }
 
 const app = document.querySelector('#app');
-const ui = { mobileTab: 'actions', actionCategory: 'basic', view: 0, mode: null, dialog: null, toast: '', aiTimer: null, toastTimer: null, setup: { ...DEFAULT_SETTINGS }, catalog: { query: '', kind: 'all', deck: 'all', page: 0 } };
+const ui = { deskView:'actions', suppliesOpen:false, handOpen:false, dockTab:'hand', mobileTab: 'actions', actionCategory: 'basic', view: 0, mode: null, dialog: null, toast: '', aiTimer: null, toastTimer: null, setup: { ...DEFAULT_SETTINGS }, catalog: { query: '', kind: 'all', deck: 'all', page: 0 } };
 
 function freshPlayer(name, ai = false, settings = DEFAULT_SETTINGS, index = 0) {
   const farm = Array.from({ length: 15 }, (_, i) => i < 2 ? { type: 'house' } : { type: 'empty' });
@@ -1302,16 +1302,20 @@ function render() {
   const actionNav=`<nav class="action-nav" aria-label="行动分类">${categories.map(k=>`<button data-jump="${k}" aria-pressed="${ui.actionCategory===k}">${labels[k]}</button>`).join('')}</nav>`;
   const actionsPanel = `<section class="panel actions-panel action-workspace"><div class="panel-head"><div><h2>行动区</h2></div><span class="head-note">${actions.filter(a=>a.unlock<=game.round).length} 项已开放 · 选择一项派工</span></div>${actionNav}<div class="action-boards ${expansionSection?'has-expansion':''}"><div class="action-board core-board">${section('basic','基础行动','每个家人占用一个行动格',basicActions.map(actionCard).join(''))}</div>${roundActions.length?`<div class="action-board round-board"><section class="action-section round-section"><div class="section-title"><h3>轮次行动</h3><span>每轮开放一项，已开放的持续可用</span></div>${roundActionsLayout(roundActions)}</section></div>`:''}${expansionSection?`<div class="action-board extension-board">${expansionSection}</div>`:''}</div>${specialSection||seasonSection||alienSection?`<div class="auxiliary-boards">${specialSection}${seasonSection}${alienSection}</div>`:''}</section>`;
   const pickingCell = !!ui.mode && !ui.mode.choice;
-  if (ui.mobileTab === 'cards' && !game.settings.cards && !game.settings.aliens) ui.mobileTab = 'actions';
-  const mobileTab = pickingCell ? 'farm' : ui.mobileTab;
-  const mobileTabs = [['actions', '⚒', '行动'], ['farm', '⌂', '农场'], ...(game.settings.cards || game.settings.aliens ? [['cards', '▤', '卡牌']] : []), ['overview', '☷', '概况']];
-  const mobileNav = `<nav class="mobile-nav" aria-label="游戏区域">${mobileTabs.map(([id, icon, label]) => `<button data-mobile-tab="${id}" ${mobileTab === id ? 'aria-current="page"' : ''} ${pickingCell && id !== 'farm' ? 'disabled' : ''}><span aria-hidden="true">${icon}</span>${label}</button>`).join('')}</nav>`;
+  const deskView=pickingCell?'farm':ui.deskView==='farm'?'farm':'actions';
   const scores = game.players.map((p, i) => `<div class="score-row"><span>${p.name}</span><b>${score(p).total} 分</b></div>`).join('');
   const turnBar = `<div class="topline"><div class="turn ${game.turn && game.phase === 'play' ? 'ai' : ''}"><span></span>${currentTurn}</div><div class="season-track" aria-label="轮次进度">${track}</div><div class="next">${game.phase === 'ended' ? '经营完毕' : nextHarvest === game.round ? '本轮结束后收获' : `第 ${nextHarvest} 轮收获`}</div></div>`;
   const resourceTray = `<section class="resource-tray"><div class="tray-heading"><span>资源收纳盒</span><small>剩余派工 ${Math.max(0, game.workerQuota[meIndex()] - game.usedCount[meIndex()])} / ${game.workerQuota[meIndex()]}</small></div><div class="summary-strip ${game.settings.moor ? 'expanded' : ''}">${resources.map(r => resCard(r, me)).join('')}</div>${game.settings.moor ? `<div class="expansion-line"><button data-convert="woodFuel" ${me.wood && game.phase === 'play' && canControl() ? '' : 'disabled'}>1 木材 → 1 燃料</button></div>` : ''}</section>`;
   const scorePanel = `<section class="panel info-box tabletop-score"><h3>计分与收获</h3>${scores}<div class="score-row"><span>下次收获</span><b>${nextHarvest ? `第 ${nextHarvest} 轮` : '已结束'}</b></div><div class="score-row"><span>当前先手</span><b>${game.players[game.startPlayer].name}</b></div></section>`;
   const logPanel = `<section class="panel info-box tabletop-log"><h3>农场日志</h3><div class="log-list">${game.logs.slice(0, 6).map(item => `<div class="log-line"><time>第 ${item.round} 轮</time><span>${escapeHTML(item.message)}</span></div>`).join('')}</div></section>`;
-  app.innerHTML = `<div class="shell tabletop-shell board-overview" data-mobile-screen="${mobileTab}" data-mobile-category="${ui.actionCategory}"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}<div class="tabletop-layout">${game.settings.cards ? `<div class="table-major">${majorPanel()}</div>` : ''}<div class="table-farm">${farmPanel()}</div><div class="table-actions">${actionsPanel}</div><aside class="table-side">${resourceTray}${scorePanel}${logPanel}</aside>${game.settings.cards || game.settings.aliens ? `<div class="table-hand">${game.settings.cards ? handPanel() : ''}${game.settings.aliens ? alienPanel() : ''}</div>` : ''}</div><footer class="footer">原创精简游戏 · 灵感来自 Uwe Rosenberg 的《Agricola》 · 本作与 Lookout Games 无关联</footer>${mobileNav}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : constructionContext() ? constructionDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
+  const deskTabs=`<nav class="desk-tabs" aria-label="桌面区域">${[['actions','行动区'],['farm','我的农场']].map(([id,label])=>`<button data-desk-view="${id}" aria-pressed="${deskView===id}" aria-controls="desk-${id}">${label}</button>`).join('')}<span>剩余派工 ${Math.max(0,game.workerQuota[meIndex()]-game.usedCount[meIndex()])} / ${game.workerQuota[meIndex()]}</span></nav>`;
+  const resourceRail=`<div class="supply-rail"><button class="supply-toggle" data-supplies-toggle="1" aria-expanded="${!!ui.suppliesOpen}" aria-controls="supply-details" aria-label="${ui.suppliesOpen?'收起':'展开'}物资详情">物资<span aria-hidden="true">${ui.suppliesOpen?'›':'‹'}</span></button>${resources.map(([key,label,icon])=>`<button class="supply-peek" data-supplies-open="1" title="${label} ${me[key]}，点击查看详情" aria-label="${label} ${me[key]}，查看物资详情"><span aria-hidden="true">${icon}</span><b>${me[key]}</b></button>`).join('')}</div>`;
+  const supplyDrawer=`<aside class="supply-sidebar ${ui.suppliesOpen?'is-open':''}" aria-label="物资栏">${resourceRail}<div id="supply-details" class="supply-details table-side" ${ui.suppliesOpen?'':'hidden'}><header><h2>物资与对局</h2><button class="ghost-btn" data-supplies-toggle="1" aria-label="收起物资详情">收起 ›</button></header>${resourceTray}${scorePanel}${logPanel}</div></aside>`;
+  const handCount=me.hand.occupations.length+me.hand.improvements.length,playedCount=me.played.occupations.length+me.played.improvements.length+me.majors.length;
+  const dockTabs=[...(game.settings.cards?[['hand',`手牌 ${handCount}`],['played',`已打出 ${playedCount}`],['majors','主要发展']]:[]),...(game.settings.aliens?[['aliens','外星牌']]:[])];
+  if(!dockTabs.some(([id])=>id===ui.dockTab))ui.dockTab=dockTabs[0]?.[0]||'hand';
+  const cardDock=dockTabs.length?`<section class="card-dock ${ui.handOpen?'is-open':''}" aria-label="底部卡牌区"><button class="dock-handle" data-hand-toggle="1" aria-expanded="${!!ui.handOpen}" aria-controls="card-dock-body"><span class="dock-grip" aria-hidden="true"></span><b>手牌</b><span>${handCount} 张 · 已打出 ${playedCount} 张</span><strong>${ui.handOpen?'收起 ↓':'展开 ↑'}</strong></button><div class="card-dock-body" id="card-dock-body" ${ui.handOpen?'':'hidden'}><nav class="dock-tabs" aria-label="卡牌类别">${dockTabs.map(([id,label])=>`<button data-dock-tab="${id}" aria-pressed="${ui.dockTab===id}">${label}</button>`).join('')}</nav><div class="dock-scroll" data-dock-kind="${ui.dockTab}">${game.settings.cards?`<div class="table-hand dock-personal" ${['hand','played'].includes(ui.dockTab)?'':'hidden'}>${handPanel()}</div><div class="table-major" ${ui.dockTab==='majors'?'':'hidden'}>${majorPanel()}</div>`:''}${game.settings.aliens?`<div class="table-hand" ${ui.dockTab==='aliens'?'':'hidden'}>${alienPanel()}</div>`:''}</div></div></section>`:'';
+  app.innerHTML = `<div class="shell tabletop-shell board-overview desk-shell" data-mobile-screen="${deskView}" data-mobile-category="${ui.actionCategory}"><div class="desk-chrome"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}</div><div class="desk-body"><main class="desk-main">${deskTabs}<div class="desk-scroll"><div class="desk-pane table-actions" id="desk-actions" ${deskView==='actions'?'':'hidden'}>${actionsPanel}</div><div class="desk-pane table-farm" id="desk-farm" ${deskView==='farm'?'':'hidden'}>${farmPanel()}</div></div></main>${supplyDrawer}</div>${cardDock}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : constructionContext() ? constructionDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
   if(buildScrollPosition){const scroller=document.querySelector('.construction-scroll');if(scroller){scroller.scrollLeft=buildScrollPosition.left;scroller.scrollTop=buildScrollPosition.top;}}
 }
 function toast(message) {
@@ -1319,10 +1323,8 @@ function toast(message) {
   ui.toastTimer = setTimeout(() => { ui.toast = ''; render(); }, 2400);
 }
 function scrollToSectionOnMobile(selector) {
-  if (window.matchMedia('(max-width: 700px)').matches) {
-    const screen = selector === '.farm-field' ? 'farm' : 'actions';
-    if (ui.mobileTab !== screen) { ui.mobileTab = screen; render(); }
-  }
+  const screen=selector==='.farm-field'?'farm':'actions';
+  if(ui.deskView!==screen){ui.deskView=screen;render();}
   requestAnimationFrame(() => {
     const target = document.querySelector(selector);
     if (!target) return;
@@ -1362,10 +1364,20 @@ function submitChoice(value) {
   const action = (ui.mode.special ? SPECIALS.map(a => ({ ...a, special: true })) : availableActions()).find(a => a.id === id);
   commitPlayerAction(action, { animal: value, card: value, major: value, supply: value, trade: value });
 }
+function handleDeskClick(d) {
+  if(d.deskView&&['actions','farm'].includes(d.deskView))ui.deskView=d.deskView;
+  else if(d.suppliesToggle)ui.suppliesOpen=!ui.suppliesOpen;
+  else if(d.suppliesOpen)ui.suppliesOpen=true;
+  else if(d.handToggle)ui.handOpen=!ui.handOpen;
+  else if(d.dockTab&&['hand','played','majors','aliens'].includes(d.dockTab)){ui.dockTab=d.dockTab;ui.handOpen=true;}
+  else return false;
+  render();return true;
+}
 app.addEventListener('click', event => {
   const button = event.target.closest('button'); if (!button) return;
   const d = button.dataset;
   if (handleOnlineClick(d)) return;
+  if (handleDeskClick(d)) return;
   if(d.draftKind&&['occupations','improvements'].includes(d.draftKind)){ui.draftKind=d.draftKind;render();return;}
   if(d.draftPick){if(room.active)room.submit({type:'draftPick',id:d.draftPick});else{const error=pickDraftCard(meIndex(),d.draftPick);if(error)toast(error);}return;}
   if (d.cardDetail) { ui.cardReturn = ui.dialog; ui.detailCard = d.cardDetail; ui.dialog = 'cardDetail'; render(); return; }
@@ -1414,6 +1426,7 @@ app.addEventListener('input', event => {
 });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && ui.mode) { ui.mode = null; render(); }
+  else if(event.key==='Escape'&&!ui.dialog&&(ui.suppliesOpen||ui.handOpen)){ui.suppliesOpen=false;ui.handOpen=false;render();}
   else if (event.key === 'Escape' && ui.dialog === 'rules') { ui.dialog = null; render(); scheduleAI(); }
 });
 function executeOnlineCommand(seat, command) {
