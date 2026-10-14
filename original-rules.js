@@ -150,7 +150,7 @@
       while(this.queue.length&&count++<1000){const t=this.queue[0];this.inserting=true;this.cursor=0;
         if(t.type==='event'){this.queue.shift();this.fire(t.event,t.seat,t.info);}
         else if(t.type==='continue'){this.queue.shift();this.api.continue(t);}
-        else {const opts=this.options(t);if(!opts.length){this.queue.shift();if(t.type==='sow'&&t.sownFields?.length)this.endSow(this.p(t.seat),t);}else if(!t.optional&&opts.length===1&&!['room','stable','pasture','plow','actionTarget'].includes(t.type)&&!(t.type==='actionChoice'&&Number.isInteger(opts[0].baseCell))){this.queue.shift();this.resolve(t,opts[0]);}else{this.inserting=false;break;}}
+        else {const opts=this.options(t);if(!opts.length){this.queue.shift();if(t.type==='sow'&&t.sownFields?.length)this.endSow(this.p(t.seat),t);}else if(!t.optional&&opts.length===1&&!['room','stable','pasture','plow','actionTarget','occupation','minor','major','develop','selectThree'].includes(t.type)&&!(t.type==='actionChoice'&&(Number.isInteger(opts[0].baseCell)||['lessons','minor','minor6','black','major'].includes(t.action.id)))){this.queue.shift();this.resolve(t,opts[0]);}else{this.inserting=false;break;}}
         this.inserting=false;
       }
       this.draining=false;this.api.save();this.api.render();
@@ -719,7 +719,7 @@
       return out;
     }
     aiOption(t){if(!t)return null;const options=t.options;if(t.type==='feeding'){const p=this.p(t.seat);if(p.food>=this.api.foodNeed(p))return 'finishFeeding';return (options.find(o=>o.craft)||options.find(o=>o.gain?.food&&Object.keys(o.cost||{}).some(k=>ANIMALS.includes(k)&&p[k]>2))||options.find(o=>o.gain?.food)||options.find(o=>o.finishFeeding))?.value;}const chosen=options.find(o=>o.finishSelection)||options.find(o=>o.cells||o.cardId||o.major||o.oven||o.gain)||options.find(o=>o.selectCell!==undefined)||options.find(o=>o.value==='skip')||options[0];return chosen?.value;}
-    activate(seat,id) {if(this.queue.length||this.g.turn!==seat||this.g.phase!=='play')return '请在自己的回合使用卡牌。';const t=this.abilities(this.p(seat)).find(t=>t.card===id);if(!t)return '卡牌效果当前不可用。';this.add(t);this.drain();}
+    activate(seat,id) {if(this.g.undoVote||this.queue.length||this.g.turn!==seat||this.g.phase!=='play')return '请在自己的回合使用卡牌。';const t=this.abilities(this.p(seat)).find(t=>t.card===id);if(!t)return '卡牌效果当前不可用。';this.api.checkpoint?.(seat,this.api.card(id)?.name||id);this.add(t);this.drain();}
     canOccupy(p,a) {
       if(!(a.id in this.g.occupied)||a.repeatable)return true;
       if(this.has(p,'A028')&&a.id==='lessons')return true;
@@ -763,7 +763,9 @@
       if(context.finish!==false)this.add({type:'continue',kind:'advance',seat});
     }
     begin(seat,a,option={},extra=false) {
+      if(this.g.undoVote)return '等待悔棋投票。';
       if(this.queue.length)return '先完成卡牌选择。';
+      if(!extra)this.api.checkpoint?.(seat,a.name);
       const occupied=a.id in this.g.occupied,p=this.p(seat);
       if(occupied&&this.has(p,'A025'))this.state(p,'A025')[`used${this.g.round}`]=true;
       if(occupied&&this.has(p,'A130'))this.state(p,'A130')[`used${this.g.round}`]=true;

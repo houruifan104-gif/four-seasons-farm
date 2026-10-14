@@ -779,3 +779,14 @@ body:has(.desk-shell){overflow:hidden}
 .card-activation .primary-btn{width:100%;min-height:44px;font-size:14px}
 .card-activation .primary-btn:disabled{opacity:.55;cursor:not-allowed}
 .farm-card .card-activation small{display:block;margin:0;font-size:11px;line-height:1.5;color:#655d4c;text-align:center}
+
+.card-play-controls{display:grid;gap:7px;margin-top:auto;padding-top:12px;border-top:1px solid #b6a789}
+.card-play-controls button{min-height:44px;width:100%}
+.farm-card .card-play-controls small{margin:0;font-size:12px;line-height:1.5;color:#655d4c}
+.card-play-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;padding:10px 16px;background:#e8efdf;border-bottom:1px solid #b5c4a8;font-size:13px}
+.card-play-bar>span{color:#53634b}.card-play-bar button{margin-left:auto}
+.desk-shell .table-major .hand-card.farm-card{flex:0 0 250px}
+
+.undo-voters{display:grid;gap:8px;margin:18px 0}
+.undo-voters>div{display:flex;justify-content:space-between;gap:16px;padding:10px 12px;background:#edf1e7;border-radius:6px}
+.undo-voters span{color:#516745;font-size:13px}

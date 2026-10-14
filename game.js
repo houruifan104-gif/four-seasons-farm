@@ -287,7 +287,48 @@ const room = new window.FarmRoom({
   command: (seat, command) => executeOnlineCommand(seat, command)
 });
 function meIndex() { return room.active && room.started ? room.seat : 0; }
-function canControl() { return game.phase==='play' && !(automaticEnabled() && autoRules.queue.length) && (!room.active || room.started && !room.paused && !room.pending) && game.turn === meIndex(); }
+function rememberAction(seat,label) {
+  if(game.undoVote)return;
+  const {undo,undoVote,...state}=game;
+  game.undo={id:crypto.randomUUID(),seat,label,before:JSON.parse(JSON.stringify(state))};
+}
+function canRequestUndo() {
+  return !!game.undo&&!game.undoVote&&['play','harvest'].includes(game.phase)&&!(automaticEnabled()&&autoRules.queue.length)&&(!room.active||room.started&&!room.paused&&!room.pending);
+}
+function undoCommand(seat,command) {
+  if(!Number.isInteger(seat)||!game.players[seat])return '无效的玩家。';
+  if(command.type==='undoRequest'){
+    if(!canRequestUndo()||command.id!==game.undo.id)return '当前没有可回退的行动。';
+    clearTimeout(ui.aiTimer);ui.mode=null;ui.dialog=null;
+    game.undoVote={id:game.undo.id,requester:seat,approved:game.players.map((p,i)=>i===seat||!room.active&&p.ai)};
+  }else{
+    const vote=game.undoVote;
+    if(!vote||command.id!==vote.id||typeof command.agree!=='boolean')return '这次悔棋投票已结束。';
+    if(vote.approved[seat])return '你已同意本次悔棋。';
+    if(!command.agree){delete game.undoVote;addLog(game,`${game.players[seat].name}不同意悔棋，继续对局。`);save();render();scheduleAI();return;}
+    vote.approved[seat]=true;
+  }
+  if(game.undoVote.approved.every(Boolean)){
+    const previous=game.undo;
+    game=JSON.parse(JSON.stringify(previous.before));
+    delete game.undo;delete game.undoVote;
+    clearTimeout(ui.aiTimer);ui.mode=null;ui.dialog=null;ui.build=null;ui.cardPickKey=null;
+    addLog(game,`全员同意，已回退${game.players[previous.seat].name}的「${previous.label}」。`);
+  }
+  save();render();if(!game.undoVote)scheduleAI();
+}
+function submitUndo(command) {
+  if(room.active)room.submit(command);else {const error=undoCommand(meIndex(),command);if(error)toast(error);}
+}
+function undoButton() {
+  return `<button class="ghost-btn" data-undo-request="1" ${canRequestUndo()?'':'disabled'} title="全员同意后回退上一次行动">悔棋</button>`;
+}
+function undoDialog() {
+  const vote=game.undoVote;if(!vote)return '';
+  const mine=vote.approved[meIndex()],blocked=room.active&&(room.paused||room.pending);
+  return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="悔棋投票"><h2>是否同意悔棋？</h2><p>${escapeHTML(game.players[vote.requester].name)}申请回退${escapeHTML(game.players[game.undo.seat].name)}的「${escapeHTML(game.undo.label)}」。全员同意后，恢复这次行动前的资源、卡牌、农场与轮次。</p><div class="undo-voters">${game.players.map((p,i)=>`<div><b>${escapeHTML(p.name)}</b><span>${vote.approved[i]?'已同意':'等待确认'}</span></div>`).join('')}</div>${room.active&&room.paused?'<p>等待所有玩家重新连接后继续投票。</p>':''}<div class="modal-actions">${mine?'<p role="status">你已同意，等待其他玩家。</p>':`<button class="ghost-btn" data-undo-vote="no" data-undo-id="${vote.id}" ${blocked?'disabled':''}>不同意</button><button class="primary-btn" data-undo-vote="yes" data-undo-id="${vote.id}" ${blocked?'disabled':''}>同意回退</button>`}</div></section></div>`;
+}
+function canControl() { return !game.undoVote && game.phase==='play' && !(automaticEnabled() && autoRules.queue.length) && (!room.active || room.started && !room.paused && !room.pending) && game.turn === meIndex(); }
 function commitPlayerAction(action, option = {}) {
   if (room.active) { ui.mode = null; room.submit({ type: 'action', id: action.id, special: !!action.special, option }); }
   else if (automaticEnabled()) autoRules.begin(meIndex(),action,option);
@@ -527,6 +568,8 @@ function claimAlienMerchant(who, actionId) {
 }
 
 function applyAction(who, action, option = {}, ruleContext = null) {
+  if(game.undoVote)return;
+  if(!ruleContext)rememberAction(who,action.name);
   const player = game.players[who];
   const familyBefore=player.family;
   let detail = '';
@@ -697,7 +740,7 @@ function chooseAiAction(who) {
 }
 function performAI() {
   ui.aiTimer = null;
-  if (room.active || game.phase !== 'play' || !game.players[game.turn].ai || ui.dialog) return;
+  if (game.undoVote || room.active || game.phase !== 'play' || !game.players[game.turn].ai || ui.dialog) return;
   const who = game.turn;
   const action = chooseAiAction(who);
   if (!action) { finishRound(); return; }
@@ -724,6 +767,7 @@ function performAI() {
 }
 function scheduleAI() {
   clearTimeout(ui.aiTimer);
+  if(game.undoVote)return;
   if(!room.active&&game.phase==='draft'&&!ui.dialog&&game.players[game.draft.turn].ai){ui.aiTimer=setTimeout(()=>{const seat=game.draft?.turn;if(game.phase==='draft'&&game.players[seat]?.ai){const id=chooseDraftAI(seat);if(id)pickDraftCard(seat,id);}},350);return;}
   if (!(automaticEnabled() && autoRules.queue.length) && !room.active && game.phase === 'play' && game.players[game.turn].ai && !ui.dialog) ui.aiTimer = setTimeout(performAI, game.players.length > 2 ? 250 : 550);
 }
@@ -965,12 +1009,41 @@ function cardFace(c, kind, {link=false, english=false}={}) {
   return `<span class="fc-top"><span class="fc-type">${type}${kind==='occupation'&&c.minPlayers?`<span class="fc-players" title="至少 ${c.minPlayers} 人可用">${c.minPlayers}+ 人</span>`:''}</span><span class="fc-id">${escapeHTML(c.displayId||c.id)}</span></span><span class="fc-title">${title}</span>${english&&c.nameEn?`<span class="fc-english">${escapeHTML(c.nameEn)}</span>`:''}<span class="fc-art">${cardArtwork(c,kind)}${c.points?`<span class="fc-score" aria-label="固定分 ${c.points}"><strong>${c.points}</strong><span>分</span></span>`:''}</span>${kind==='occupation'?'':`<span class="fc-cost"><span>费用</span><strong>${escapeHTML(cost)}</strong></span>`}<span class="fc-rules">${kind==='major'?majorRulesMarkup(c):`<span class="fc-effect">${cardRulesMarkup(c.effect)}</span>`}</span>${requirement!=='无'||c.passing?`<span class="fc-bottom">${requirement!=='无'?`<span class="fc-requirement">前置 · ${escapeHTML(requirement)}</span>`:''}${c.passing?'<span class="fc-passing-rule">打出后，将此牌传给左手边的玩家，加入其手牌。</span>':''}</span>`:''}`;
 }
 
+function cardPlayContext() {
+  const task=automaticEnabled()?autoRules.choice():null;
+  const cardActions=['lessons','minor','minor6','black','major'];
+  if(task&&task.seat===meIndex()&&(['occupation','minor','major','develop','selectThree'].includes(task.type)||task.type==='actionChoice'&&cardActions.includes(task.action.id))){
+    const options=task.options.map(o=>({...o,id:o.cardId||o.major||(o.baseValue?String(o.baseValue).split(':')[0]:null)}));
+    return {rule:true,key:JSON.stringify(task),options,majorOnly:task.type==='major'||task.type==='actionChoice'&&task.action.id==='major',title:task.type==='selectThree'?`从手牌选择职业（已选 ${task.selected?.length||0}/3）`:'从下方手牌打出卡牌',skip:options.some(o=>o.value==='skip')};
+  }
+  if(!task&&ui.mode?.choice&&cardActions.includes(ui.mode.id)){
+    const {options,title}=choiceOptions(game.players[meIndex()],ui.mode.id);
+    return {rule:false,key:ui.mode.id,majorOnly:ui.mode.id==='major',title,options:options.filter(o=>o[2]).map(([value,label,,detail])=>({value,id:String(value).split(':')[0],label,detail}))};
+  }
+  return null;
+}
+function cardPlayControls(id,context=cardPlayContext()) {
+  if(!context)return '';
+  const options=context.options.filter(o=>o.id===id);
+  const disabled=!!game.undoVote||room.active&&(room.paused||room.pending);
+  return `<div class="card-play-controls">${options.length?options.map(o=>`<button class="primary-btn" data-play-card="${escapeHTML(o.value)}" ${disabled?'disabled':''}>${context.rule&&autoRules.choice()?.type==='selectThree'?'选择这张':'打出此牌'}</button><small>${escapeHTML(o.label)}${o.cost?' · '+(autoRules.label(o.cost)||'无费用'):''}</small>`).join(''):'<small>本次不可打出</small>'}</div>`;
+}
+function cardPlayBar(context) {
+  if(!context)return '';
+  return `<div class="card-play-bar"><strong>${context.majorOnly?'从主要发展区选择卡牌':escapeHTML(context.title)}</strong><span>查看完整牌面后，点击「打出此牌」</span>${context.rule?(context.skip?'<button class="ghost-btn" data-rule-choice="skip">跳过</button>':''):'<button class="ghost-btn" data-cancel="1">取消</button>'}</div>`;
+}
+function playFromHand(value) {
+  const context=cardPlayContext();
+  if(!context||game.undoVote||ui.dialog||room.active&&(room.paused||room.pending)||!context.options.some(o=>o.id&&o.value===value))return;
+  if(context.rule)submitRuleChoice(value);else submitChoice(value);
+}
 function handPanel() {
   const p = game.players[meIndex()];
   const abilities=automaticEnabled()?autoRules.abilities(p,true):[];
+  const playContext=cardPlayContext();
   const row = (id, kind, played=false) => {
     const c = kind === 'major' ? MAJORS.find(c=>c.id===id) : findHandCard(id);
-    return c ? `<article class="hand-card farm-card fc-${kind}" data-table-card="${id}">${cardFace(c,kind,{link:true})}${played?cardAbilityControl(c.id,abilities):''}</article>` : '';
+    return c ? `<article class="hand-card farm-card fc-${kind}" data-table-card="${id}">${cardFace(c,kind,{link:true})}${played?cardAbilityControl(c.id,abilities):cardPlayControls(c.id,playContext)}</article>` : '';
   };
   const hand = p.hand.occupations.map(id=>row(id,'occupation')).join('') + p.hand.improvements.map(id=>row(id,'minor')).join('');
   const played = p.played.occupations.map(id=>row(id,'occupation',true)).join('') + p.played.improvements.map(id=>row(id,'minor',true)).join('') + p.majors.map(id=>row(id,'major',true)).join('');
@@ -994,6 +1067,8 @@ function activeMinorPanel(p) {
   }).join('')}</div>`;
 }
 function majorPanel() {
+  const context=cardPlayContext();
+  if(context)return `<section class="panel cards-panel"><div class="panel-head"><h2>主要发展</h2></div><div class="hand-grid">${MAJORS.filter(c=>game.majorSupply.includes(c.id)).map(c=>`<article class="hand-card farm-card fc-major">${cardFace(c,'major',{link:true})}${cardPlayControls(c.id,context)}</article>`).join('')}</div></section>`;
   const cards = MAJORS.map(card => {
     const owner=game.players.find(p=>p.majors.includes(card.id));
     const available=game.majorSupply.includes(card.id);
@@ -1113,7 +1188,7 @@ function constructionSelection(context) {
 }
 function submitRuleChoice(value) {
   const task=autoRules.choice();
-  if(!task||task.seat!==meIndex()||room.active&&(!room.started||room.paused||room.pending))return;
+  if(game.undoVote||!task||task.seat!==meIndex()||room.active&&(!room.started||room.paused||room.pending))return;
   ui.build=null;
   if(room.active)room.submit({type:'ruleChoice',value});else autoRules.choose(meIndex(),value);
 }
@@ -1164,7 +1239,7 @@ function constructionDialog(context=constructionContext()) {
 }
 
 function automaticChoiceDialog() {
-  const t=autoRules.choice();if(!t)return '';
+  const t=autoRules.choice();if(!t||cardPlayContext())return '';
   const construction=constructionContext();if(construction)return constructionDialog(construction);
   const card=findHandCard(t.card),owner=game.players[t.seat],mine=t.seat===meIndex();
   return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(t.type==='feeding'?'喂养家人':card?.name||t.title||'选择附加行动')}</h2>${t.type==='feeding'?`<p>本次需要 <strong>${familyFoodNeed(owner)}</strong> 食物，库存 <strong>${owner.food}</strong> 食物。${owner.food<familyFoodNeed(owner)?`还差 ${familyFoodNeed(owner)-owner.food} 食物，可选择下方兑换。`:'食物已经足够，可以完成喂养。'}</p><p>兑换由你决定，系统不会自动吃掉谷物、蔬菜或牲畜。喂养后才繁殖，每种最多增加 1 只。</p>`:''}${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}${o.major?majorRulesMarkup(MAJORS.find(c=>c.id===o.major)):''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
@@ -1216,7 +1291,7 @@ function initAutomaticRules() {
   return new window.OriginalRules({
     game:()=>game,card:findHandCard,majors:MAJORS,log:message=>addLog(game,message),actions:()=>availableActions(),
     animals:addAnimals,capacity:animalCapacity,animalFood:animalFoodValue,vegetableFood:vegetableFoodValue,foodNeed:familyFoodNeed,requirement:originalRequirement,canAct,save,render,
-    continue:automaticContinue,extraAction:automaticExtraAction,
+    continue:automaticContinue,extraAction:automaticExtraAction,checkpoint:rememberAction,
     choices:(p,id)=>availableActions().find(a=>a.id===id)?.ruleOp ? {options:[]} : choiceOptions(p,id),cells:(p,id)=>selectedCells(p,{id}),
     aiChoice:(seat,value)=>{clearTimeout(ui.aiTimer);ui.aiTimer=setTimeout(()=>autoRules.choose(seat,autoRules.aiOption(autoRules.choice())||value),120);}
   });
@@ -1254,12 +1329,12 @@ function choiceOptions(p, id) {
   return { options, title };
 }
 function choiceDialog() {
-  if (!ui.mode?.choice) return '';
+  if (!ui.mode?.choice||cardPlayContext()) return '';
   const { options, title } = choiceOptions(game.players[meIndex()], ui.mode.id);
   return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">CHOOSE</p><h2>${title}</h2><div class="modal-choice ${options.length > 3 ? 'many' : ''}">${options.map(([value, label, enabled, detail]) => `<button class="choice-btn" data-choice="${value}" ${enabled ? '' : 'disabled'}><b>${label}</b>${ui.mode.id==='major'?`<small>${cardCost({cost:majorCost(MAJORS.find(c=>c.id===value))})}</small>${majorRulesMarkup(MAJORS.find(c=>c.id===value))}`:`<small>${detail}</small>`}</button>`).join('')}</div><div class="modal-actions"><button class="ghost-btn" data-cancel="1">取消</button></div></div></div>`;
 }
 function harvestDialog() {
-  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获结算</h2><p>收田 → 喂养 → 繁殖。新生牲畜不能用于本次喂养。</p><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>喂养：应付 ${s.fed} · 实付 ${s.fed-s.shortage}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
+  return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><p class="eyebrow">HARVEST · ROUND ${game.round}</p><h2>收获结算</h2><p>收田 → 喂养 → 繁殖。新生牲畜不能用于本次喂养。</p><div class="harvest-grid">${game.harvestSummary.map((s, i) => `<div class="harvest-card ${i ? 'ai' : ''}"><b>${game.players[i].name}</b>收获作物：${s.crops}<br>新生牲畜：${s.newborn.length ? s.newborn.join('、') : '无'}<br>喂养：应付 ${s.fed} · 实付 ${s.fed-s.shortage}${s.shortage ? `<br><strong>食物不足 ${s.shortage}</strong>` : '<br>全家吃饱 ✓'}${game.settings.moor ? `<br>房屋供暖：${s.heatCost} 燃料${s.cold ? `<br><strong>供暖不足 ${s.cold}，有人卧床</strong>` : '<br>温暖过冬 ✓'}` : ''}</div>`).join('')}</div><div class="modal-actions">${undoButton()}${room.active ? '<button class="ghost-btn" data-online="1">查看房间</button>' : ''}<button class="primary-btn" data-continue="1" ${room.active && (!room.host || room.paused) ? 'disabled' : ''}>${room.active && !room.host ? '等待房主继续' : game.round === 14 ? '查看结算' : '进入下一轮'}</button></div></div></div>`;
 }
 function endingDialog() {
   const mine = score(game.players[meIndex()]);
@@ -1280,7 +1355,7 @@ function draftPanel() {
   const progress=game.players.map((p,i)=>`<div class="draft-seat ${i===d.turn?'is-current':''}"><strong>${i+1}. ${escapeHTML(p.name)}${i===meIndex()?' · 你':''}</strong><span>职业 ${p.hand.occupations.length}/7 · 次发 ${p.hand.improvements.length}/7</span>${i===d.turn?'<b>正在选牌</b>':''}</div>`).join('');
   const pool=d.pools[kind].map(id=>{const c=findHandCard(id),type=kind==='occupations'?'occupation':'minor';return `<article class="draft-card farm-card fc-${type}">${cardFace(c,type,{link:true})}<button class="primary-btn fc-pick" data-draft-pick="${id}" ${!mine||full?'disabled':''}>${full?'该类已满 7 张':mine?'选入手牌':'等待轮到你'}</button></article>`;}).join('');
   const hands=game.players.map((p,i)=>`<details ${i===meIndex()?'open':''}><summary>${escapeHTML(p.name)} · 已选 ${p.hand.occupations.length+p.hand.improvements.length}/14</summary>${['occupations','improvements'].map(k=>`<div><b>${k==='occupations'?'职业':'次要发展'} ${p.hand[k].length}/7</b><p>${p.hand[k].map(id=>`<button class="card-title-button" data-card-detail="${id}">${escapeHTML(findHandCard(id).name)}</button>`).join('、')||'尚未选择'}</p></div>`).join('')}</details>`).join('');
-  return `<main class="shell draft-shell"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>开局 · 公共选牌</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active?'房间':'多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-new-confirm="1" ${room.active?'disabled':''}>新游戏</button></div></header>${room.active?onlineBar():''}<section class="draft-intro"><h2>${mine?'轮到你，选择 1 张牌':`等待${escapeHTML(owner.name)}选择 1 张牌`}</h2><p>职业、次要发展各公开 ${game.players.length} × 7 = ${game.players.length*7} 张。按 1 → ${game.players.length} → 1 的顺序轮流选择，每次任选一类拿 1 张，每人每类上限 7 张。</p><p>职业池已按当前 ${game.players.length} 人筛选。选牌免费，不执行卡牌效果；所有人选满后开始第一轮。</p><progress max="${d.total}" value="${d.picks}" aria-label="公共选牌进度"></progress><span>已选 ${d.picks} / ${d.total} 张</span>${d.lastPick?`<p class="draft-last" role="status">${escapeHTML(game.players[d.lastPick.seat].name)}刚选了「${escapeHTML(findHandCard(d.lastPick.id).name)}」</p>`:''}</section><section class="draft-seats" aria-label="选牌顺序">${progress}</section><div class="draft-layout"><section class="draft-pool"><nav class="draft-tabs" aria-label="公共卡池类别">${[['occupations','职业'],['improvements','次要发展']].map(([k,n])=>`<button class="ghost-btn ${k===kind?'active':''}" data-draft-kind="${k}" aria-pressed="${k===kind}">${n}池 · 剩 ${d.pools[k].length} 张<span>你已选 ${me.hand[k].length}/7</span></button>`).join('')}</nav><div class="draft-grid">${pool||'<p class="draft-empty">这一类的牌已全部选完。</p>'}</div></section><aside class="draft-hands"><h2>已选手牌</h2>${hands}</aside></div></main>`;
+  return `<main class="shell draft-shell"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>开局 · 公共选牌</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions">${undoButton()}<button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active?'房间':'多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-new-confirm="1" ${room.active?'disabled':''}>新游戏</button></div></header>${room.active?onlineBar():''}<section class="draft-intro"><h2>${mine?'轮到你，选择 1 张牌':`等待${escapeHTML(owner.name)}选择 1 张牌`}</h2><p>职业、次要发展各公开 ${game.players.length} × 7 = ${game.players.length*7} 张。按 1 → ${game.players.length} → 1 的顺序轮流选择，每次任选一类拿 1 张，每人每类上限 7 张。</p><p>职业池已按当前 ${game.players.length} 人筛选。选牌免费，不执行卡牌效果；所有人选满后开始第一轮。</p><progress max="${d.total}" value="${d.picks}" aria-label="公共选牌进度"></progress><span>已选 ${d.picks} / ${d.total} 张</span>${d.lastPick?`<p class="draft-last" role="status">${escapeHTML(game.players[d.lastPick.seat].name)}刚选了「${escapeHTML(findHandCard(d.lastPick.id).name)}」</p>`:''}</section><section class="draft-seats" aria-label="选牌顺序">${progress}</section><div class="draft-layout"><section class="draft-pool"><nav class="draft-tabs" aria-label="公共卡池类别">${[['occupations','职业'],['improvements','次要发展']].map(([k,n])=>`<button class="ghost-btn ${k===kind?'active':''}" data-draft-kind="${k}" aria-pressed="${k===kind}">${n}池 · 剩 ${d.pools[k].length} 张<span>你已选 ${me.hand[k].length}/7</span></button>`).join('')}</nav><div class="draft-grid">${pool||'<p class="draft-empty">这一类的牌已全部选完。</p>'}</div></section><aside class="draft-hands"><h2>已选手牌</h2>${hands}</aside></div></main>`;
 }
 function render() {
   const previousBuildScroll=document.querySelector('.construction-scroll');
@@ -1289,6 +1364,8 @@ function render() {
     const overlay=(room.active&&!room.started)||ui.dialog==='online'?onlineDialog():ui.dialog==='rules'?rulesDialog():ui.dialog==='cardDetail'?cardDetailDialog():ui.dialog==='catalog'?catalogDialog():ui.dialog==='new'?newDialog():'';
     app.innerHTML=draftPanel()+overlay+(ui.toast?`<div class="notice" role="status">${escapeHTML(ui.toast)}</div>`:'');return;
   }
+  const cardPick=cardPlayContext();
+  if(cardPick){ui.handOpen=true;if(ui.cardPickKey!==cardPick.key||!['hand','majors'].includes(ui.dockTab))ui.dockTab=cardPick.majorOnly?'majors':'hand';ui.cardPickKey=cardPick.key;}else ui.cardPickKey=null;
   const me = game.players[meIndex()];
   if (ui.view >= game.players.length) ui.view = meIndex();
   const currentTurn = game.phase === 'play' ? canControl() ? me.sick ? '病人需先前往医务所' : '轮到你派工' : `${escapeHTML(game.players[game.turn].name)}${room.active ? '派工中' : '正在思考…'}` : game.phase === 'harvest' ? '收获季' : '游戏结束';
@@ -1326,8 +1403,8 @@ function render() {
   const handCount=me.hand.occupations.length+me.hand.improvements.length,playedCount=me.played.occupations.length+me.played.improvements.length+me.majors.length;
   const dockTabs=[...(game.settings.cards?[['hand',`手牌 ${handCount}`],['played',`已打出 ${playedCount}`],['majors','主要发展']]:[]),...(game.settings.aliens?[['aliens','外星牌']]:[])];
   if(!dockTabs.some(([id])=>id===ui.dockTab))ui.dockTab=dockTabs[0]?.[0]||'hand';
-  const cardDock=dockTabs.length?`<section class="card-dock ${ui.handOpen?'is-open':''}" aria-label="底部卡牌区"><button class="dock-handle" data-hand-toggle="1" aria-expanded="${!!ui.handOpen}" aria-controls="card-dock-body"><span class="dock-grip" aria-hidden="true"></span><b>手牌</b><span>${handCount} 张 · 已打出 ${playedCount} 张</span><strong>${ui.handOpen?'收起 ↓':'展开 ↑'}</strong></button><div class="card-dock-body" id="card-dock-body" ${ui.handOpen?'':'hidden'}><nav class="dock-tabs" aria-label="卡牌类别">${dockTabs.map(([id,label])=>`<button data-dock-tab="${id}" aria-pressed="${ui.dockTab===id}">${label}</button>`).join('')}</nav><div class="dock-scroll" data-dock-kind="${ui.dockTab}">${game.settings.cards?`<div class="table-hand dock-personal" ${['hand','played'].includes(ui.dockTab)?'':'hidden'}>${handPanel()}</div><div class="table-major" ${ui.dockTab==='majors'?'':'hidden'}>${majorPanel()}</div>`:''}${game.settings.aliens?`<div class="table-hand" ${ui.dockTab==='aliens'?'':'hidden'}>${alienPanel()}</div>`:''}</div></div></section>`:'';
-  app.innerHTML = `<div class="shell tabletop-shell board-overview desk-shell" data-mobile-screen="${deskView}" data-mobile-category="${ui.actionCategory}"><div class="desk-chrome"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions"><button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}</div><div class="desk-body"><main class="desk-main">${deskTabs}<div class="desk-scroll"><div class="desk-pane table-actions" id="desk-actions" ${deskView==='actions'?'':'hidden'}>${actionsPanel}</div><div class="desk-pane table-farm" id="desk-farm" ${deskView==='farm'?'':'hidden'}>${farmPanel()}</div></div></main>${supplyDrawer}</div>${cardDock}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : constructionContext() ? constructionDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
+  const cardDock=dockTabs.length?`<section class="card-dock ${ui.handOpen?'is-open':''}" aria-label="底部卡牌区"><button class="dock-handle" data-hand-toggle="1" aria-expanded="${!!ui.handOpen}" aria-controls="card-dock-body"><span class="dock-grip" aria-hidden="true"></span><b>手牌</b><span>${handCount} 张 · 已打出 ${playedCount} 张</span><strong>${ui.handOpen?'收起 ↓':'展开 ↑'}</strong></button><div class="card-dock-body" id="card-dock-body" ${ui.handOpen?'':'hidden'}>${cardPlayBar(cardPick)}<nav class="dock-tabs" aria-label="卡牌类别">${dockTabs.map(([id,label])=>`<button data-dock-tab="${id}" aria-pressed="${ui.dockTab===id}">${label}</button>`).join('')}</nav><div class="dock-scroll" data-dock-kind="${ui.dockTab}">${game.settings.cards?`<div class="table-hand dock-personal" ${['hand','played'].includes(ui.dockTab)?'':'hidden'}>${handPanel()}</div><div class="table-major" ${ui.dockTab==='majors'?'':'hidden'}>${majorPanel()}</div>`:''}${game.settings.aliens?`<div class="table-hand" ${ui.dockTab==='aliens'?'':'hidden'}>${alienPanel()}</div>`:''}</div></div></section>`:'';
+  app.innerHTML = `<div class="shell tabletop-shell board-overview desk-shell" data-mobile-screen="${deskView}" data-mobile-category="${ui.actionCategory}"><div class="desk-chrome"><header class="masthead"><div class="brand"><div class="brand-mark">✳</div><div><h1>四季田园</h1><p>FOUR SEASONS FARM</p></div></div><div class="header-actions">${undoButton()}<button class="ghost-btn" data-cover-settings="1">摸鱼模式</button><button class="ghost-btn" data-online="1">${room.active ? '房间' : '多人联机'}</button><button class="ghost-btn" data-rules="1">玩法</button><button class="ghost-btn" data-catalog-open="1">原版牌库</button><button class="ghost-btn" data-new-confirm="1" ${room.active ? 'disabled' : ''}>新游戏</button><span class="round-pill">第 ${game.round} / 14 轮</span></div></header>${room.active ? onlineBar() : ''}${turnBar}</div><div class="desk-body"><main class="desk-main">${deskTabs}<div class="desk-scroll"><div class="desk-pane table-actions" id="desk-actions" ${deskView==='actions'?'':'hidden'}>${actionsPanel}</div><div class="desk-pane table-farm" id="desk-farm" ${deskView==='farm'?'':'hidden'}>${farmPanel()}</div></div></main>${supplyDrawer}</div>${cardDock}</div>${(room.active && !room.started) || ui.dialog === 'online' ? onlineDialog() : game.undoVote ? undoDialog() : ui.dialog === 'rules' ? rulesDialog() : ui.dialog === 'cardDetail' ? cardDetailDialog() : ui.dialog === 'catalog' ? catalogDialog() : ui.dialog === 'new' ? newDialog() : automaticEnabled() && autoRules.choice() ? automaticChoiceDialog() : ui.mode?.choice ? choiceDialog() : constructionContext() ? constructionDialog() : game.phase === 'harvest' ? harvestDialog() : game.phase === 'ended' ? endingDialog() : ''}${ui.toast ? `<div class="notice" role="status">${escapeHTML(ui.toast)}</div>` : ''}`;
   if(buildScrollPosition){const scroller=document.querySelector('.construction-scroll');if(scroller){scroller.scrollLeft=buildScrollPosition.left;scroller.scrollTop=buildScrollPosition.top;}}
 }
 function toast(message) {
@@ -1389,6 +1466,9 @@ app.addEventListener('click', event => {
   const button = event.target.closest('button'); if (!button) return;
   const d = button.dataset;
   if (handleOnlineClick(d)) return;
+  if(d.undoRequest){submitUndo({type:'undoRequest',id:game.undo?.id});return;}
+  if(d.undoVote){submitUndo({type:'undoVote',id:d.undoId,agree:d.undoVote==='yes'});return;}
+  if(game.undoVote){if(d.close==='online'){ui.dialog=null;render();}return;}
   if (handleDeskClick(d)) return;
   if(d.draftKind&&['occupations','improvements'].includes(d.draftKind)){ui.draftKind=d.draftKind;render();return;}
   if(d.draftPick){if(room.active)room.submit({type:'draftPick',id:d.draftPick});else{const error=pickDraftCard(meIndex(),d.draftPick);if(error)toast(error);}return;}
@@ -1397,6 +1477,7 @@ app.addEventListener('click', event => {
   if(d.buildZoom){const zoom=Number(d.buildZoom);if([1,1.25,1.5].includes(zoom)){ui.buildZoom=zoom;render();}return;}
   if(d.buildCell!==undefined){selectConstructionCell(Number(d.buildCell));return;}
   if(d.buildConfirm!==undefined){confirmConstruction(d.buildConfirm);return;}
+  if(d.playCard) {playFromHand(d.playCard);return;}
   if(d.ruleChoice) { submitRuleChoice(d.ruleChoice);return; }
   if(d.ruleAbility) { useCardAbility(d.ruleAbility);return; }
   if (d.mobileTab && ['actions', 'farm', 'cards', 'overview'].includes(d.mobileTab)) { ui.mobileTab = d.mobileTab; render(); window.scrollTo({ top: 0, behavior: 'instant' }); }
@@ -1416,8 +1497,8 @@ app.addEventListener('click', event => {
   else if (d.close) { ui.dialog = null; if (d.close === 'rules') { try { localStorage.setItem(SEEN_KEY, '1'); } catch (_) {} } render(); scheduleAI(); }
   else if (d.newConfirm) { if (room.active) { ui.dialog = 'online'; render(); return; } ui.setup = { ...DEFAULT_SETTINGS }; ui.dialog = 'new'; render(); }
   else if (d.new) { if (room.active) return; clearTimeout(ui.aiTimer); game = freshGame(ui.setup); ui.mobileTab = 'actions'; ui.actionCategory = 'basic'; ui.mode = null; ui.dialog = null; ui.view = meIndex(); save(); render(); }
-  else if (d.continue) { if (room.active) { room.submit({ type: 'continue' }); return; } if (game.round === 14) { if(automaticEnabled())autoRules.finalize(); game.phase = 'ended'; save(); render(); } else nextRound(); }
-  else if (d.convert === 'woodFuel' && game.settings.moor && game.phase === 'play' && canControl() && meHasWood()) { if (room.active) room.submit({ type: 'convert' }); else { game.players[meIndex()].wood--; game.players[meIndex()].fuel++; save(); render(); } }
+  else if (d.continue) { if(game.undoVote)return; if (room.active) { room.submit({ type: 'continue' }); return; } delete game.undo; if (game.round === 14) { if(automaticEnabled())autoRules.finalize(); game.phase = 'ended'; save(); render(); } else nextRound(); }
+  else if (d.convert === 'woodFuel' && game.settings.moor && game.phase === 'play' && canControl() && meHasWood()) { if (room.active) room.submit({ type: 'convert' }); else { rememberAction(meIndex(),'木材换燃料');game.players[meIndex()].wood--; game.players[meIndex()].fuel++; save(); render(); } }
 });
 function meHasWood() { return game.players[meIndex()].wood > 0; }
 app.addEventListener('change', event => {
@@ -1443,6 +1524,8 @@ document.addEventListener('keydown', event => {
 });
 function executeOnlineCommand(seat, command) {
   if (!room.host || !room.started || room.paused || !command || typeof command !== 'object') return '房间尚未就绪。';
+  if(command.type==='undoRequest'||command.type==='undoVote')return undoCommand(seat,command);
+  if(game.undoVote)return '等待所有玩家完成悔棋投票。';
   if(command.type==='draftPick')return pickDraftCard(seat,command.id);
   if(game.phase==='draft')return '请先完成公共选牌，再开始第一轮。';
   if(command.type==='ruleChoice')return autoRules.choose(seat,command.value);
@@ -1450,6 +1533,7 @@ function executeOnlineCommand(seat, command) {
   if(automaticEnabled() && autoRules.queue.length)return '等待卡牌效果结算。';
   if (command.type === 'continue') {
     if (seat !== 0 || game.phase !== 'harvest') return '等待房主推进收获。';
+    delete game.undo;
     if (game.round === 14) { if(automaticEnabled())autoRules.finalize(); game.phase = 'ended'; save(); render(); } else nextRound();
     return;
   }
@@ -1457,7 +1541,7 @@ function executeOnlineCommand(seat, command) {
   const player = game.players[seat];
   if (command.type === 'convert') {
     if (!game.settings.moor || player.wood < 1) return '木材不足。';
-    player.wood--; player.fuel++; save(); render(); return;
+    rememberAction(seat,'木材换燃料');player.wood--; player.fuel++; save(); render(); return;
   }
   if (command.type !== 'action') return '未知操作。';
   const action = command.special === true ? SPECIALS.map(a => ({ ...a, special: true })).find(a => a.id === command.id) : availableActions().find(a => a.id === command.id);
