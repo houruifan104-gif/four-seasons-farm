@@ -967,15 +967,16 @@ function cardFace(c, kind, {link=false, english=false}={}) {
 
 function handPanel() {
   const p = game.players[meIndex()];
-  const row = (id, kind) => {
+  const abilities=automaticEnabled()?autoRules.abilities(p,true):[];
+  const row = (id, kind, played=false) => {
     const c = kind === 'major' ? MAJORS.find(c=>c.id===id) : findHandCard(id);
-    return c ? `<article class="hand-card farm-card fc-${kind}" data-table-card="${id}">${cardFace(c,kind,{link:true})}</article>` : '';
+    return c ? `<article class="hand-card farm-card fc-${kind}" data-table-card="${id}">${cardFace(c,kind,{link:true})}${played?cardAbilityControl(c.id,abilities):''}</article>` : '';
   };
   const hand = p.hand.occupations.map(id=>row(id,'occupation')).join('') + p.hand.improvements.map(id=>row(id,'minor')).join('');
-  const played = p.played.occupations.map(id=>row(id,'occupation')).join('') + p.played.improvements.map(id=>row(id,'minor')).join('') + p.majors.map(id=>row(id,'major')).join('');
+  const played = p.played.occupations.map(id=>row(id,'occupation',true)).join('') + p.played.improvements.map(id=>row(id,'minor',true)).join('') + p.majors.map(id=>row(id,'major',true)).join('');
   const handCount = p.hand.occupations.length + p.hand.improvements.length;
   const playedCount = p.played.occupations.length + p.played.improvements.length + p.majors.length;
-  return `<section class="panel cards-panel hand-rack"><div class="panel-head"><div><p class="eyebrow">IN YOUR HAND</p><h2>你的手牌 <small>${handCount}</small></h2></div><span class="head-note">职业 ${p.hand.occupations.length} · 次要发展 ${p.hand.improvements.length} · 点击牌名查看</span></div><div class="hand-grid">${hand || '<p class="rack-empty">手牌已全部打出。</p>'}</div></section><section class="panel cards-panel played-rack"><div class="panel-head"><div><p class="eyebrow">ON YOUR TABLE</p><h2>已打出的牌 <small>${playedCount}</small></h2></div><span class="head-note">职业 · 次要发展 · 主要发展</span></div><div class="hand-grid">${played || '<p class="rack-empty">打出的职业与发展卡会摆在这里。</p>'}</div>${automaticAbilityPanel(p)}${activeMinorPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
+  return `<section class="panel cards-panel hand-rack"><div class="panel-head"><div><p class="eyebrow">IN YOUR HAND</p><h2>你的手牌 <small>${handCount}</small></h2></div><span class="head-note">职业 ${p.hand.occupations.length} · 次要发展 ${p.hand.improvements.length} · 点击牌名查看</span></div><div class="hand-grid">${hand || '<p class="rack-empty">手牌已全部打出。</p>'}</div></section><section class="panel cards-panel played-rack"><div class="panel-head"><div><p class="eyebrow">ON YOUR TABLE</p><h2>已打出的牌 <small>${playedCount}</small></h2></div><span class="head-note">职业 · 次要发展 · 主要发展</span></div><div class="hand-grid">${played || '<p class="rack-empty">打出的职业与发展卡会摆在这里。</p>'}</div>${activeMinorPanel(p)}${p.cardNotes ? `<div class="played-cards">卡牌提醒：${escapeHTML(p.cardNotes)}</div>` : ''}</section>`;
 }
 function activeMinorPanel(p) {
   if(!automaticEnabled())return '';
@@ -1085,7 +1086,7 @@ function cardDetailDialog() {
   const c = findHandCard(ui.detailCard)||MAJORS.find(card=>card.id===ui.detailCard);
   if (!c) return '';
   const kind=c.kind||(MAJORS.includes(c)?'major':OCCUPATIONS.includes(c)?'occupation':'minor');
-  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><article class="detail-face farm-card fc-${kind}">${cardFace(c,kind)}</article><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
+  return `<div class="modal-backdrop"><section class="modal card-detail" role="dialog" aria-modal="true" aria-label="卡牌详情"><article class="detail-face farm-card fc-${kind}">${cardFace(c,kind)}${ui.cardReturn==='catalog'?'':cardAbilityControl(c.id)}</article><div class="modal-actions"><button class="primary-btn" data-card-back="1">${ui.cardReturn === 'catalog' ? '返回牌库' : '返回游戏'}</button></div></section></div>`;
 }
 
 function automaticEnabled() { return !!autoRules?.active; }
@@ -1168,10 +1169,21 @@ function automaticChoiceDialog() {
   const card=findHandCard(t.card),owner=game.players[t.seat],mine=t.seat===meIndex();
   return `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-label="自动卡牌效果"><p class="eyebrow">${escapeHTML(t.card||'')} · ${escapeHTML(owner.name)}</p><h2>${escapeHTML(t.type==='feeding'?'喂养家人':card?.name||t.title||'选择附加行动')}</h2>${t.type==='feeding'?`<p>本次需要 <strong>${familyFoodNeed(owner)}</strong> 食物，库存 <strong>${owner.food}</strong> 食物。${owner.food<familyFoodNeed(owner)?`还差 ${familyFoodNeed(owner)-owner.food} 食物，可选择下方兑换。`:'食物已经足够，可以完成喂养。'}</p><p>兑换由你决定，系统不会自动吃掉谷物、蔬菜或牲畜。喂养后才繁殖，每种最多增加 1 只。</p>`:''}${card?`<p>${escapeHTML(card.effect)}</p>`:''}${mine?`<div class="modal-choice many">${t.options.map(o=>`<button class="choice-btn" data-rule-choice="${escapeHTML(o.value)}"><b>${escapeHTML(o.label)}</b>${o.cost?`<small>${autoRules.label(o.cost)||'无费用'}</small>`:''}${o.major?majorRulesMarkup(MAJORS.find(c=>c.id===o.major)):''}</button>`).join('')}</div>`:`<p role="status">等待${escapeHTML(owner.name)}选择，结果会自动同步。</p>`}</section></div>`;
 }
-function automaticAbilityPanel(p) {
+function cardAbilityControl(id, abilities) {
   if(!automaticEnabled())return '';
-  const abilities=autoRules.abilities(p);
-  return abilities.length?`<div class="card-abilities"><h3>随时效果</h3>${abilities.map(t=>`<button class="ghost-btn" data-rule-ability="${t.card}" ${!canControl()?'disabled':''}>${escapeHTML(findHandCard(t.card).name)}</button>`).join('')}</div>`:'';
+  const task=(abilities||autoRules.abilities(game.players[meIndex()],true)).find(t=>t.card===id);
+  if(!task)return '';
+  const available=autoRules.options(task).some(o=>o.value!=='skip');
+  const blocked=!canControl()||!!ui.mode||!!ui.dialog&&ui.dialog!=='cardDetail';
+  const reason=!available?(id==='A071'?'需要有至少 2 个作物的田和一块空田':'当前资源或卡上物品不足'):blocked?'等待你的行动且无待结算效果':'不消耗家人行动';
+  return `<div class="card-activation"><button class="primary-btn" data-rule-ability="${id}" ${available&&!blocked?'':'disabled'}>使用效果</button><small>${reason}</small></div>`;
+}
+function useCardAbility(id) {
+  if(!automaticEnabled()||!canControl()||ui.mode||ui.dialog&&ui.dialog!=='cardDetail')return;
+  if(!autoRules.abilities(game.players[meIndex()]).some(t=>t.card===id)){toast('卡牌效果当前不可用。');return;}
+  ui.dialog=null;ui.cardReturn=null;ui.dockTab='played';ui.handOpen=true;
+  if(room.active)room.submit({type:'ruleAbility',id});
+  else {const error=autoRules.activate(meIndex(),id);if(error)toast(error);}
 }
 function automaticContinue(task) {
   if(task.kind==='base') {
@@ -1386,7 +1398,7 @@ app.addEventListener('click', event => {
   if(d.buildCell!==undefined){selectConstructionCell(Number(d.buildCell));return;}
   if(d.buildConfirm!==undefined){confirmConstruction(d.buildConfirm);return;}
   if(d.ruleChoice) { submitRuleChoice(d.ruleChoice);return; }
-  if(d.ruleAbility) { if(room.active)room.submit({type:'ruleAbility',id:d.ruleAbility});else autoRules.activate(meIndex(),d.ruleAbility);return; }
+  if(d.ruleAbility) { useCardAbility(d.ruleAbility);return; }
   if (d.mobileTab && ['actions', 'farm', 'cards', 'overview'].includes(d.mobileTab)) { ui.mobileTab = d.mobileTab; render(); window.scrollTo({ top: 0, behavior: 'instant' }); }
   else if (d.action) beginAction(availableActions().find(a => a.id === d.action));
   else if (d.special) beginAction({ ...SPECIALS.find(a => a.id === d.special), special: true });

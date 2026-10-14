@@ -773,3 +773,9 @@ body:has(.desk-shell){overflow:hidden}
   .desk-shell .card-dock .hand-card.farm-card{flex-basis:min(70vw,240px)}.desk-shell .card-dock .head-note{font-size:10px}
   .desk-shell .card-dock .major-supply-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Active effects stay attached to their played card. */
+.card-activation{display:grid;gap:6px;margin-top:auto;padding-top:12px;border-top:1px solid #b6a789}
+.card-activation .primary-btn{width:100%;min-height:44px;font-size:14px}
+.card-activation .primary-btn:disabled{opacity:.55;cursor:not-allowed}
+.farm-card .card-activation small{display:block;margin:0;font-size:11px;line-height:1.5;color:#655d4c;text-align:center}

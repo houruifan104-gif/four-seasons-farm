@@ -700,9 +700,10 @@
       return !types||types.some(type=>this.options({type,seat:this.seat(p),batch:type==='room',noRoom:a.ruleOp==='growNoRoom',card:'',optional:false}).length)||a.ruleOp==='sow'&&this.has(p,'A065')&&this.fields(p).some(c=>!c.crop);
     }
 
-    abilities(p) {
+    abilities(p, includeUnavailable=false) {
       const out=[];
       for(const id of this.owns(p)){
+        if(!['A102','B083','A071','B032','B069','B080','B104','B157','A060'].includes(id))continue;
         let offers=[],type='offer',args={};const s=this.state(p,id);
         if(id==='A102'&&s.goods?.length)offers=[{cost:{food:1},gain:{[s.goods[0]]:1},shiftGood:true}];
         if(id==='B083'&&s.goods?.length)offers=[{cost:{clay:1},gain:{[s.goods[0]]:1},shiftGood:true}];
@@ -713,7 +714,7 @@
         if(id==='B104')offers=['boar','veg','stone'].map(k=>({cost:{sheep:1},gain:{[k]:1}}));
         if(id==='B157')offers=['sheep','boar','cattle'].map((k,i)=>({label:`盐渍 1 ${LABELS[k]}，接下来 ${[3,5,7][i]} 轮每轮得 1 食物`,cost:{[k]:1},schedule:[{offsets:Array.from({length:[3,5,7][i]},(_,j)=>j+1),goods:{food:1}}]}));
         if(id==='A060')offers=['veg','sheep','cattle'].map(k=>({cost:{[k]:1},gain:{food:({veg:4,sheep:3,cattle:5})[k]},cooking:true}));
-        const t={seat:this.seat(p),card:id,type,offers,...args,optional:true};if(this.options(t).some(o=>o.value!=='skip'))out.push(t);
+        const t={seat:this.seat(p),card:id,type,offers,...args,optional:true};if(includeUnavailable||this.options(t).some(o=>o.value!=='skip'))out.push(t);
       }
       return out;
     }
