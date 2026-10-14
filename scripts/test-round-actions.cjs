@@ -13,7 +13,7 @@ vm.runInContext(`{
     assert.ok(!actions.some(a=>['hearth','minor'].includes(a.id)),'no simplified stove or standalone minor in original mode');
     for(const action of rounds){const html=actionCard(action);if(action.unlock>round){assert.ok(html.includes('尚未翻开'));assert.ok(!html.includes(action.name));assert.ok(!html.includes(action.detail));assert.ok(!html.includes('data-action'));}else assert.ok(html.includes('data-action="'+action.id+'"'));}
     render();const board=app.innerHTML.split('class="action-board round-board"')[1].split('auxiliary-boards')[0];
-    assert.equal((board.match(/round-card-back/g)||[]).length,14-round);
+    assert.equal((board.match(/round-placeholder/g)||[]).length,14-round);
   }
   assert.equal(JSON.stringify(game.ruleRoundDeck),saved,'rendering never reshuffles a saved deck');
   game.round=1;const hidden=availableActions().find(a=>a.roundSlot===2);assert.ok(executeOnlineCommand(0,{type:'action',id:hidden.id}));

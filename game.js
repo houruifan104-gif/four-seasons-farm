@@ -839,13 +839,20 @@ function resCard([key, label, icon], player) {
 }
 function actionCard(action) {
   const locked = action.unlock > game.round;
-  if(locked&&action.roundSlot)return `<button class="action-card round-card-back" data-round-slot="${action.roundSlot}" disabled aria-label="第 ${action.roundSlot} 轮，阶段 ${roundStage(action.roundSlot)}，尚未翻开"><span class="round-back-stage">阶段 ${roundStage(action.roundSlot)}</span><span class="round-back-mark" aria-hidden="true">✳</span><span class="action-title">第 ${action.roundSlot} 轮</span><span class="action-detail">尚未翻开</span></button>`;
+  if(locked&&action.roundSlot)return `<div class="round-placeholder" data-round-slot="${action.roundSlot}" aria-label="第 ${action.roundSlot} 轮，阶段 ${roundStage(action.roundSlot)}，尚未翻开"><b>${String(action.roundSlot).padStart(2,'0')}</b><span>未开放</span></div>`;
   const occupied = !originalCanOccupy(game.players[meIndex()],action);
   const inactive = room.active && (!room.started || room.paused || room.pending) || game.phase !== 'play' || !canControl() || !!ui.mode || !!ui.dialog;
   const disabled = locked || occupied || inactive || !canAct(game.players[meIndex()], action);
   const badge = locked ? `<span class="unlock-tag">第 ${action.unlock} 轮</span>` : action.kind === 'pile' ? `<span class="action-badge">${game.piles[action.id] || 0}</span>` : '';
   const usedText = occupied ? ` · ${game.occupied[action.id] === meIndex() ? '你' : game.players[game.occupied[action.id]].name}已用` : '';
-  return `<button class="action-card ${action.kind === 'pile' ? ANIMALS[action.key] ? 'animal-card' : 'resource-card' : ''} ${locked ? 'locked' : ''} ${occupied ? 'used' : ''}" data-action="${action.id}" ${disabled ? 'disabled' : ''} aria-label="${action.name}，${action.detail}${usedText}">${action.roundSlot?`<span class="round-stage-tag">阶段 ${roundStage(action.roundSlot)} · 第 ${action.roundSlot} 轮</span>`:''}${badge}<span class="action-icon">${action.icon}</span><span class="action-title">${action.name}</span><span class="action-detail">${action.detail}${usedText}</span>${occupied ? `<span class="worker-token ${game.occupied[action.id] === meIndex() ? 'human' : 'computer'}" aria-hidden="true"></span>` : ''}</button>`;
+  return `<button class="action-card ${action.kind === 'pile' ? ANIMALS[action.key] ? 'animal-card' : 'resource-card' : ''} ${locked ? 'locked' : ''} ${occupied ? 'used' : ''}" data-action="${action.id}" ${disabled ? 'disabled' : ''} aria-label="${action.name}，${action.detail}${usedText}">${action.roundSlot?`<span class="round-stage-tag">第 ${action.roundSlot} 轮</span>`:''}${badge}<span class="action-icon">${action.icon}</span><span class="action-title">${action.name}</span><span class="action-detail">${action.detail}${usedText}</span>${occupied ? `<span class="worker-token ${game.occupied[action.id] === meIndex() ? 'human' : 'computer'}" aria-hidden="true"></span>` : ''}</button>`;
+}
+function roundActionsLayout(actions) {
+  if(!originalMode())return `<div class="action-list">${actions.map(actionCard).join('')}</div>`;
+  return `<div class="round-stages">${ORIGINAL_ROUND_STAGES.map((_,i)=>{
+    const stage=i+1,slots=actions.filter(a=>roundStage(a.roundSlot)===stage),current=roundStage(game.round)===stage;
+    return `<section class="round-stage ${current?'is-current':''} ${stage>roundStage(game.round)?'is-future':''}" aria-label="阶段 ${stage}"><div class="round-stage-label"><b>阶段 ${stage}</b><span>${current?'进行中':stage<roundStage(game.round)?'已开放':`第 ${slots[0]?.roundSlot} 轮起`}</span></div><div class="round-stage-actions">${slots.map(actionCard).join('')}</div></section>`;
+  }).join('')}</div>`;
 }
 function specialCard(special) {
   const used = game.specialUsed[special.id] || [];
@@ -1292,8 +1299,8 @@ function render() {
   const categories = ['basic',...(roundActions.length?['round']:[]),...(expansionActions.length?['expansion']:[]),...(game.settings.moor?['special']:[]),...(seasonAction?['season']:[]),...(alienActions.length?['alien']:[])];
   if(!categories.includes(ui.actionCategory))ui.actionCategory='basic';
   const labels={basic:'基础',round:'轮次',expansion:'扩展',special:'沼泽',season:'四季',alien:'外星'};
-  const actionNav=`<nav class="action-nav" aria-label="行动分类">${categories.map(k=>`<button data-jump="${k}">${labels[k]}</button>`).join('')}</nav>`;
-  const actionsPanel = `<section class="panel actions-panel"><div class="panel-head"><div><p class="eyebrow">THE ACTION BOARD</p><h2>公共行动版图</h2></div><span class="head-note">${actions.filter(a=>a.unlock<=game.round).length} 项已开放 · 棋子标记占用</span></div>${actionNav}<div class="action-boards"><div class="action-board core-board">${section('basic','基础行动','每个家人占用一个行动格',basicActions.map(actionCard).join(''))}</div>${roundActions.length?`<div class="action-board round-board">${section('round','轮次行动',originalMode()?'六阶段 · 每轮开始翻一张':'按轮次逐步开放',roundActions.map(actionCard).join(''))}</div>`:''}${expansionSection?`<div class="action-board extension-board">${expansionSection}</div>`:''}</div>${specialSection||seasonSection||alienSection?`<div class="auxiliary-boards">${specialSection}${seasonSection}${alienSection}</div>`:''}</section>`;
+  const actionNav=`<nav class="action-nav" aria-label="行动分类">${categories.map(k=>`<button data-jump="${k}" aria-pressed="${ui.actionCategory===k}">${labels[k]}</button>`).join('')}</nav>`;
+  const actionsPanel = `<section class="panel actions-panel action-workspace"><div class="panel-head"><div><h2>行动区</h2></div><span class="head-note">${actions.filter(a=>a.unlock<=game.round).length} 项已开放 · 选择一项派工</span></div>${actionNav}<div class="action-boards ${expansionSection?'has-expansion':''}"><div class="action-board core-board">${section('basic','基础行动','每个家人占用一个行动格',basicActions.map(actionCard).join(''))}</div>${roundActions.length?`<div class="action-board round-board"><section class="action-section round-section"><div class="section-title"><h3>轮次行动</h3><span>每轮开放一项，已开放的持续可用</span></div>${roundActionsLayout(roundActions)}</section></div>`:''}${expansionSection?`<div class="action-board extension-board">${expansionSection}</div>`:''}</div>${specialSection||seasonSection||alienSection?`<div class="auxiliary-boards">${specialSection}${seasonSection}${alienSection}</div>`:''}</section>`;
   const pickingCell = !!ui.mode && !ui.mode.choice;
   if (ui.mobileTab === 'cards' && !game.settings.cards && !game.settings.aliens) ui.mobileTab = 'actions';
   const mobileTab = pickingCell ? 'farm' : ui.mobileTab;
